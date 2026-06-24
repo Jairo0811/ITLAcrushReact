@@ -1,10 +1,12 @@
-# ITLA Crush 
+# ITLA Crush
 
-Versión desarrollada con React y Google Firebase
+Aplicación web desarrollada con React, Vite y Google Firebase.
+
+---
 
 ## Información General
 
-**Proyecto:** ITLA Crush React Edition
+**Proyecto:** ITLA Crush
 
 **Materia:** Programación WEB (SOF-011)
 
@@ -23,11 +25,9 @@ Versión desarrollada con React y Google Firebase
 
 ## Descripción del Proyecto
 
-ITLA Crush React Edition es una reconstrucción moderna del proyecto académico "ITLA Crush", desarrollado originalmente para la asignatura Programación WEB.
+ITLA Crush es una aplicación web que permite a los usuarios publicar confesiones y declaraciones dirigidas a otras personas de manera pública, privada o anónima.
 
-La aplicación permite a los estudiantes publicar confesiones y declaraciones de admiración hacia otras personas de manera pública, privada o anónima. El sistema busca proporcionar una experiencia sencilla, segura y amigable para compartir mensajes dentro de la comunidad estudiantil.
-
-Esta nueva versión ha sido rediseñada utilizando tecnologías modernas del ecosistema JavaScript, manteniendo la esencia del proyecto original e incorporando mejoras de arquitectura, seguridad, rendimiento y experiencia de usuario.
+El sistema fue concebido originalmente como proyecto final de la asignatura Programación WEB. Esta versión ha sido rediseñada utilizando tecnologías modernas del ecosistema JavaScript, manteniendo la esencia del proyecto original e incorporando mejoras en arquitectura, seguridad, rendimiento y experiencia de usuario.
 
 ---
 
@@ -107,15 +107,20 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 
 ## Estructura General del Proyecto
 
+```text
 src/
-
-* assets/
-* components/
-* context/
-* pages/
-* routes/
-* services/
-* styles/
+│
+├── assets/
+├── components/
+├── context/
+├── pages/
+├── routes/
+├── services/
+├── styles/
+│
+├── App.jsx
+└── main.jsx
+```
 
 ---
 
@@ -123,22 +128,30 @@ src/
 
 ### Usuario
 
-* uid
-* username
-* firstName
-* lastName
-* email
-* createdAt
+```json
+{
+  "uid": "",
+  "username": "",
+  "firstName": "",
+  "lastName": "",
+  "email": "",
+  "createdAt": ""
+}
+```
 
 ### Confesión
 
-* authorId
-* authorName
-* recipient
-* message
-* isPublic
-* isAnonymous
-* createdAt
+```json
+{
+  "authorId": "",
+  "authorName": "",
+  "recipient": "",
+  "message": "",
+  "isPublic": true,
+  "isAnonymous": false,
+  "createdAt": ""
+}
+```
 
 ---
 
@@ -162,3 +175,112 @@ El sistema permitirá a los usuarios registrarse e iniciar sesión para publicar
 La aplicación proporcionará mecanismos para la consulta de confesiones, filtrado de contenido y administración de la sesión de usuario, utilizando React para el desarrollo del frontend y Firebase como plataforma de autenticación y almacenamiento de datos.
 
 El proyecto busca aplicar los conceptos fundamentales de desarrollo web moderno mediante el uso de componentes reutilizables, navegación dinámica, persistencia de datos en la nube y control de acceso basado en autenticación.
+
+---
+
+## Requisitos Previos
+
+Antes de ejecutar el proyecto, asegúrese de tener instalado:
+
+* Node.js (versión 18 o superior)
+* npm
+* Git
+
+Verificar instalación:
+
+```bash
+node -v
+npm -v
+git --version
+```
+
+---
+
+## Instalación de Dependencias
+
+Abrir una terminal en la carpeta raíz del proyecto y ejecutar:
+
+```bash
+npm install
+```
+
+---
+
+## Dependencias Principales
+
+Instalar dependencias adicionales:
+
+```bash
+npm install react-router-dom firebase
+```
+
+---
+
+## Ejecución del Proyecto
+
+Iniciar el servidor de desarrollo:
+
+```bash
+npm run dev
+```
+
+La aplicación estará disponible en:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## Compilación para Producción
+
+Generar una versión optimizada del proyecto:
+
+```bash
+npm run build
+```
+
+Vista previa local de la compilación:
+
+```bash
+npm run preview
+```
+
+---
+
+## Configuración de Variables de Entorno
+
+Crear un archivo `.env` en la raíz del proyecto:
+
+```env
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+Las credenciales deben obtenerse desde Google Firebase Console.
+
+---
+
+## Control de Versiones
+
+Agregar cambios al repositorio:
+
+```bash
+git add .
+```
+
+Crear un commit:
+
+```bash
+git commit -m "Descripción del cambio"
+```
+
+Enviar cambios a GitHub:
+
+```bash
+git push origin main
+```
