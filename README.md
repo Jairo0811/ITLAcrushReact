@@ -3,7 +3,7 @@
 Aplicación web desarrollada con React, Vite y Google Firebase.
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=react,vite,firebase,js,html,css,git,github,vscode" />
+  <img src="https://skillicons.dev/icons?i=react,vite,firebase,html,css,js,git,github,vscode" />
 </p>
 
 <p align="center">
