@@ -1,14 +1,16 @@
 # 💘 ITLA Crush
 
-Aplicación web desarrollada con **React**, **Vite** y **Google Firebase**.
+Aplicación web desarrollada con React, Vite y Google Firebase.
 
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-Backend-FFCA28?logo=firebase&logoColor=black)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black)
-![Status](https://img.shields.io/badge/Status-In%20Development-success)
-![License](https://img.shields.io/badge/License-Academic-blue)
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=react,vite,firebase,js,html,css,git,github,vscode" />
+</p>
 
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" />
+  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" />
+  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" />
+</p>
 ---
 
 # 📚 Información General
