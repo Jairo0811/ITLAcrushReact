@@ -1,20 +1,27 @@
-# ITLA Crush
+# 💘 ITLA Crush
 
-Aplicación web desarrollada con React, Vite y Google Firebase.
+Aplicación web desarrollada con **React**, **Vite** y **Google Firebase**.
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Backend-FFCA28?logo=firebase&logoColor=black)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black)
+![Status](https://img.shields.io/badge/Status-In%20Development-success)
+![License](https://img.shields.io/badge/License-Academic-blue)
 
 ---
 
-## Información General
+# 📚 Información General
 
-**Proyecto:** ITLA Crush
+**📌 Proyecto:** ITLA Crush
 
-**Materia:** Programación WEB (SOF-011)
+**🎓 Materia:** Programación WEB (SOF-011)
 
-**Cuatrimestre:** 2018-C2
+**📅 Cuatrimestre:** 2018-C2
 
-**Profesor:** Raydelto Hernández Perera
+**👨‍🏫 Profesor:** Raydelto Hernández Perera
 
-### Integrantes del Proyecto Original
+## 👥 Integrantes del Proyecto Original
 
 * Juan Alberty Fernández Durán - 2015-2724
 * Wilmer Vásquez de León - 2015-2946
@@ -23,7 +30,7 @@ Aplicación web desarrollada con React, Vite y Google Firebase.
 
 ---
 
-## Descripción del Proyecto
+# 📝 Descripción del Proyecto
 
 ITLA Crush es una aplicación web que permite a los usuarios publicar confesiones y declaraciones dirigidas a otras personas de manera pública, privada o anónima.
 
@@ -31,13 +38,13 @@ El sistema fue concebido originalmente como proyecto final de la asignatura Prog
 
 ---
 
-## Objetivos
+# 🎯 Objetivos
 
-### Objetivo General
+## 🎯 Objetivo General
 
 Desarrollar una aplicación web interactiva utilizando React y Firebase que permita la publicación y consulta de confesiones de manera pública o privada.
 
-### Objetivos Específicos
+## ✅ Objetivos Específicos
 
 * Implementar autenticación de usuarios.
 * Permitir el registro de nuevos usuarios.
@@ -48,9 +55,9 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 
 ---
 
-## Tecnologías Utilizadas
+# 🛠️ Tecnologías Utilizadas
 
-### Frontend
+## 🎨 Frontend
 
 * React
 * React Router DOM
@@ -58,12 +65,12 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 * HTML5
 * CSS3
 
-### Backend
+## ☁️ Backend
 
 * Firebase Authentication
 * Cloud Firestore
 
-### Herramientas de Desarrollo
+## 💻 Herramientas de Desarrollo
 
 * Vite
 * Visual Studio Code
@@ -72,15 +79,15 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 
 ---
 
-## Funcionalidades Principales
+# 🚀 Funcionalidades Principales
 
-### Usuarios no autenticados
+## 🌎 Usuarios no autenticados
 
 * Visualizar confesiones públicas.
 * Registrarse en la plataforma.
 * Iniciar sesión.
 
-### Usuarios autenticados
+## 🔐 Usuarios autenticados
 
 * Crear confesiones.
 * Visualizar confesiones privadas.
@@ -90,7 +97,7 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 
 ---
 
-## Mejoras Incorporadas Respecto al Proyecto Original
+# ✨ Mejoras Incorporadas Respecto al Proyecto Original
 
 * Interfaz moderna desarrollada con React.
 * Navegación SPA (Single Page Application).
@@ -101,11 +108,11 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 * Dashboard de usuario.
 * Buscador de confesiones.
 * Filtros avanzados.
-* Mejor organización del código mediante componentes reutilizables.
+* Componentes reutilizables.
 
 ---
 
-## Estructura General del Proyecto
+# 📂 Estructura General del Proyecto
 
 ```text
 src/
@@ -124,65 +131,55 @@ src/
 
 ---
 
-## Modelo de Datos
+# 🗄️ Modelo de Datos
 
-### Usuario
+## 👤 Usuario
 
-```json
-{
-  "uid": "",
-  "username": "",
-  "firstName": "",
-  "lastName": "",
-  "email": "",
-  "createdAt": ""
-}
-```
+* uid
+* username
+* firstName
+* lastName
+* email
+* createdAt
 
-### Confesión
+## 💌 Confesión
 
-```json
-{
-  "authorId": "",
-  "authorName": "",
-  "recipient": "",
-  "message": "",
-  "isPublic": true,
-  "isAnonymous": false,
-  "createdAt": ""
-}
-```
+* authorId
+* authorName
+* recipient
+* message
+* isPublic
+* isAnonymous
+* createdAt
 
 ---
 
-## Flujo General del Sistema
+# 🔄 Flujo General del Sistema
 
-1. El usuario accede al sistema.
-2. Puede visualizar confesiones públicas sin autenticarse.
-3. Puede registrarse o iniciar sesión.
-4. Una vez autenticado puede crear confesiones.
-5. La confesión puede ser pública o privada.
-6. La confesión puede ser anónima o identificada.
-7. Los datos son almacenados en Firebase Firestore.
-8. Los usuarios autenticados pueden consultar confesiones privadas.
-
----
-
-## Alcance del Proyecto
-
-El sistema permitirá a los usuarios registrarse e iniciar sesión para publicar declaraciones o confesiones dirigidas a otros usuarios. Las publicaciones podrán configurarse como públicas o privadas, así como mostrarse de forma anónima o identificada.
-
-La aplicación proporcionará mecanismos para la consulta de confesiones, filtrado de contenido y administración de la sesión de usuario, utilizando React para el desarrollo del frontend y Firebase como plataforma de autenticación y almacenamiento de datos.
-
-El proyecto busca aplicar los conceptos fundamentales de desarrollo web moderno mediante el uso de componentes reutilizables, navegación dinámica, persistencia de datos en la nube y control de acceso basado en autenticación.
+1. Acceso al sistema.
+2. Consulta de confesiones públicas.
+3. Registro o inicio de sesión.
+4. Creación de confesiones.
+5. Publicación pública o privada.
+6. Publicación anónima o identificada.
+7. Almacenamiento en Firestore.
+8. Consulta de contenido privado para usuarios autenticados.
 
 ---
 
-## Requisitos Previos
+# 📏 Alcance del Proyecto
 
-Antes de ejecutar el proyecto, asegúrese de tener instalado:
+El sistema permitirá a los usuarios registrarse e iniciar sesión para publicar declaraciones o confesiones dirigidas a otros usuarios.
 
-* Node.js (versión 18 o superior)
+Las publicaciones podrán configurarse como públicas o privadas, así como mostrarse de forma anónima o identificada.
+
+La aplicación utilizará React para el frontend y Firebase para la autenticación y almacenamiento de datos.
+
+---
+
+# ⚙️ Requisitos Previos
+
+* Node.js (18 o superior)
 * npm
 * Git
 
@@ -196,9 +193,7 @@ git --version
 
 ---
 
-## Instalación de Dependencias
-
-Abrir una terminal en la carpeta raíz del proyecto y ejecutar:
+# 📦 Instalación de Dependencias
 
 ```bash
 npm install
@@ -206,9 +201,7 @@ npm install
 
 ---
 
-## Dependencias Principales
-
-Instalar dependencias adicionales:
+# 📚 Dependencias Principales
 
 ```bash
 npm install react-router-dom firebase
@@ -216,15 +209,13 @@ npm install react-router-dom firebase
 
 ---
 
-## Ejecución del Proyecto
-
-Iniciar el servidor de desarrollo:
+# ▶️ Ejecución del Proyecto
 
 ```bash
 npm run dev
 ```
 
-La aplicación estará disponible en:
+Aplicación disponible en:
 
 ```text
 http://localhost:5173
@@ -232,15 +223,13 @@ http://localhost:5173
 
 ---
 
-## Compilación para Producción
-
-Generar una versión optimizada del proyecto:
+# 🏗️ Compilación para Producción
 
 ```bash
 npm run build
 ```
 
-Vista previa local de la compilación:
+Vista previa:
 
 ```bash
 npm run preview
@@ -248,9 +237,9 @@ npm run preview
 
 ---
 
-## Configuración de Variables de Entorno
+# 🔥 Configuración de Firebase
 
-Crear un archivo `.env` en la raíz del proyecto:
+Crear un archivo `.env`:
 
 ```env
 VITE_FIREBASE_API_KEY=
@@ -261,25 +250,23 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
-Las credenciales deben obtenerse desde Google Firebase Console.
-
 ---
 
-## Control de Versiones
+# 🌿 Control de Versiones
 
-Agregar cambios al repositorio:
+Agregar cambios:
 
 ```bash
 git add .
 ```
 
-Crear un commit:
+Crear commit:
 
 ```bash
 git commit -m "Descripción del cambio"
 ```
 
-Enviar cambios a GitHub:
+Enviar cambios:
 
 ```bash
 git push origin main
