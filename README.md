@@ -59,25 +59,48 @@ Desarrollar una aplicación web interactiva utilizando React y Firebase que perm
 
 # 🛠️ Tecnologías Utilizadas
 
-## 🎨 Frontend
+## 🎨 Frontend y diseño de interfaces
 
-* React
-* React Router DOM
-* JavaScript ES6+
-* HTML5
-* CSS3
+<p>
+  <img src="https://skillicons.dev/icons?i=react,js,html,css" alt="React, JavaScript, HTML y CSS" />
+</p>
 
-## ☁️ Backend
+* **React:** construcción de la interfaz mediante componentes reutilizables.
+* **React Router DOM:** navegación SPA y gestión de rutas públicas y privadas.
+* **JavaScript ES6+:** lógica de presentación, estado y validaciones.
+* **HTML5:** estructura semántica de las vistas.
+* **CSS3:** estilos personalizados y diseño responsive.
 
-* Firebase Authentication
-* Cloud Firestore
+## 🔐 Autenticación y servicios
 
-## 💻 Herramientas de Desarrollo
+<p>
+  <img src="https://skillicons.dev/icons?i=firebase" alt="Firebase" />
+</p>
 
-* Vite
-* Visual Studio Code
-* Git
-* GitHub
+* **Firebase Authentication:** registro, inicio de sesión y gestión de sesiones.
+* **Servicios de Firebase:** integración del frontend con la infraestructura cloud.
+* **Variables de entorno:** configuración segura mediante archivos `.env`.
+
+## 🗄️ Base de datos y persistencia
+
+<p>
+  <img src="https://img.shields.io/badge/Cloud%20Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black" alt="Cloud Firestore" />
+</p>
+
+* **Cloud Firestore:** almacenamiento de usuarios, confesiones y metadatos.
+* **Consultas en tiempo real:** lectura y actualización dinámica del contenido.
+* **Modelo NoSQL:** organización documental de usuarios y publicaciones.
+
+## 🧰 Herramientas de desarrollo
+
+<p>
+  <img src="https://skillicons.dev/icons?i=vite,vscode,git,github,npm" alt="Vite, Visual Studio Code, Git, GitHub y npm" />
+</p>
+
+* **Vite:** servidor de desarrollo y compilación optimizada.
+* **npm:** gestión de dependencias y scripts del proyecto.
+* **Visual Studio Code:** entorno principal de desarrollo.
+* **Git y GitHub:** control de versiones, documentación y publicación del repositorio.
 
 ---
 
