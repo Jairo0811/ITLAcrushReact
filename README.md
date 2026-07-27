@@ -1,224 +1,231 @@
 # 💘 ITLA Crush
 
-Aplicación web desarrollada con React, Vite y Google Firebase.
+Aplicación web para publicar y consultar confesiones de forma pública, privada o anónima, desarrollada con **React**, **Vite** y **Google Firebase**.
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=react,vite,firebase,html,css,js,git,github,vscode" />
+  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
+  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
+  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" />
-  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" />
-  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" />
-</p>
 ---
 
-# 📚 Información General
+## 📚 Información general
 
-**📌 Proyecto:** ITLA Crush
+| Campo | Información |
+|---|---|
+| **Proyecto** | ITLA Crush |
+| **Materia** | Programación WEB (SOF-011) |
+| **Cuatrimestre** | 2018-C2 |
+| **Profesor** | Raydelto Hernández Perera |
 
-**🎓 Materia:** Programación WEB (SOF-011)
+### 👥 Integrantes del proyecto original
 
-**📅 Cuatrimestre:** 2018-C2
-
-**👨‍🏫 Profesor:** Raydelto Hernández Perera
-
-## 👥 Integrantes del Proyecto Original
-
-* Juan Alberty Fernández Durán - 2015-2724
-* Wilmer Vásquez de León - 2015-2946
-* Francis Jairo Matías Rosario - 2015-2984
-* Gerson Santos Mateo - 2015-3031
+- Juan Alberty Fernández Durán — 2015-2724
+- Wilmer Vásquez de León — 2015-2946
+- Francis Jairo Matías Rosario — 2015-2984
+- Gerson Santos Mateo — 2015-3031
 
 ---
 
-# 📝 Descripción del Proyecto
+## 📝 Descripción
 
-ITLA Crush es una aplicación web que permite a los usuarios publicar confesiones y declaraciones dirigidas a otras personas de manera pública, privada o anónima.
+ITLA Crush fue concebido originalmente como proyecto final de la asignatura **Programación WEB**.
 
-El sistema fue concebido originalmente como proyecto final de la asignatura Programación WEB. Esta versión ha sido rediseñada utilizando tecnologías modernas del ecosistema JavaScript, manteniendo la esencia del proyecto original e incorporando mejoras en arquitectura, seguridad, rendimiento y experiencia de usuario.
+Esta versión reconstruye el proyecto desde cero con las tecnologías requeridas originalmente por el profesor: **JavaScript ES6, React y Firebase**. Se conserva la idea principal del sistema y se incorporan mejoras de arquitectura, seguridad, rendimiento, mantenibilidad y experiencia de usuario.
 
----
+La aplicación permite publicar declaraciones dirigidas a otros usuarios. Cada confesión puede configurarse como:
 
-# 🎯 Objetivos
-
-## 🎯 Objetivo General
-
-Desarrollar una aplicación web interactiva utilizando React y Firebase que permita la publicación y consulta de confesiones de manera pública o privada.
-
-## ✅ Objetivos Específicos
-
-* Implementar autenticación de usuarios.
-* Permitir el registro de nuevos usuarios.
-* Gestionar confesiones públicas y privadas.
-* Implementar publicaciones anónimas.
-* Proporcionar una interfaz moderna y responsive.
-* Aplicar buenas prácticas de desarrollo frontend.
+- Pública o privada.
+- Anónima o identificada.
+- Dirigida a un usuario registrado o a una persona introducida manualmente.
 
 ---
 
-# 🛠️ Tecnologías Utilizadas
+## 🎯 Objetivos
 
-## 🎨 Frontend y diseño de interfaces
+### Objetivo general
+
+Desarrollar una aplicación web interactiva con React y Firebase que permita registrar usuarios, autenticar sesiones y publicar confesiones públicas, privadas o anónimas.
+
+### Objetivos específicos
+
+- Implementar registro e inicio de sesión.
+- Permitir la consulta pública de confesiones visibles para todos.
+- Restringir el contenido privado a usuarios autenticados.
+- Permitir publicaciones anónimas o identificadas.
+- Validar correctamente los formularios y datos ingresados.
+- Construir una interfaz moderna, responsive y accesible.
+- Organizar el código mediante componentes, servicios y responsabilidades separadas.
+
+---
+
+## 🚀 Funcionalidades principales
+
+### 🌐 Usuarios no autenticados
+
+- Consultar confesiones públicas.
+- Crear una cuenta.
+- Iniciar sesión.
+
+### 🔐 Usuarios autenticados
+
+- Crear confesiones.
+- Consultar confesiones privadas.
+- Seleccionar un destinatario registrado.
+- Introducir manualmente otro destinatario.
+- Publicar de forma anónima.
+- Publicar mostrando su identidad.
+- Cerrar sesión de forma segura.
+
+### ✨ Mejoras planificadas
+
+- Dashboard personalizado.
+- Perfil de usuario.
+- Buscador por destinatario.
+- Filtros por visibilidad y anonimato.
+- Estados de carga y mensajes de error claros.
+- Diseño adaptable a dispositivos móviles.
+- Reglas de seguridad de Firestore.
+- Componentes reutilizables.
+
+---
+
+## 🛠️ Stack tecnológico
+
+### 🎨 Frontend
 
 <p>
   <img src="https://skillicons.dev/icons?i=react,js,html,css" alt="React, JavaScript, HTML y CSS" />
 </p>
 
-* **React:** construcción de la interfaz mediante componentes reutilizables.
-* **React Router DOM:** navegación SPA y gestión de rutas públicas y privadas.
-* **JavaScript ES6+:** lógica de presentación, estado y validaciones.
-* **HTML5:** estructura semántica de las vistas.
-* **CSS3:** estilos personalizados y diseño responsive.
+- **React:** construcción de interfaces mediante componentes reutilizables.
+- **React Router DOM:** navegación SPA y protección de rutas.
+- **JavaScript ES6+:** lógica del cliente, validaciones y gestión del estado.
+- **HTML5:** estructura semántica.
+- **CSS3:** diseño visual y comportamiento responsive.
 
-## 🔐 Autenticación y servicios
+### 🔥 Backend y persistencia
 
 <p>
   <img src="https://skillicons.dev/icons?i=firebase" alt="Firebase" />
 </p>
 
-* **Firebase Authentication:** registro, inicio de sesión y gestión de sesiones.
-* **Servicios de Firebase:** integración del frontend con la infraestructura cloud.
-* **Variables de entorno:** configuración segura mediante archivos `.env`.
+- **Firebase Authentication:** registro, inicio de sesión y administración de sesiones.
+- **Cloud Firestore:** persistencia NoSQL de usuarios y confesiones.
+- **Reglas de seguridad:** control de acceso a los datos almacenados.
+- **Variables de entorno:** configuración segura de las credenciales públicas del proyecto.
 
-## 🗄️ Base de datos y persistencia
-
-<p>
-  <img src="https://img.shields.io/badge/Cloud%20Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black" alt="Cloud Firestore" />
-</p>
-
-* **Cloud Firestore:** almacenamiento de usuarios, confesiones y metadatos.
-* **Consultas en tiempo real:** lectura y actualización dinámica del contenido.
-* **Modelo NoSQL:** organización documental de usuarios y publicaciones.
-
-## 🧰 Herramientas de desarrollo
+### 🧰 Herramientas de desarrollo
 
 <p>
-  <img src="https://skillicons.dev/icons?i=vite,vscode,git,github,npm" alt="Vite, Visual Studio Code, Git, GitHub y npm" />
+  <img src="https://skillicons.dev/icons?i=vite,npm,vscode,git,github" alt="Vite, npm, Visual Studio Code, Git y GitHub" />
 </p>
 
-* **Vite:** servidor de desarrollo y compilación optimizada.
-* **npm:** gestión de dependencias y scripts del proyecto.
-* **Visual Studio Code:** entorno principal de desarrollo.
-* **Git y GitHub:** control de versiones, documentación y publicación del repositorio.
+- **Vite:** servidor de desarrollo y compilación.
+- **npm:** administración de dependencias y scripts.
+- **Visual Studio Code:** entorno de desarrollo recomendado.
+- **Git y GitHub:** control de versiones y publicación del código fuente.
 
 ---
 
-# 🚀 Funcionalidades Principales
-
-## 🌎 Usuarios no autenticados
-
-* Visualizar confesiones públicas.
-* Registrarse en la plataforma.
-* Iniciar sesión.
-
-## 🔐 Usuarios autenticados
-
-* Crear confesiones.
-* Visualizar confesiones privadas.
-* Publicar de forma anónima.
-* Publicar con identidad visible.
-* Gestionar su sesión.
-
----
-
-# ✨ Mejoras Incorporadas Respecto al Proyecto Original
-
-* Interfaz moderna desarrollada con React.
-* Navegación SPA (Single Page Application).
-* Integración con Firebase Authentication.
-* Base de datos en tiempo real mediante Firestore.
-* Diseño responsive para dispositivos móviles.
-* Validaciones de formularios mejoradas.
-* Dashboard de usuario.
-* Buscador de confesiones.
-* Filtros avanzados.
-* Componentes reutilizables.
-
----
-
-# 📂 Estructura General del Proyecto
+## 📂 Arquitectura propuesta
 
 ```text
 src/
-│
 ├── assets/
 ├── components/
+│   ├── common/
+│   ├── confession/
+│   └── layout/
 ├── context/
+├── hooks/
 ├── pages/
 ├── routes/
 ├── services/
 ├── styles/
-│
+├── utils/
 ├── App.jsx
 └── main.jsx
 ```
 
----
+### Responsabilidades principales
 
-# 🗄️ Modelo de Datos
-
-## 👤 Usuario
-
-* uid
-* username
-* firstName
-* lastName
-* email
-* createdAt
-
-## 💌 Confesión
-
-* authorId
-* authorName
-* recipient
-* message
-* isPublic
-* isAnonymous
-* createdAt
+- `components/`: componentes visuales reutilizables.
+- `context/`: estado global relacionado con autenticación.
+- `hooks/`: lógica reutilizable basada en hooks personalizados.
+- `pages/`: vistas asociadas a las rutas de la aplicación.
+- `routes/`: configuración y protección de rutas.
+- `services/`: integración con Firebase y operaciones de datos.
+- `styles/`: variables, estilos globales y utilidades visuales.
+- `utils/`: validaciones, formateadores y funciones auxiliares.
 
 ---
 
-# 🔄 Flujo General del Sistema
+## 🗄️ Modelo de datos propuesto
 
-1. Acceso al sistema.
-2. Consulta de confesiones públicas.
-3. Registro o inicio de sesión.
-4. Creación de confesiones.
-5. Publicación pública o privada.
-6. Publicación anónima o identificada.
-7. Almacenamiento en Firestore.
-8. Consulta de contenido privado para usuarios autenticados.
+### Usuario
 
----
+```json
+{
+  "uid": "firebase-user-id",
+  "username": "usuario",
+  "firstName": "Nombre",
+  "lastName": "Apellido",
+  "email": "usuario@correo.com",
+  "createdAt": "timestamp"
+}
+```
 
-# 📏 Alcance del Proyecto
+### Confesión
 
-El sistema permitirá a los usuarios registrarse e iniciar sesión para publicar declaraciones o confesiones dirigidas a otros usuarios.
-
-Las publicaciones podrán configurarse como públicas o privadas, así como mostrarse de forma anónima o identificada.
-
-La aplicación utilizará React para el frontend y Firebase para la autenticación y almacenamiento de datos.
-
----
-
-# ⚙️ Requisitos Previos
-
-* Node.js (18 o superior)
-* npm
-* Git
-
-Verificar instalación:
-
-```bash
-node -v
-npm -v
-git --version
+```json
+{
+  "authorId": "firebase-user-id",
+  "authorName": "Nombre del autor",
+  "recipientId": "user-id-or-null",
+  "recipientName": "Nombre del destinatario",
+  "message": "Contenido de la confesión",
+  "isPublic": true,
+  "isAnonymous": false,
+  "createdAt": "timestamp"
+}
 ```
 
 ---
 
-# 📦 Instalación de Dependencias
+## 🔄 Flujo general
+
+1. El visitante accede a la aplicación.
+2. Consulta las confesiones públicas sin autenticarse.
+3. Crea una cuenta o inicia sesión.
+4. Selecciona un destinatario registrado o introduce otro nombre.
+5. Redacta la confesión.
+6. Define si será pública o privada.
+7. Define si será anónima o identificada.
+8. La información se almacena en Cloud Firestore.
+9. La aplicación muestra el contenido de acuerdo con la sesión y los permisos del usuario.
+
+---
+
+## ⚙️ Requisitos previos
+
+- Node.js 18 o superior.
+- npm.
+- Una cuenta y un proyecto configurado en Google Firebase.
+
+Comprueba las versiones instaladas:
+
+```bash
+node -v
+npm -v
+```
+
+---
+
+## 📦 Instalación
+
+Desde la carpeta raíz del proyecto, instala las dependencias:
 
 ```bash
 npm install
@@ -226,45 +233,9 @@ npm install
 
 ---
 
-# 📚 Dependencias Principales
+## 🔥 Configuración de Firebase
 
-```bash
-npm install react-router-dom firebase
-```
-
----
-
-# ▶️ Ejecución del Proyecto
-
-```bash
-npm run dev
-```
-
-Aplicación disponible en:
-
-```text
-http://localhost:5173
-```
-
----
-
-# 🏗️ Compilación para Producción
-
-```bash
-npm run build
-```
-
-Vista previa:
-
-```bash
-npm run preview
-```
-
----
-
-# 🔥 Configuración de Firebase
-
-Crear un archivo `.env`:
+Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
 VITE_FIREBASE_API_KEY=
@@ -275,24 +246,57 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
+Las variables se obtienen desde la configuración de la aplicación web creada en Firebase Console.
+
+> El archivo `.env` no debe incluirse en el repositorio. Se recomienda proporcionar un archivo `.env.example` sin valores sensibles.
+
+También será necesario habilitar:
+
+- **Authentication → Email/Password**.
+- **Cloud Firestore**.
+
 ---
 
-# 🌿 Control de Versiones
-
-Agregar cambios:
+## ▶️ Ejecución en desarrollo
 
 ```bash
-git add .
+npm run dev
 ```
 
-Crear commit:
+Vite mostrará en la terminal la dirección local de la aplicación, normalmente:
+
+```text
+http://localhost:5173
+```
+
+---
+
+## 🏗️ Compilación para producción
+
+Generar la versión optimizada:
 
 ```bash
-git commit -m "Descripción del cambio"
+npm run build
 ```
 
-Enviar cambios:
+Probar localmente la compilación generada:
 
 ```bash
-git push origin main
+npm run preview
 ```
+
+---
+
+## 📏 Alcance
+
+El sistema cubrirá el registro y autenticación de usuarios, la creación de confesiones, la selección de destinatarios y la consulta de contenido público o privado según los permisos establecidos.
+
+La reconstrucción mantendrá el propósito académico del proyecto original, pero se desarrollará con una arquitectura modular y una calidad suficiente para ser presentada como proyecto de portafolio.
+
+---
+
+## 🎓 Contexto académico
+
+Proyecto inspirado en la propuesta final de **Programación WEB (SOF-011)** del Instituto Tecnológico de Las Américas, correspondiente al cuatrimestre **2018-C2**.
+
+La nueva implementación busca representar cómo habría quedado ITLA Crush si hubiese sido desarrollado completamente con **React y Firebase**, según las tecnologías indicadas para la asignatura.
