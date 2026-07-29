@@ -10,6 +10,36 @@ Aplicación web para publicar y consultar confesiones de forma pública, privada
 
 ---
 
+## 🎨 Identidad visual
+
+ITLA Crush utiliza una estética moderna con predominio de azul institucional, rosa tecnológico y acentos magenta.
+
+**Concepto visual:**
+
+- Logotipo metálico y tridimensional.
+- Fondo rosado tecnológico de carácter neutro.
+- Elementos gráficos inspirados en circuitos, hexágonos y conectividad.
+- Ícono de conversación con corazón como símbolo principal de la plataforma.
+- Eslogan: **Confiesa. Conecta. Comparte.**
+
+La imagen principal del proyecto se diseñó en formato panorámico **16:9** para su uso como portada del repositorio, presentación y material promocional.
+
+### Paleta de colores propuesta
+
+```css
+:root {
+  --color-primary: #0b3d91;
+  --color-primary-dark: #06255f;
+  --color-secondary: #d62f7f;
+  --color-accent: #ff5fa2;
+  --color-background: #fff4f8;
+  --color-surface: #ffffff;
+  --color-text: #1e293b;
+}
+```
+
+---
+
 ## 📚 Información general
 
 | Campo | Información |
@@ -32,11 +62,11 @@ Aplicación web para publicar y consultar confesiones de forma pública, privada
 
 Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, como parte de una evolución progresiva en el desarrollo de software:
 
-| Orden | Asignatura | Proyecto | Período |
-|---:|---|---|---|
-| 1 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
-| 2 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
-| 3 | Programación WEB | **ITLA Crush** | 2018-C2 |
+| Orden | Código | Asignatura | Proyecto | Período |
+|---:|---|---|---|---|
+| 1 | SOF-004 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
+| 2 | SOF-012 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
+| 3 | SOF-011 | Programación WEB | **ITLA Crush** | 2018-C2 |
 
 Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web. Actualmente están siendo preservados y modernizados como parte del portafolio profesional.
 
