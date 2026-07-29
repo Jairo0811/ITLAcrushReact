@@ -1,12 +1,16 @@
+<div align="center">
+
+<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="420" />
+
 # 💘 ITLA Crush
 
 Aplicación web para publicar y consultar confesiones de forma pública, privada o anónima, desarrollada con **React**, **Vite** y **Google Firebase**.
 
-<p align="center">
-  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
-  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
-  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
-</p>
+<img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
+<img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
+<img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
+
+</div>
 
 ---
 
@@ -32,11 +36,11 @@ Aplicación web para publicar y consultar confesiones de forma pública, privada
 
 Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, como parte de una evolución progresiva en el desarrollo de software:
 
-| Orden | Asignatura | Proyecto | Período |
-|---:|---|---|---|
-| 1 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
-| 2 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
-| 3 | Programación WEB | **ITLA Crush** | 2018-C2 |
+| Orden | Código | Asignatura | Proyecto | Período |
+|---:|---|---|---|---|
+| 1 | SOF-004 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
+| 2 | SOF-012 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
+| 3 | SOF-011 | Programación WEB | **ITLA Crush** | 2018-C2 |
 
 Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web. Actualmente están siendo preservados y modernizados como parte del portafolio profesional.
 
@@ -128,7 +132,7 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 - **Firebase Authentication:** registro, inicio de sesión y administración de sesiones.
 - **Cloud Firestore:** persistencia NoSQL de usuarios y confesiones.
 - **Reglas de seguridad:** control de acceso a los datos almacenados.
-- **Variables de entorno:** configuración segura de las credenciales públicas del proyecto.
+- **Variables de entorno:** configuración segura de Firebase.
 
 ### 🧰 Herramientas de desarrollo
 
@@ -167,11 +171,11 @@ src/
 
 - `components/`: componentes visuales reutilizables.
 - `context/`: estado global relacionado con autenticación.
-- `hooks/`: lógica reutilizable basada en hooks personalizados.
-- `pages/`: vistas asociadas a las rutas de la aplicación.
+- `hooks/`: lógica reutilizable mediante hooks personalizados.
+- `pages/`: vistas asociadas a las rutas.
 - `routes/`: configuración y protección de rutas.
 - `services/`: integración con Firebase y operaciones de datos.
-- `styles/`: variables, estilos globales y utilidades visuales.
+- `styles/`: variables y estilos globales.
 - `utils/`: validaciones, formateadores y funciones auxiliares.
 
 ---
@@ -208,27 +212,11 @@ src/
 
 ---
 
-## 🔄 Flujo general
-
-1. El visitante accede a la aplicación.
-2. Consulta las confesiones públicas sin autenticarse.
-3. Crea una cuenta o inicia sesión.
-4. Selecciona un destinatario registrado o introduce otro nombre.
-5. Redacta la confesión.
-6. Define si será pública o privada.
-7. Define si será anónima o identificada.
-8. La información se almacena en Cloud Firestore.
-9. La aplicación muestra el contenido de acuerdo con la sesión y los permisos del usuario.
-
----
-
 ## ⚙️ Requisitos previos
 
 - Node.js 18 o superior.
 - npm.
 - Una cuenta y un proyecto configurado en Google Firebase.
-
-Comprueba las versiones instaladas:
 
 ```bash
 node -v
@@ -239,7 +227,7 @@ npm -v
 
 ## 📦 Instalación
 
-Desde la carpeta raíz del proyecto, instala las dependencias:
+Desde la carpeta raíz del proyecto:
 
 ```bash
 npm install
@@ -287,15 +275,8 @@ http://localhost:5173
 
 ## 🏗️ Compilación para producción
 
-Generar la versión optimizada:
-
 ```bash
 npm run build
-```
-
-Probar localmente la compilación generada:
-
-```bash
 npm run preview
 ```
 
