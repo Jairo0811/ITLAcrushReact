@@ -28,6 +28,20 @@ Aplicación web para publicar y consultar confesiones de forma pública, privada
 
 ---
 
+## 🧭 Continuidad académica
+
+Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, como parte de una evolución progresiva en el desarrollo de software:
+
+| Orden | Asignatura | Proyecto | Período |
+|---:|---|---|---|
+| 1 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
+| 2 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
+| 3 | Programación WEB | **ITLA Crush** | 2018-C2 |
+
+Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web. Actualmente están siendo preservados y modernizados como parte del portafolio profesional.
+
+---
+
 ## 📝 Descripción
 
 ITLA Crush fue concebido originalmente como proyecto final de la asignatura **Programación WEB**.
