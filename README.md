@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="420" />
+<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="900" />
 
 # 💘 ITLA Crush
 
-Aplicación web para publicar y consultar confesiones de forma pública, privada o anónima, desarrollada con **React**, **Vite** y **Google Firebase**.
+Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
 
 <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
 <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
@@ -14,27 +14,45 @@ Aplicación web para publicar y consultar confesiones de forma pública, privada
 
 ---
 
-## 📚 Información general
+## 📌 Descripción
+
+**ITLA Crush** fue concebido originalmente como proyecto final de la asignatura **Programación WEB (SOF-011)** del Instituto Tecnológico de Las Américas (ITLA).
+
+La aplicación permite a los usuarios publicar declaraciones dirigidas a otras personas. Cada confesión puede configurarse como:
+
+- Pública o privada.
+- Anónima o identificada.
+- Dirigida a un usuario registrado o a una persona introducida manualmente.
+
+Esta reconstrucción se desarrolla desde cero con las tecnologías requeridas originalmente por el profesor: **JavaScript ES6, React y Firebase**. El objetivo es conservar la esencia del proyecto original y llevarlo a un nivel más moderno, mantenible y adecuado para portafolio.
+
+---
+
+## 📚 Información académica
 
 | Campo | Información |
 |---|---|
-| **Proyecto** | ITLA Crush |
-| **Materia** | Programación WEB (SOF-011) |
+| **Institución** | Instituto Tecnológico de Las Américas (ITLA) |
+| **Asignatura** | Programación WEB |
+| **Código** | SOF-011 |
 | **Cuatrimestre** | 2018-C2 |
 | **Profesor** | Raydelto Hernández Perera |
+| **Modalidad** | Proyecto final grupal |
 
 ### 👥 Integrantes del proyecto original
 
-- Juan Alberty Fernández Durán — 2015-2724
-- Wilmer Vásquez de León — 2015-2946
-- Francis Jairo Matías Rosario — 2015-2984
-- Gerson Santos Mateo — 2015-3031
+| Integrante | Matrícula |
+|---|---|
+| Juan Alberty Fernández Durán | 2015-2724 |
+| Wilmer Vásquez de León | 2015-2946 |
+| Francis Jairo Matías Rosario | 2015-2984 |
+| Gerson Santos Mateo | 2015-3031 |
 
 ---
 
 ## 🧭 Continuidad académica
 
-Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, como parte de una evolución progresiva en el desarrollo de software:
+Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, dentro de una evolución progresiva en el desarrollo de software:
 
 | Orden | Código | Asignatura | Proyecto | Período |
 |---:|---|---|---|---|
@@ -42,21 +60,7 @@ Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto H
 | 2 | SOF-012 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
 | 3 | SOF-011 | Programación WEB | **ITLA Crush** | 2018-C2 |
 
-Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web. Actualmente están siendo preservados y modernizados como parte del portafolio profesional.
-
----
-
-## 📝 Descripción
-
-ITLA Crush fue concebido originalmente como proyecto final de la asignatura **Programación WEB**.
-
-Esta versión reconstruye el proyecto desde cero con las tecnologías requeridas originalmente por el profesor: **JavaScript ES6, React y Firebase**. Se conserva la idea principal del sistema y se incorporan mejoras de arquitectura, seguridad, rendimiento, mantenibilidad y experiencia de usuario.
-
-La aplicación permite publicar declaraciones dirigidas a otros usuarios. Cada confesión puede configurarse como:
-
-- Pública o privada.
-- Anónima o identificada.
-- Dirigida a un usuario registrado o a una persona introducida manualmente.
+Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web, y actualmente están siendo preservados y modernizados como parte del portafolio profesional.
 
 ---
 
@@ -147,7 +151,7 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
-## 📂 Arquitectura propuesta
+## 🏗️ Arquitectura propuesta
 
 ```text
 src/
@@ -169,14 +173,16 @@ src/
 
 ### Responsabilidades principales
 
-- `components/`: componentes visuales reutilizables.
-- `context/`: estado global relacionado con autenticación.
-- `hooks/`: lógica reutilizable mediante hooks personalizados.
-- `pages/`: vistas asociadas a las rutas.
-- `routes/`: configuración y protección de rutas.
-- `services/`: integración con Firebase y operaciones de datos.
-- `styles/`: variables y estilos globales.
-- `utils/`: validaciones, formateadores y funciones auxiliares.
+| Carpeta | Responsabilidad |
+|---|---|
+| `components/` | Componentes visuales reutilizables. |
+| `context/` | Estado global relacionado con autenticación. |
+| `hooks/` | Lógica reutilizable mediante hooks personalizados. |
+| `pages/` | Vistas asociadas a las rutas. |
+| `routes/` | Configuración y protección de rutas. |
+| `services/` | Integración con Firebase y operaciones de datos. |
+| `styles/` | Variables y estilos globales. |
+| `utils/` | Validaciones, formateadores y funciones auxiliares. |
 
 ---
 
@@ -212,11 +218,28 @@ src/
 
 ---
 
+## 🔄 Flujo general
+
+1. El visitante accede a la aplicación.
+2. Consulta confesiones públicas sin autenticarse.
+3. Crea una cuenta o inicia sesión.
+4. Selecciona un destinatario registrado o introduce otro nombre.
+5. Redacta la confesión.
+6. Define si será pública o privada.
+7. Define si será anónima o identificada.
+8. La información se almacena en Cloud Firestore.
+9. La aplicación muestra el contenido de acuerdo con la sesión y los permisos del usuario.
+
+---
+
 ## ⚙️ Requisitos previos
 
 - Node.js 18 o superior.
 - npm.
-- Una cuenta y un proyecto configurado en Google Firebase.
+- Una cuenta de Google Firebase.
+- Un proyecto web configurado en Firebase.
+
+Verifica las versiones instaladas:
 
 ```bash
 node -v
@@ -227,7 +250,7 @@ npm -v
 
 ## 📦 Instalación
 
-Desde la carpeta raíz del proyecto:
+Desde la carpeta raíz del proyecto, instala las dependencias:
 
 ```bash
 npm install
@@ -275,8 +298,15 @@ http://localhost:5173
 
 ## 🏗️ Compilación para producción
 
+Generar la versión optimizada:
+
 ```bash
 npm run build
+```
+
+Probar localmente la compilación:
+
+```bash
 npm run preview
 ```
 
