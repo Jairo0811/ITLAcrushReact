@@ -1,7 +1,10 @@
 <div align="center">
 
-<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="900" />
+<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="520" />
 
+<p align="center">
+  <img src="https://img.shields.io/badge/ITLA-2018--C2-0057B8?style=for-the-badge" alt="ITLA 2018-C2">
+</p>
 
 Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
 
