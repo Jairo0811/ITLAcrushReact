@@ -1,42 +1,16 @@
+<div align="center">
+
+<img src="docs/images/itla-crush-banner.jpg" alt="ITLA Crush — Confiesa, conecta y comparte" width="100%" />
+
 # 💘 ITLA Crush
 
 Aplicación web para publicar y consultar confesiones de forma pública, privada o anónima, desarrollada con **React**, **Vite** y **Google Firebase**.
 
-<p align="center">
-  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
-  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
-  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
-</p>
+<img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
+<img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
+<img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
 
----
-
-## 🎨 Identidad visual
-
-ITLA Crush utiliza una estética moderna con predominio de azul institucional, rosa tecnológico y acentos magenta.
-
-**Concepto visual:**
-
-- Logotipo metálico y tridimensional.
-- Fondo rosado tecnológico de carácter neutro.
-- Elementos gráficos inspirados en circuitos, hexágonos y conectividad.
-- Ícono de conversación con corazón como símbolo principal de la plataforma.
-- Eslogan: **Confiesa. Conecta. Comparte.**
-
-La imagen principal del proyecto se diseñó en formato panorámico **16:9** para su uso como portada del repositorio, presentación y material promocional.
-
-### Paleta de colores propuesta
-
-```css
-:root {
-  --color-primary: #0b3d91;
-  --color-primary-dark: #06255f;
-  --color-secondary: #d62f7f;
-  --color-accent: #ff5fa2;
-  --color-background: #fff4f8;
-  --color-surface: #ffffff;
-  --color-text: #1e293b;
-}
-```
+</div>
 
 ---
 
@@ -158,7 +132,7 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 - **Firebase Authentication:** registro, inicio de sesión y administración de sesiones.
 - **Cloud Firestore:** persistencia NoSQL de usuarios y confesiones.
 - **Reglas de seguridad:** control de acceso a los datos almacenados.
-- **Variables de entorno:** configuración segura de las credenciales públicas del proyecto.
+- **Variables de entorno:** configuración segura de Firebase.
 
 ### 🧰 Herramientas de desarrollo
 
@@ -197,11 +171,11 @@ src/
 
 - `components/`: componentes visuales reutilizables.
 - `context/`: estado global relacionado con autenticación.
-- `hooks/`: lógica reutilizable basada en hooks personalizados.
-- `pages/`: vistas asociadas a las rutas de la aplicación.
+- `hooks/`: lógica reutilizable mediante hooks personalizados.
+- `pages/`: vistas asociadas a las rutas.
 - `routes/`: configuración y protección de rutas.
 - `services/`: integración con Firebase y operaciones de datos.
-- `styles/`: variables, estilos globales y utilidades visuales.
+- `styles/`: variables y estilos globales.
 - `utils/`: validaciones, formateadores y funciones auxiliares.
 
 ---
@@ -238,27 +212,11 @@ src/
 
 ---
 
-## 🔄 Flujo general
-
-1. El visitante accede a la aplicación.
-2. Consulta las confesiones públicas sin autenticarse.
-3. Crea una cuenta o inicia sesión.
-4. Selecciona un destinatario registrado o introduce otro nombre.
-5. Redacta la confesión.
-6. Define si será pública o privada.
-7. Define si será anónima o identificada.
-8. La información se almacena en Cloud Firestore.
-9. La aplicación muestra el contenido de acuerdo con la sesión y los permisos del usuario.
-
----
-
 ## ⚙️ Requisitos previos
 
 - Node.js 18 o superior.
 - npm.
 - Una cuenta y un proyecto configurado en Google Firebase.
-
-Comprueba las versiones instaladas:
 
 ```bash
 node -v
@@ -269,7 +227,7 @@ npm -v
 
 ## 📦 Instalación
 
-Desde la carpeta raíz del proyecto, instala las dependencias:
+Desde la carpeta raíz del proyecto:
 
 ```bash
 npm install
@@ -317,15 +275,8 @@ http://localhost:5173
 
 ## 🏗️ Compilación para producción
 
-Generar la versión optimizada:
-
 ```bash
 npm run build
-```
-
-Probar localmente la compilación generada:
-
-```bash
 npm run preview
 ```
 
