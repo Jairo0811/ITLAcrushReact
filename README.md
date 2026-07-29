@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="420" />
+<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="920" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/ITLA-2018--C2-0057B8?style=for-the-badge" alt="ITLA 2018-C2">
