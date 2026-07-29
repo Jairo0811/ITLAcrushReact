@@ -2,7 +2,6 @@
 
 <img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="900" />
 
-# 💘 ITLA Crush
 
 Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
 
