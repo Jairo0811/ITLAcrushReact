@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/itla-crush-banner.jpg" alt="ITLA Crush — Confiesa, conecta y comparte" width="100%" />
+<img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="420" />
 
 # 💘 ITLA Crush
 
