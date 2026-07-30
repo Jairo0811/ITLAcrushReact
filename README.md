@@ -8,9 +8,14 @@
 
 Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
 
-<img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
-<img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
-<img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
+<p align="center">
+  <img src="https://img.shields.io/badge/Estado-En%20desarrollo-2563EB?style=for-the-badge" alt="Estado en desarrollo" />
+  <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
+  <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
+  <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
+</p>
+
+> Estado actual: **reconstrucción en desarrollo**. La arquitectura, el modelo funcional y la documentación base están definidos; la implementación completa de autenticación, confesiones, seguridad y experiencia de usuario continúa pendiente.
 
 </div>
 
@@ -84,7 +89,31 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
-## 🚀 Funcionalidades principales
+## 🚦 Estado del proyecto
+
+| Área | Estado |
+|---|---|
+| Definición funcional y alcance | ✅ Completados |
+| Stack tecnológico | ✅ Definido |
+| Arquitectura propuesta | ✅ Documentada |
+| Modelo de datos | ✅ Propuesto |
+| Identidad visual y documentación | ✅ Disponibles |
+| Configuración base de React y Vite | 🚧 En desarrollo |
+| Firebase Authentication | 🚧 Pendiente de completar |
+| Cloud Firestore | 🚧 Pendiente de completar |
+| Publicación de confesiones | 🚧 Pendiente de completar |
+| Visibilidad pública y privada | 🚧 Pendiente de completar |
+| Anonimato e identificación | 🚧 Pendiente de completar |
+| Reglas de seguridad de Firestore | 🚧 Pendientes |
+| Dashboard y perfil | 🚧 Planificados |
+| Pruebas automatizadas | 🚧 Pendientes |
+| Preparación para producción | 🚧 Pendiente |
+
+El repositorio debe considerarse **en desarrollo** hasta completar el flujo funcional principal, las reglas de seguridad, las pruebas y la validación para producción.
+
+---
+
+## 🚀 Funcionalidades previstas
 
 ### 🌐 Usuarios no autenticados
 
@@ -220,7 +249,7 @@ src/
 
 ---
 
-## 🔄 Flujo general
+## 🔄 Flujo general previsto
 
 1. El visitante accede a la aplicación.
 2. Consulta confesiones públicas sin autenticarse.
