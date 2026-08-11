@@ -59,15 +59,19 @@ Esta reconstrucción se desarrolla desde cero con las tecnologías requeridas or
 
 ## 🧭 Continuidad académica
 
-Programación WEB fue la tercera asignatura cursada con el profesor **Raydelto Hernández Perera**, dentro de una evolución progresiva en el desarrollo de software:
+**ITLA Crush** representa la tercera etapa de una trayectoria académica de tres asignaturas cursadas con el profesor **Raydelto Hernández Perera** en el Instituto Tecnológico de Las Américas (ITLA). La relación entre estos proyectos es **formativa y cronológica**: cada uno corresponde a una asignatura y propósito diferentes, por lo que no constituyen dependencias técnicas ni secuelas funcionales de una misma aplicación.
 
-| Orden | Código | Asignatura | Proyecto | Período |
-|---:|---|---|---|---|
-| 1 | SOF-004 | Programación II | [Eventix](https://github.com/Jairo0811/Eventix) | 2017-C2 |
-| 2 | SOF-012 | Estructuras de Datos | [Aerolinea](https://github.com/Jairo0811/Aerolinea) | 2018-C1 |
-| 3 | SOF-011 | Programación WEB | **ITLA Crush** | 2018-C2 |
+La trayectoria comenzó en **2017-C2** con **Programación II (SOF-004)** y [**Eventix**](https://github.com/Jairo0811/Eventix). Continuó en **2018-C1** con **Estructuras de Datos (SOF-012)** y [**Aerolinea**](https://github.com/Jairo0811/Aerolinea), y culminó en **2018-C2** con **Programación WEB (SOF-011)**, donde ITLA Crush fue planteado como proyecto final.
 
-Estos proyectos representan una secuencia académica enfocada en programación, estructuras de datos y desarrollo web, y actualmente están siendo preservados y modernizados como parte del portafolio profesional.
+| Orden | Código | Asignatura | Proyecto | Período | Enfoque académico |
+|---:|---|---|---|---|---|
+| 1 | SOF-004 | Programación II | [**Eventix**](https://github.com/Jairo0811/Eventix) | 2017-C2 | Programación orientada a objetos, lógica de negocio y construcción de una aplicación completa |
+| 2 | SOF-012 | Estructuras de Datos | [**Aerolinea**](https://github.com/Jairo0811/Aerolinea) | 2018-C1 | Estructuras de datos, modelado de relaciones y resolución de rutas |
+| 3 | SOF-011 | Programación WEB | **ITLA Crush** | 2018-C2 | Desarrollo web, JavaScript, React, Firebase y experiencia de usuario basada en interacción social |
+
+Vistos en conjunto, los tres proyectos documentan una progresión desde aplicaciones orientadas a objetos, pasando por estructuras y algoritmos, hasta el desarrollo web moderno. ITLA Crush cierra esa trayectoria trasladando el aprendizaje hacia una aplicación web interactiva con autenticación, persistencia en la nube y componentes reutilizables.
+
+Cada repositorio conserva su identidad académica original y, cuando aplica, incorpora una restauración o modernización posterior orientada a estándares profesionales y portafolio.
 
 ---
 
