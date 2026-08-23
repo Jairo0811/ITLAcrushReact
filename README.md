@@ -329,6 +329,22 @@ Vite mostrará en la terminal la dirección local de la aplicación, normalmente
 http://localhost:5173
 ```
 
+### 📱 Acceso desde un móvil en la red local
+
+El servidor de Vite está configurado para escuchar en `0.0.0.0:5173`. Con la PC y el móvil conectados a la misma red Wi-Fi/LAN:
+
+1. Obtén la IPv4 de la PC con `ipconfig` en Windows.
+2. Mantén `npm run dev` ejecutándose.
+3. Abre en el navegador del móvil `http://<IP-DE-LA-PC>:5173`.
+
+Ejemplo:
+
+```text
+http://192.168.1.50:5173
+```
+
+Si Windows solicita acceso de firewall para Node.js, permite únicamente redes privadas.
+
 ---
 
 ## 🏗️ Compilación para producción
