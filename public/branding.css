@@ -1,0 +1,44 @@
+.brand-logo {
+  display: block;
+  width: 190px;
+  aspect-ratio: 2 / 1;
+  min-width: 0;
+  background: url('/itla-crush-logo.webp') center / contain no-repeat;
+  filter: drop-shadow(0 0 16px rgba(69, 115, 255, 0.22)) drop-shadow(0 0 14px rgba(255, 47, 146, 0.18));
+}
+
+.brand-logo > * {
+  display: none !important;
+}
+
+.brand-logo--compact {
+  width: 165px;
+}
+
+.landing-nav .brand-logo--compact {
+  width: 175px;
+}
+
+.hero-phone .brand-logo {
+  width: 150px;
+  margin: 0 auto 12px;
+}
+
+.app-sidebar .brand-logo {
+  width: 185px;
+}
+
+.auth-card .brand-logo {
+  width: 220px;
+  margin-inline: auto;
+}
+
+@media (max-width: 620px) {
+  .landing-nav .brand-logo--compact {
+    width: 145px;
+  }
+
+  .auth-card .brand-logo {
+    width: 190px;
+  }
+}
