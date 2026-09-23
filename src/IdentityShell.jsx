@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import App from './App.jsx'
+import LegalPage from './LegalPage.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import './App.css'
@@ -15,31 +16,61 @@ function BrandLogo() {
   )
 }
 
+function MicrosoftMark() {
+  return <span aria-hidden="true"><i /><i /><i /><i /></span>
+}
+
 function AuthPage({ mode }) {
   const isLogin = mode === 'login'
-  const { user, login, register, error, isConfigured } = useAuth()
+  const { user, login, loginMicrosoft, register, error, isConfigured } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [localError, setLocalError] = useState('')
 
   if (user) return <Navigate to="/app" replace />
 
+  const finishAuth = () => navigate(location.state?.from || '/app', { replace: true })
+
   const submit = async (event) => {
     event.preventDefault()
     setLocalError('')
-    setSubmitting(true)
 
+    if (!isLogin && !acceptedTerms) {
+      setLocalError('Debes aceptar los Términos de Uso y las Normas de la Comunidad.')
+      return
+    }
+
+    setSubmitting(true)
     try {
       if (isLogin) {
         await login({ email, password })
       } else {
-        await register({ displayName, email, password })
+        await register({ displayName, email, password, acceptTerms: acceptedTerms })
       }
-      navigate(location.state?.from || '/app', { replace: true })
+      finishAuth()
+    } catch (submitError) {
+      setLocalError(submitError.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const microsoftSignIn = async () => {
+    setLocalError('')
+    if (!acceptedTerms) {
+      setLocalError('Para continuar con Microsoft, confirma que aceptas los Términos de Uso y las Normas de la Comunidad.')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await loginMicrosoft({ acceptTerms: true })
+      finishAuth()
     } catch (submitError) {
       setLocalError(submitError.message)
     } finally {
@@ -81,16 +112,41 @@ function AuthPage({ mode }) {
             <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="••••••••" autoComplete={isLogin ? 'current-password' : 'new-password'} required minLength="8" />
           </label>
           {isLogin && <Link className="auth-forgot" to="/recuperar">¿Olvidaste tu contraseña?</Link>}
-          <button className="button button--primary auth-submit" disabled={submitting || !isConfigured}>
+          {!isLogin && (
+            <label className="terms-check">
+              <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
+              <span>He leído y acepto los <Link to="/terminos">Términos de Uso</Link>, la <Link to="/privacidad">Política de Privacidad</Link> y las <Link to="/normas">Normas de la Comunidad</Link>.</span>
+            </label>
+          )}
+          <button className="button button--primary auth-submit" disabled={submitting || !isConfigured || (!isLogin && !acceptedTerms)}>
             {submitting ? 'Conectando…' : isLogin ? 'Iniciar sesión →' : 'Crear cuenta →'}
           </button>
         </form>
+
+        <div className="auth-divider">o continúa con</div>
+
+        {isLogin && (
+          <label className="terms-check">
+            <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
+            <span>Al usar Microsoft confirmo que acepto los <Link to="/terminos">Términos</Link>, la <Link to="/privacidad">Privacidad</Link> y las <Link to="/normas">Normas</Link>.</span>
+          </label>
+        )}
+
+        <button type="button" className="button microsoft-button" onClick={microsoftSignIn} disabled={submitting || !isConfigured || !acceptedTerms}>
+          <MicrosoftMark /> Continuar con Microsoft
+        </button>
 
         <div className="auth-switch">
           {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
           <Link to={isLogin ? '/registro' : '/login'}>{isLogin ? 'Regístrate' : 'Inicia sesión'}</Link>
         </div>
-        <small className="auth-note">Firebase Authentication + sesión persistente local.</small>
+
+        <div className="auth-legal-links">
+          <Link to="/terminos">Términos</Link>
+          <Link to="/privacidad">Privacidad</Link>
+          <Link to="/normas">Normas de la Comunidad</Link>
+        </div>
+        <small className="auth-note">Tu identidad puede ocultarse ante la comunidad, pero no ante los controles internos de seguridad y moderación.</small>
       </section>
     </div>
   )
@@ -182,6 +238,10 @@ export default function IdentityShell() {
   if (location.pathname === '/login') return <AuthPage mode="login" />
   if (location.pathname === '/registro') return <AuthPage mode="register" />
   if (location.pathname === '/recuperar') return <PasswordResetPage />
+  if (location.pathname === '/terminos') return <LegalPage focus="terminos" />
+  if (location.pathname === '/privacidad') return <LegalPage focus="privacidad" />
+  if (location.pathname === '/normas') return <LegalPage focus="comunidad" />
+  if (location.pathname === '/legal') return <LegalPage />
   if (location.pathname === '/perfil') return <ProtectedRoute><ProfilePage /></ProtectedRoute>
 
   if (location.pathname === '/app' || location.pathname === '/crear') {
