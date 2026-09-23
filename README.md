@@ -3,7 +3,7 @@
 <img src="docs/images/itla-crush-banner.png" alt="ITLA Crush — Confiesa, conecta y comparte" width="720" />
 
 <p align="center">
-  <img src="https://img.shields.io/badge/ITLA-2018--C2-0057B8?style=for-the-badge" alt="ITLA 2018-C2">
+  <img src="https://img.shields.io/badge/ITLA-SOF--011-0057B8?style=for-the-badge" alt="ITLA SOF-011">
 </p>
 
 Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
@@ -13,6 +13,12 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
   <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
   <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/Jairo0811/ITLAcrushReact/actions/workflows/ci.yml">
+    <img src="https://github.com/Jairo0811/ITLAcrushReact/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
 </p>
 
 > Estado actual: **reconstrucción en desarrollo**. La arquitectura, el modelo funcional y la documentación base están definidos; la implementación completa de autenticación, confesiones, seguridad y experiencia de usuario continúa pendiente.
@@ -35,7 +41,7 @@ Esta reconstrucción se desarrolla desde cero con las tecnologías requeridas or
 
 ---
 
-## 📚 Información académica
+## 🎓 Información académica
 
 | Campo | Información |
 |---|---|
@@ -46,14 +52,14 @@ Esta reconstrucción se desarrolla desde cero con las tecnologías requeridas or
 | **Profesor** | Raydelto Hernández Perera |
 | **Modalidad** | Proyecto final grupal |
 
-### 👥 Integrantes del proyecto original
+### 👥 Equipo académico original
 
-| Integrante | Matrícula |
+| 👤 Integrante | 🆔 Matrícula |
 |---|---|
-| Juan Alberty Fernández Durán | 2015-2724 |
-| Wilmer Vásquez de León | 2015-2946 |
-| Francis Jairo Matías Rosario | 2015-2984 |
-| Gerson Santos Mateo | 2015-3031 |
+| 👨🏻‍💻 Juan Alberty Fernández Durán | 2015-2724 |
+| 👨🏻‍💻 Wilmer Vásquez de León | 2015-2946 |
+| 👨🏻‍💻 Francis Jairo Matías Rosario | 2015-2984 |
+| 👨🏻‍💻 Gerson Santos Mateo | 2015-3031 |
 
 ---
 
@@ -148,7 +154,7 @@ El repositorio debe considerarse **en desarrollo** hasta completar el flujo func
 
 ---
 
-## 🛠️ Stack tecnológico
+## 🧱 Stack tecnológico
 
 ### 🎨 Frontend
 
