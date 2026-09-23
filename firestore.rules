@@ -13,16 +13,28 @@ service cloud.firestore {
     match /users/{uid} {
       allow create: if isOwner(uid)
         && request.resource.data.keys().hasOnly([
-          'uid', 'displayName', 'email', 'role', 'status', 'createdAt', 'updatedAt'
+          'uid', 'displayName', 'email', 'role', 'status', 'authProvider',
+          'termsVersion', 'termsAcceptedAt', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.uid == uid
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.role == 'student'
-        && request.resource.data.status == 'active';
+        && request.resource.data.status == 'active'
+        && request.resource.data.authProvider in ['password', 'microsoft.com']
+        && request.resource.data.termsVersion == '2026-09-23'
+        && request.resource.data.termsAcceptedAt != null;
 
       allow read: if isOwner(uid);
 
       allow update: if isOwner(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.authProvider == resource.data.authProvider
+        && request.resource.data.termsVersion == resource.data.termsVersion
+        && request.resource.data.termsAcceptedAt == resource.data.termsAcceptedAt
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'displayName', 'updatedAt'
         ]);
