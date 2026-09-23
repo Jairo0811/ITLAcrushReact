@@ -4,6 +4,7 @@ import {
   getAuthErrorMessage,
   getUserProfile,
   loginUser,
+  loginWithMicrosoft,
   logoutUser,
   observeAuth,
   registerUser,
@@ -90,6 +91,16 @@ export function AuthProvider({ children }) {
     [loadProfile, runAuthAction],
   )
 
+  const loginMicrosoft = useCallback(
+    async (payload) => runAuthAction(async () => {
+      const firebaseUser = await loginWithMicrosoft(payload)
+      setUser(firebaseUser)
+      await loadProfile(firebaseUser)
+      return firebaseUser
+    }),
+    [loadProfile, runAuthAction],
+  )
+
   const logout = useCallback(
     async () => runAuthAction(async () => {
       await logoutUser()
@@ -112,10 +123,11 @@ export function AuthProvider({ children }) {
     isConfigured: isFirebaseConfigured,
     register,
     login,
+    loginMicrosoft,
     logout,
     sendPasswordReset,
     refreshProfile: () => loadProfile(user),
-  }), [error, loadProfile, loading, login, logout, profile, register, sendPasswordReset, user])
+  }), [error, loadProfile, loading, login, loginMicrosoft, logout, profile, register, sendPasswordReset, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
