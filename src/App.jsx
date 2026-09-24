@@ -137,7 +137,7 @@ function LandingPage() {
         <section className="stats-panel glass-card" id="comunidad">
           <div><strong>+10K</strong><span>Confesiones compartidas</span></div>
           <div><strong>+5K</strong><span>Conexiones reales</span></div>
-          <div><strong>100%</strong><span>Control sobre tu identidad</span></div>
+          <div><strong>Privacidad</strong><span>Anonimato público con trazabilidad interna</span></div>
           <div className="stats-panel__highlight"><strong>La comunidad que se atreve ♡</strong></div>
         </section>
 
@@ -173,7 +173,7 @@ function AppSidebar() {
     ['/app', '♢', 'Notificaciones'],
     ['/app', '♡', 'Guardados'],
     ['/app', '♥', 'Favoritos'],
-    ['/app', '◯', 'Mi Perfil'],
+    ['/perfil', '◯', 'Mi Perfil'],
   ]
   return (
     <aside className="app-sidebar">
@@ -259,8 +259,8 @@ function CreateConfessionPage() {
             <label><span>Para…</span><input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
             <label><span>Tu confesión…</span><textarea value={message} maxLength="500" onChange={(event) => setMessage(event.target.value)} placeholder="Escribe aquí tu mensaje…"/><small>{message.length}/500</small></label>
             <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Solo la persona podrá verlo</small></div><button type="button" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
-            <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad será oculta</small></div><button type="button" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
-            <button className="button button--primary publish-button" disabled={!message.trim()}>↗ Publicar Confesión</button>
+            <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad se oculta ante otros usuarios</small></div><button type="button" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
+            {isAnonymous && <div className="anonymous-disclosure"><strong>🕶️ Anónimo para la comunidad, no para la plataforma.</strong>ITLA Crush conserva internamente la asociación con tu cuenta para seguridad, moderación y cumplimiento legal. <Link to="/privacidad">Conoce cómo funciona.</Link></div>}\n            <button className="button button--primary publish-button" disabled={!message.trim()}>↗ Publicar Confesión</button>
           </form>
         )}
       </div>
