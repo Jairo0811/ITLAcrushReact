@@ -40,10 +40,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      setLoading(false)
-      return undefined
-    }
+    if (!isFirebaseConfigured) return undefined
 
     const unsubscribe = observeAuth(async (firebaseUser) => {
       try {
@@ -67,7 +64,7 @@ export function AuthProvider({ children }) {
     } catch (actionError) {
       const message = getAuthErrorMessage(actionError)
       setError(message)
-      throw new Error(message)
+      throw new Error(message, { cause: actionError })
     }
   }, [])
 
@@ -132,6 +129,8 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// The hook intentionally shares this module with the provider so both use the same context instance.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) throw new Error('useAuth debe utilizarse dentro de AuthProvider.')
