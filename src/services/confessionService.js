@@ -16,9 +16,18 @@ const MAX_CONFESSION_LENGTH = 500
 const MAX_RECIPIENT_LENGTH = 80
 const MAX_TAGS = 6
 
-function normalizeTags(text) {
-  const matches = text.match(/#[\p{L}\p{N}_]+/gu) ?? []
-  return [...new Set(matches.map((tag) => tag.slice(0, 40)))].slice(0, MAX_TAGS)
+function normalizeTags(text, topicTag = '') {
+  const source = `${text} ${topicTag || ''}`
+  const matches = source.match(/#[\p{L}\p{N}_]+/gu) ?? []
+  const deduped = new Map()
+
+  for (const rawTag of matches) {
+    const tag = rawTag.slice(0, 40)
+    const key = tag.toLocaleLowerCase('es')
+    if (!deduped.has(key)) deduped.set(key, tag)
+  }
+
+  return [...deduped.values()].slice(0, MAX_TAGS)
 }
 
 function mapConfession(snapshot) {
@@ -94,6 +103,7 @@ export async function createConfession({
   message,
   visibility = 'public',
   isAnonymous = true,
+  topicTag = '',
 }) {
   if (!user) throw new Error('Debes iniciar sesión para publicar.')
 
@@ -117,7 +127,7 @@ export async function createConfession({
     isAnonymous,
     authorDisplayName: isAnonymous ? '' : (profile?.displayName || user.displayName || 'Estudiante'),
     authorProgram: isAnonymous ? '' : (profile?.program || ''),
-    tags: normalizeTags(text),
+    tags: normalizeTags(text, topicTag),
     status: 'active',
     likeCount: 0,
     commentCount: 0,

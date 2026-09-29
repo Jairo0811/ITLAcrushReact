@@ -261,3 +261,156 @@
   .legal-grid { grid-template-columns: 1fr; }
   .legal-header { align-items: center; }
 }
+
+
+/* 2026 Institutional Tech Refresh — Legal */
+.legal-header {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(73, 164, 219, .12);
+}
+
+.legal-hero,
+.legal-card,
+.legal-law,
+.legal-nav {
+  border-radius: 12px;
+}
+
+.legal-hero {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(76, 167, 222, .2);
+  background:
+    linear-gradient(115deg, rgba(6, 24, 41, .96), rgba(9, 42, 67, .9));
+}
+
+.legal-hero::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: linear-gradient(180deg, #2593bf, #ff3b94);
+}
+
+.legal-kicker {
+  color: #78cae7;
+  font-family: "Cascadia Code", Consolas, monospace;
+  letter-spacing: .16em;
+}
+
+.legal-hero > p,
+.legal-card > p,
+.legal-law p {
+  color: #b8c4d1;
+}
+
+.legal-highlight {
+  border-radius: 8px;
+  border-color: rgba(78, 170, 222, .23);
+  background: rgba(7, 30, 49, .62);
+}
+
+.legal-highlight strong,
+.legal-nav a,
+.legal-footer a,
+.terms-check a,
+.auth-legal-links a,
+.anonymous-disclosure a {
+  color: #75cbe9;
+}
+
+.legal-nav {
+  border-color: rgba(73, 163, 218, .15);
+  background: rgba(6, 22, 38, .78);
+}
+
+.legal-nav a {
+  border-radius: 6px;
+  background: rgba(13, 46, 73, .54);
+}
+
+.legal-card,
+.legal-law {
+  border-color: rgba(73, 164, 219, .16);
+  background:
+    linear-gradient(180deg, rgba(9, 26, 43, .94), rgba(5, 16, 28, .96));
+}
+
+.legal-card--focus {
+  border-color: rgba(93, 191, 231, .46);
+  box-shadow: inset 2px 0 0 #ff3b94, 0 16px 38px rgba(0, 8, 24, .18);
+}
+
+.legal-icon {
+  border-radius: 8px;
+  color: #72c8e8;
+  border-color: rgba(72, 167, 220, .24);
+  background: rgba(37, 147, 191, .08);
+}
+
+.landing-footer,
+.legal-footer {
+  color: #8fa1b2;
+  border-top-color: rgba(75, 165, 220, .11);
+}
+
+.landing-footer a { color: #b8c6d4; }
+
+.terms-check input {
+  accent-color: #1688ba;
+}
+
+.anonymous-disclosure {
+  border-radius: 8px;
+  border-color: rgba(226, 34, 41, .2);
+  background: rgba(125, 25, 36, .08);
+  color: #d8c7c9;
+}
+
+.anonymous-disclosure strong {
+  color: #f2b7bb;
+}
+
+
+/* Crush palette restoration — legal surfaces */
+.legal-header { border-bottom-color: rgba(255,94,179,.11); }
+.legal-hero {
+  border-color: rgba(255,94,179,.2);
+  background: linear-gradient(115deg, rgba(39,12,52,.96), rgba(72,16,74,.9));
+}
+.legal-hero::before { background: linear-gradient(180deg, #8a63ff, #ff3b94); }
+.legal-kicker { color: #ff79bd; }
+.legal-hero > p,
+.legal-card > p,
+.legal-law p { color: #c7b5d0; }
+.legal-highlight {
+  border-color: rgba(255,85,172,.26);
+  background: rgba(69,18,69,.5);
+}
+.legal-highlight strong,
+.legal-nav a,
+.legal-footer a,
+.terms-check a,
+.auth-legal-links a,
+.anonymous-disclosure a { color: #ff7bc2; }
+.legal-nav {
+  border-color: rgba(255,91,180,.14);
+  background: rgba(31,10,43,.74);
+}
+.legal-nav a { background: rgba(68,21,77,.5); }
+.legal-card,
+.legal-law {
+  border-color: rgba(255,91,180,.16);
+  background: linear-gradient(180deg, rgba(42,15,58,.94), rgba(20,8,32,.96));
+}
+.legal-card--focus {
+  border-color: rgba(255,84,169,.5);
+  box-shadow: inset 2px 0 0 #ff3b94, 0 16px 38px rgba(70,0,56,.16);
+}
+.legal-icon {
+  color: #ff78be;
+  border-color: rgba(255,79,165,.24);
+  background: rgba(255,47,146,.08);
+}

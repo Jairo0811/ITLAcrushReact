@@ -99,6 +99,31 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
+## 🎨 Sistema visual
+
+La interfaz fue refinada con un lenguaje **tecnológico y académico** sin perder la identidad visual original: magenta, violeta y navy siguen siendo la base de ITLA Crush, mientras la modernización se concentra en geometría más técnica, menor dependencia de glassmorphism y metadatos en tipografía monoespaciada.
+
+La guía completa está en [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
+---
+
+## 🔥 Temas de la comunidad
+
+Los temas ya no son contenido decorativo ni una lista hardcodeada. Se generan a partir de los hashtags reales presentes en las confesiones públicas cargadas en el feed.
+
+- Al crear una confesión se puede seleccionar un tema sugerido.
+- El tema seleccionado se persiste dentro de `tags`, sin duplicar el texto de la confesión.
+- Los hashtags escritos manualmente también participan como temas.
+- El panel lateral muestra únicamente temas que tienen publicaciones reales.
+- Cada tema muestra cuántas confesiones visibles lo utilizan.
+- Al seleccionar un tema, el feed se filtra por ese hashtag.
+- Los hashtags dentro de las tarjetas también funcionan como filtros.
+- Si no existen temas activos, la interfaz muestra un estado vacío en lugar de datos ficticios.
+
+Los temas sugeridos actuales son `#AmorITLA`, `#VidaITLA`, `#Biblioteca`, `#CrushSecreto` e `#IngenieríaDelAmor`; cualquier otro hashtag utilizado por la comunidad puede aparecer dinámicamente.
+
+---
+
 ## 🧪 Demo vs aplicación real
 
 Para evitar confusiones entre contenido de ejemplo y datos reales, el proyecto separa explícitamente ambos entornos:
