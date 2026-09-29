@@ -39,9 +39,9 @@ test('Firestore conserva deny-by-default y controles administrativos/sociales', 
   assert.match(rules, /allow read, write: if false;/)
   assert.match(rules, /function isActiveUser\(\)/)
   assert.match(rules, /function isAdmin\(\)/)
-  assert.match(rules, /match \/adminAuditLogs\/)
-  assert.match(rules, /match \/socialActivity\/)
-  assert.match(rules, /match \/savedConfessions\/)
+  assert.ok(rules.includes('match /adminAuditLogs/{auditId}'))
+  assert.ok(rules.includes('match /socialActivity/{activityId}'))
+  assert.ok(rules.includes('match /savedConfessions/{savedId}'))
 })
 
 test('Firebase Hosting mantiene fallback SPA y cabeceras mínimas', () => {
