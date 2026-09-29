@@ -38,6 +38,20 @@ Cada tarjeta puede compartir una URL como:
 
 Se usa Web Share API cuando el navegador la soporta y, en caso contrario, se copia el enlace al portapapeles.
 
+### Temas de la comunidad
+
+Los temas se apoyan en los hashtags almacenados en `confessions.tags`.
+
+- El formulario de publicación ofrece una taxonomía sugerida de temas.
+- Seleccionar un tema añade su hashtag a `tags` sin alterar el texto escrito por el usuario.
+- Los hashtags escritos manualmente siguen siendo válidos.
+- El panel lateral calcula los temas activos a partir de confesiones públicas reales y los ordena por número de publicaciones.
+- No se muestran temas con contador ficticio.
+- Un clic en un tema o hashtag filtra el feed.
+- Si no hay hashtags reales en el feed, se muestra un estado vacío.
+
+La taxonomía sugerida vive en `src/data/communityTopics.js`, mientras que la actividad real proviene de los documentos `confessions`.
+
 ### Notificaciones
 
 La ruta `/notificaciones` deriva actividad real de reacciones y comentarios recibidos en las confesiones propias.
