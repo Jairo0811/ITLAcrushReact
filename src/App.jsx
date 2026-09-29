@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
-import { loadAdminMetrics, subscribeRecentConfessions, subscribeRecentReports, subscribeRecentUsers } from './services/adminService.js'
+import { ACCOUNT_STATUSES, ADMIN_ROLES, loadAdminMetrics, subscribeAdminAuditLogs, subscribeAdminUsers, subscribeRecentConfessions, subscribeRecentReports, updateUserAccess } from './services/adminService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
 import './App.css'
 
@@ -642,11 +642,15 @@ function AdminMetricCard({ icon, label, value, detail, tone = 'default' }) {
 }
 
 function AdminPage() {
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
   const [metrics, setMetrics] = useState(emptyAdminMetrics)
-  const [recentUsers, setRecentUsers] = useState([])
+  const [managedUsers, setManagedUsers] = useState([])
   const [recentConfessions, setRecentConfessions] = useState([])
   const [recentReports, setRecentReports] = useState([])
+  const [auditLogs, setAuditLogs] = useState([])
+  const [userDrafts, setUserDrafts] = useState({})
+  const [savingUid, setSavingUid] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
@@ -691,11 +695,20 @@ function AdminPage() {
 
   useEffect(() => {
     const subscriptions = [
-      subscribeRecentUsers(
-        setRecentUsers,
+      subscribeAdminUsers(
+        (nextUsers) => {
+          setManagedUsers(nextUsers)
+          setUserDrafts(Object.fromEntries(nextUsers.map((item) => [
+            item.id,
+            {
+              role: item.role || 'student',
+              status: item.status || 'active',
+            },
+          ])))
+        },
         (readError) => {
-          console.error('No se pudieron cargar los usuarios recientes.', readError)
-          setError('El monitoreo de usuarios requiere las reglas administrativas actualizadas.')
+          console.error('No se pudieron cargar los usuarios para administración.', readError)
+          setError('La gestión de usuarios requiere las reglas administrativas actualizadas.')
         },
       ),
       subscribeRecentConfessions(
@@ -712,12 +725,60 @@ function AdminPage() {
           setError('No pudimos cargar la actividad reciente de reportes.')
         },
       ),
+      subscribeAdminAuditLogs(
+        setAuditLogs,
+        (readError) => {
+          console.error('No se pudo cargar la bitácora administrativa.', readError)
+          setError('No pudimos cargar la bitácora administrativa.')
+        },
+      ),
     ]
 
     return () => subscriptions.forEach((unsubscribe) => unsubscribe?.())
   }, [])
 
   const reportReason = (value) => REPORT_REASONS.find((item) => item.value === value)?.label || value
+  const roleLabel = (value) => ({ student: 'Estudiante', moderator: 'Moderador', admin: 'Administrador' }[value] || value)
+  const statusLabel = (value) => ({ active: 'Activa', suspended: 'Suspendida', blocked: 'Bloqueada' }[value] || value)
+  const auditActionLabel = (value) => ({
+    role_changed: 'Cambio de rol',
+    status_changed: 'Cambio de estado',
+    access_changed: 'Cambio de acceso',
+  }[value] || value)
+
+  const updateDraft = (uid, field, value) => {
+    setUserDrafts((current) => ({
+      ...current,
+      [uid]: {
+        ...(current[uid] || {}),
+        [field]: value,
+      },
+    }))
+  }
+
+  const saveUserAccess = async (targetUser) => {
+    const draft = userDrafts[targetUser.id]
+    if (!draft || savingUid) return
+
+    setSavingUid(targetUser.id)
+    setActionMessage('')
+    setError('')
+
+    try {
+      await updateUserAccess({
+        actorUid: user.uid,
+        targetUser,
+        nextRole: draft.role,
+        nextStatus: draft.status,
+      })
+      setActionMessage(`Acceso actualizado para ${targetUser.displayName || targetUser.email || 'el usuario'} y registrado en la bitácora.`)
+      await refreshMetrics()
+    } catch (adminError) {
+      setError(adminError.message || 'No pudimos actualizar el acceso de esa cuenta.')
+    } finally {
+      setSavingUid('')
+    }
+  }
 
   return (
     <div className="app-layout page-shell admin-page">
@@ -727,8 +788,8 @@ function AdminPage() {
         <header className="admin-heading glass-card">
           <div>
             <p className="eyebrow">CENTRO DE ADMINISTRACIÓN</p>
-            <h1>Monitoreo de <span>ITLA Crush</span></h1>
-            <p>Vista global para supervisar actividad, seguridad y salud operativa sin mezclarla con la experiencia de usuario.</p>
+            <h1>Monitoreo y control de <span>ITLA Crush</span></h1>
+            <p>Supervisa actividad, seguridad y acceso de cuentas desde un entorno separado de la experiencia normal de usuario.</p>
           </div>
           <div className="admin-heading__actions">
             <span className="admin-role-chip"><Icon name="shield-halved" /> {profile?.role || 'admin'}</span>
@@ -739,6 +800,7 @@ function AdminPage() {
         </header>
 
         {error && <div className="auth-message auth-message--error admin-alert" role="alert">{error}</div>}
+        {actionMessage && <div className="auth-message auth-message--success admin-alert" role="status">{actionMessage}</div>}
 
         <section className="admin-metrics" aria-label="Métricas principales">
           <AdminMetricCard icon="users" label="Usuarios" value={loading ? '…' : metrics.users.total} detail={`${metrics.users.active} activos · ${metrics.users.restricted} restringidos`} />
@@ -761,32 +823,71 @@ function AdminPage() {
 
           <article className="glass-card admin-health-card">
             <div className="rail-title"><h2><Icon name="scale-balanced" /> Privacidad y control</h2></div>
-            <p>El panel muestra métricas operativas y perfiles administrativos necesarios para monitoreo. No revela automáticamente la identidad interna detrás de confesiones anónimas.</p>
+            <p>La administración de cuentas no revela automáticamente la identidad interna detrás de confesiones anónimas. Cada cambio de rol o estado queda registrado en una bitácora inmutable.</p>
             <div className="admin-health-row"><span>Contenido anónimo</span><b>{metrics.confessions.anonymous}</b></div>
-            <div className="admin-health-row"><span>Contenido retirado</span><b>{metrics.confessions.removed}</b></div>
-            <div className="admin-health-row"><span>Reportes descartados</span><b>{metrics.reports.dismissed}</b></div>
+            <div className="admin-health-row"><span>Cuentas restringidas</span><b>{metrics.users.restricted}</b></div>
+            <div className="admin-health-row"><span>Eventos auditados</span><b>{auditLogs.length}</b></div>
           </article>
         </section>
 
-        <section className="admin-monitor-grid">
-          <article className="glass-card admin-table-card">
-            <div className="admin-section-heading"><div><p className="eyebrow">CUENTAS</p><h2>Usuarios recientes</h2></div><span>{recentUsers.length} visibles</span></div>
-            <div className="admin-table" role="table" aria-label="Usuarios recientes">
-              {recentUsers.length === 0 && <div className="admin-empty">Sin usuarios recientes para mostrar.</div>}
-              {recentUsers.map((item) => {
-                const program = getProgram(item.program)
-                return (
-                  <div className="admin-table-row" role="row" key={item.id}>
-                    <div><strong>{item.displayName || 'Sin nombre'}</strong><small>{item.email || 'Sin correo'}</small></div>
-                    <span>{program?.label || item.program || 'Sin tecnólogo'}</span>
-                    <span className={`admin-status admin-status--${item.status || 'active'}`}>{item.status || 'active'}</span>
-                    <small>{formatRelativeTime(item.createdAt)}</small>
-                  </div>
-                )
-              })}
-            </div>
-          </article>
+        <section className="glass-card admin-table-card admin-account-manager">
+          <div className="admin-section-heading">
+            <div><p className="eyebrow">CONTROL DE ACCESO</p><h2>Gestión de cuentas</h2></div>
+            <span>{managedUsers.length} usuarios cargados</span>
+          </div>
+          <p className="admin-section-note">Puedes cambiar roles y suspender, bloquear o reactivar cuentas. Tu propia cuenta administrativa está protegida contra cambios desde este panel.</p>
 
+          <div className="admin-user-list" role="table" aria-label="Gestión de cuentas">
+            {managedUsers.length === 0 && <div className="admin-empty">No hay cuentas disponibles para gestionar.</div>}
+            {managedUsers.map((item) => {
+              const program = getProgram(item.program)
+              const draft = userDrafts[item.id] || { role: item.role || 'student', status: item.status || 'active' }
+              const isSelf = item.id === user.uid
+              const changed = draft.role !== (item.role || 'student') || draft.status !== (item.status || 'active')
+
+              return (
+                <div className="admin-user-row" role="row" key={item.id}>
+                  <div className="admin-user-identity">
+                    <strong>{item.displayName || 'Sin nombre'} {isSelf && <small className="admin-self-badge">Tu cuenta</small>}</strong>
+                    <small>{item.email || 'Sin correo'} · {program?.label || item.program || 'Sin tecnólogo'}</small>
+                  </div>
+
+                  <label>
+                    <span>Rol</span>
+                    <select
+                      value={draft.role}
+                      onChange={(event) => updateDraft(item.id, 'role', event.target.value)}
+                      disabled={isSelf || savingUid === item.id}
+                    >
+                      {ADMIN_ROLES.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Estado</span>
+                    <select
+                      value={draft.status}
+                      onChange={(event) => updateDraft(item.id, 'status', event.target.value)}
+                      disabled={isSelf || savingUid === item.id}
+                    >
+                      {ACCOUNT_STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}
+                    </select>
+                  </label>
+
+                  <button
+                    className="button button--primary admin-save-access"
+                    onClick={() => saveUserAccess(item)}
+                    disabled={isSelf || !changed || savingUid === item.id}
+                  >
+                    <Icon name="floppy-disk" /> {savingUid === item.id ? 'Guardando…' : 'Guardar'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        <section className="admin-monitor-grid">
           <article className="glass-card admin-table-card">
             <div className="admin-section-heading"><div><p className="eyebrow">CONTENIDO</p><h2>Confesiones recientes</h2></div><Link to="/moderacion">Abrir moderación →</Link></div>
             <div className="admin-table" role="table" aria-label="Confesiones recientes">
@@ -802,7 +903,7 @@ function AdminPage() {
             </div>
           </article>
 
-          <article className="glass-card admin-table-card admin-table-card--wide">
+          <article className="glass-card admin-table-card">
             <div className="admin-section-heading"><div><p className="eyebrow">TRUST & SAFETY</p><h2>Reportes recientes</h2></div><Link to="/moderacion">Gestionar cola →</Link></div>
             <div className="admin-table" role="table" aria-label="Reportes recientes">
               {recentReports.length === 0 && <div className="admin-empty">No hay reportes recientes.</div>}
@@ -811,6 +912,24 @@ function AdminPage() {
                   <div><strong>{reportReason(item.reason)}</strong><small>Confesión {item.confessionId}</small></div>
                   <span className={`moderation-status moderation-status--${item.status}`}>{item.status}</span>
                   <span>{item.details ? 'Con detalle' : 'Sin detalle'}</span>
+                  <small>{formatRelativeTime(item.createdAt)}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="glass-card admin-table-card admin-table-card--wide">
+            <div className="admin-section-heading"><div><p className="eyebrow">AUDITORÍA</p><h2>Bitácora administrativa</h2></div><span>Últimos {auditLogs.length}</span></div>
+            <div className="admin-table admin-audit-table" role="table" aria-label="Bitácora administrativa">
+              {auditLogs.length === 0 && <div className="admin-empty">Todavía no hay cambios administrativos registrados.</div>}
+              {auditLogs.map((item) => (
+                <div className="admin-table-row admin-table-row--audit" role="row" key={item.id}>
+                  <div>
+                    <strong>{auditActionLabel(item.action)}</strong>
+                    <small>{item.targetEmail || item.targetUid}</small>
+                  </div>
+                  <span>{roleLabel(item.previousRole)} → {roleLabel(item.newRole)}</span>
+                  <span>{statusLabel(item.previousStatus)} → {statusLabel(item.newStatus)}</span>
                   <small>{formatRelativeTime(item.createdAt)}</small>
                 </div>
               ))}
