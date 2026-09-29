@@ -7,6 +7,7 @@ import {
   loginWithMicrosoft,
   logoutUser,
   observeAuth,
+  observeUserProfile,
   registerUser,
   resetPassword,
 } from '../services/authService'
@@ -42,20 +43,47 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!isFirebaseConfigured) return undefined
 
-    const unsubscribe = observeAuth(async (firebaseUser) => {
-      try {
-        setUser(firebaseUser)
-        await loadProfile(firebaseUser)
-      } catch (profileError) {
-        console.error('No se pudo cargar el perfil.', profileError)
+    let unsubscribeProfile
+
+    const unsubscribeAuth = observeAuth((firebaseUser) => {
+      unsubscribeProfile?.()
+      unsubscribeProfile = undefined
+      setUser(firebaseUser)
+
+      if (!firebaseUser) {
         setProfile(null)
-      } finally {
         setLoading(false)
+        return
       }
+
+      setLoading(true)
+      unsubscribeProfile = observeUserProfile(
+        firebaseUser.uid,
+        (storedProfile) => {
+          const fallbackProfile = {
+            uid: firebaseUser.uid,
+            displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Estudiante',
+            email: firebaseUser.email,
+            role: 'student',
+            status: 'active',
+          }
+
+          setProfile(storedProfile ?? fallbackProfile)
+          setLoading(false)
+        },
+        (profileError) => {
+          console.error('No se pudo observar el perfil.', profileError)
+          setProfile(null)
+          setLoading(false)
+        },
+      )
     })
 
-    return unsubscribe
-  }, [loadProfile])
+    return () => {
+      unsubscribeProfile?.()
+      unsubscribeAuth()
+    }
+  }, [])
 
   const runAuthAction = useCallback(async (action) => {
     setError('')

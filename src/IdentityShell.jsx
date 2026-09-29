@@ -273,6 +273,7 @@ export default function IdentityShell() {
       '/mis-confesiones': 'Mis confesiones | ITLA Crush',
       '/perfil': 'Mi perfil | ITLA Crush',
       '/moderacion': 'Moderación | ITLA Crush',
+      '/admin': 'Administración | ITLA Crush',
       '/terminos': 'Términos de uso | ITLA Crush',
       '/privacidad': 'Privacidad | ITLA Crush',
       '/normas': 'Normas de la comunidad | ITLA Crush',
@@ -298,8 +299,10 @@ export default function IdentityShell() {
   if (location.pathname === '/normas') return <LegalPage focus="comunidad" />
   if (location.pathname === '/legal') return <LegalPage />
   if (location.pathname === '/perfil') return <ProtectedRoute><ProfilePage /></ProtectedRoute>
+  if (location.pathname === '/admin') return <ProtectedRoute allowedRoles={['admin']}><App /></ProtectedRoute>
+  if (location.pathname === '/moderacion') return <ProtectedRoute allowedRoles={['admin', 'moderator']}><App /></ProtectedRoute>
 
-  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones' || location.pathname === '/moderacion') {
+  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones') {
     return <ProtectedRoute><App /></ProtectedRoute>
   }
 

@@ -137,6 +137,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Historial de mis confesiones | ✅ Implementado |
 | Reglas e índices de Firestore | ✅ Definidos y desplegados |
 | Dashboard y perfil | ✅ Implementados |
+| Centro de administración | ✅ Monitoreo, gestión de cuentas, roles, estados y auditoría implementados en `/admin` |
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
 | Demo separada de la aplicación real | ✅ `/demo` vs `/app` |
 | Accesibilidad / NORTIC B2 | 🚧 Alineación voluntaria A + AA en progreso |
@@ -155,7 +156,7 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 | 2 | Identidad y Firebase Authentication | ✅ Completada |
 | 3 | Crush Core y Cloud Firestore | ✅ Completada |
 | 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
-| 5 | Portfolio hardening, pruebas, rendimiento y preparación para producción | ⏭️ Siguiente |
+| 5 | Portfolio hardening, administración, pruebas, rendimiento y preparación para producción | 🚧 En progreso |
 
 ---
 
@@ -194,6 +195,23 @@ Las cuentas con rol `moderator` o `admin` pueden:
 - Cambiar el estado de una confesión entre `active`, `under_review` y `removed`.
 - Registrar notas internas y trazabilidad de las acciones de moderación.
 - Trabajar sin revelar públicamente la identidad de autores anónimos.
+
+### 🧭 Administración y monitoreo
+
+Las cuentas con rol `admin` disponen de un Centro de Administración separado en `/admin` con:
+
+- Métricas agregadas de usuarios, confesiones, reportes y casos de moderación.
+- Estado de cuentas activas/restringidas y composición del equipo interno.
+- Monitoreo de confesiones públicas, privadas, anónimas, en revisión y retiradas.
+- Actividad reciente de usuarios, contenido y reportes.
+- Gestión de roles `student`, `moderator` y `admin`.
+- Suspensión, bloqueo y reactivación de cuentas.
+- Bitácora administrativa inmutable para cambios de rol y estado.
+- Aplicación en tiempo real del estado de cuenta dentro de la interfaz protegida.
+- Enlace directo a la cola operativa de `/moderacion`.
+- Separación estricta entre monitoreo administrativo y experiencia normal de usuario.
+
+El administrador inicial sigue requiriendo aprovisionamiento confiable fuera del frontend. Una vez existe al menos una cuenta `admin`, la gestión operativa de acceso puede realizarse desde `/admin`. Más detalles en [`docs/ADMIN_MONITORING.md`](docs/ADMIN_MONITORING.md).
 
 ### 🧪 Demo vs aplicación real
 
@@ -298,6 +316,7 @@ Relación privada entre la confesión y el `authorUid`. Permite trazabilidad y a
 - `reports/{confessionId}_{reporterUid}`: reportes únicos por usuario y confesión.
 - `hiddenConfessions/{ownerUid}_{confessionId}`: contenido oculto solo para una cuenta.
 - `moderationCases/{confessionId}`: metadatos internos de moderación separados del contenido público.
+- `adminAuditLogs/{auditId}`: bitácora inmutable de cambios administrativos sobre roles y estados de cuenta.
 
 El modelo aplica el principio de que **anónimo para la comunidad no significa anónimo para el sistema**.
 

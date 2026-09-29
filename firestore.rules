@@ -14,13 +14,23 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    function isModerator() {
+    function isActiveUser() {
       return isSignedIn()
+        && userDoc().data.status == 'active';
+    }
+
+    function isModerator() {
+      return isActiveUser()
         && userDoc().data.role in ['admin', 'moderator'];
     }
 
+    function isAdmin() {
+      return isActiveUser()
+        && userDoc().data.role == 'admin';
+    }
+
     function ownsConfession(confessionId) {
-      return isSignedIn()
+      return isActiveUser()
         && get(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
     }
 
@@ -62,27 +72,57 @@ service cloud.firestore {
         && request.resource.data.termsVersion == '2026-09-23'
         && request.resource.data.termsAcceptedAt != null;
 
-      allow read: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
 
-      allow update: if isOwner(uid)
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.email == request.auth.token.email
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.status == resource.data.status
-        && request.resource.data.authProvider == resource.data.authProvider
-        && request.resource.data.termsVersion == resource.data.termsVersion
-        && request.resource.data.termsAcceptedAt == resource.data.termsAcceptedAt
-        && (!request.resource.data.keys().hasAny(['program']) || isValidProgram(request.resource.data.program))
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'displayName', 'program', 'updatedAt'
-        ]);
+      allow update: if (
+          isOwner(uid)
+          && resource.data.status == 'active'
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.authProvider == resource.data.authProvider
+          && request.resource.data.termsVersion == resource.data.termsVersion
+          && request.resource.data.termsAcceptedAt == resource.data.termsAcceptedAt
+          && (!request.resource.data.keys().hasAny(['program']) || isValidProgram(request.resource.data.program))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName', 'program', 'updatedAt'
+          ])
+        )
+        || (
+          isAdmin()
+          && uid != request.auth.uid
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.authProvider == resource.data.authProvider
+          && request.resource.data.termsVersion == resource.data.termsVersion
+          && request.resource.data.termsAcceptedAt == resource.data.termsAcceptedAt
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.displayName == resource.data.displayName
+          && request.resource.data.program == resource.data.program
+          && request.resource.data.role in ['student', 'moderator', 'admin']
+          && request.resource.data.status in ['active', 'suspended', 'blocked']
+          && request.resource.data.lastAdminActionId is string
+          && (
+            request.resource.data.role != resource.data.role
+            || request.resource.data.status != resource.data.status
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'role', 'status', 'lastAdminActionId', 'updatedAt'
+          ])
+          && existsAfter(/databases/$(database)/documents/adminAuditLogs/$(request.resource.data.lastAdminActionId))
+          && getAfter(/databases/$(database)/documents/adminAuditLogs/$(request.resource.data.lastAdminActionId)).data.actorUid == request.auth.uid
+          && getAfter(/databases/$(database)/documents/adminAuditLogs/$(request.resource.data.lastAdminActionId)).data.targetUid == uid
+          && getAfter(/databases/$(database)/documents/adminAuditLogs/$(request.resource.data.lastAdminActionId)).data.newRole == request.resource.data.role
+          && getAfter(/databases/$(database)/documents/adminAuditLogs/$(request.resource.data.lastAdminActionId)).data.newStatus == request.resource.data.status
+        );
 
       allow delete: if false;
     }
 
     match /confessions/{confessionId} {
-      allow create: if isSignedIn()
+      allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly([
           'recipientText', 'text', 'visibility', 'isAnonymous',
           'authorDisplayName', 'authorProgram', 'tags', 'status',
@@ -144,7 +184,7 @@ service cloud.firestore {
     }
 
     match /confessionAuthors/{confessionId} {
-      allow create: if isSignedIn()
+      allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly(['authorUid', 'createdAt'])
         && request.resource.data.authorUid == request.auth.uid
         && getAfter(/databases/$(database)/documents/confessions/$(confessionId)).data.status == 'active';
@@ -159,7 +199,7 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow create: if isSignedIn()
+      allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly([
           'confessionId', 'reporterUid', 'reason', 'details',
           'status', 'createdAt', 'updatedAt'
@@ -195,17 +235,42 @@ service cloud.firestore {
     }
 
     match /hiddenConfessions/{hiddenId} {
-      allow create: if isSignedIn()
+      allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly([
           'ownerUid', 'confessionId', 'createdAt'
         ])
         && request.resource.data.ownerUid == request.auth.uid
         && exists(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId));
 
-      allow read, delete: if isSignedIn()
+      allow read: if isActiveUser()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow delete: if isActiveUser()
         && resource.data.ownerUid == request.auth.uid;
 
       allow update: if false;
+    }
+
+    match /adminAuditLogs/{auditId} {
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'actorUid', 'targetUid', 'targetEmail', 'action',
+          'previousRole', 'newRole', 'previousStatus', 'newStatus', 'createdAt'
+        ])
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.targetUid != request.auth.uid
+        && request.resource.data.targetEmail is string
+        && request.resource.data.action in ['role_changed', 'status_changed', 'access_changed']
+        && request.resource.data.previousRole in ['student', 'moderator', 'admin']
+        && request.resource.data.newRole in ['student', 'moderator', 'admin']
+        && request.resource.data.previousStatus in ['active', 'suspended', 'blocked']
+        && request.resource.data.newStatus in ['active', 'suspended', 'blocked']
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.targetUid)).data.lastAdminActionId == auditId
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.targetUid)).data.role == request.resource.data.newRole
+        && getAfter(/databases/$(database)/documents/users/$(request.resource.data.targetUid)).data.status == request.resource.data.newStatus;
+
+      allow read: if isAdmin();
+      allow update, delete: if false;
     }
 
     match /moderationCases/{confessionId} {
