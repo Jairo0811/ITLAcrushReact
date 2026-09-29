@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ITLA_PROGRAMS, ITLA_PROGRAM_VALUES, getProgram } from '../src/data/itlaPrograms.js'
+import { COMMUNITY_TOPICS, buildCommunityTopics, getCommunityTopic } from '../src/data/communityTopics.js'
 
 const root = process.cwd()
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
@@ -19,6 +20,26 @@ test('catálogo de tecnólogos mantiene valores únicos y colores hex válidos',
   }
 
   assert.equal(getProgram('programa-inexistente'), null)
+})
+
+test('temas de la comunidad se derivan de confesiones reales', () => {
+  const topics = buildCommunityTopics([
+    { tags: ['#AmorITLA', '#VidaITLA'] },
+    { tags: ['#amoritla'] },
+    { tags: ['#Biblioteca', '#AmorITLA', '#Biblioteca'] },
+  ])
+
+  assert.equal(topics[0].tag, '#AmorITLA')
+  assert.equal(topics[0].count, 3)
+  assert.equal(topics.find((topic) => topic.tag === '#Biblioteca')?.count, 1)
+  assert.equal(topics.find((topic) => topic.tag === '#VidaITLA')?.count, 1)
+  assert.equal(getCommunityTopic('#amoritla')?.tag, '#AmorITLA')
+})
+
+test('catálogo sugerido de temas no contiene duplicados', () => {
+  const keys = COMMUNITY_TOPICS.map((topic) => topic.tag.toLocaleLowerCase('es'))
+  assert.equal(new Set(keys).size, keys.length)
+  assert.ok(COMMUNITY_TOPICS.every((topic) => topic.tag.startsWith('#')))
 })
 
 test('rutas sensibles permanecen protegidas por rol o autenticación', () => {
@@ -58,10 +79,13 @@ test('Firebase Hosting mantiene fallback SPA y cabeceras mínimas', () => {
   assert.ok(keys.has('x-frame-options'))
 })
 
-test('la interfaz no anuncia mensajería privada ficticia', () => {
+test('la interfaz no anuncia funcionalidades sociales ficticias', () => {
   const app = read('src/App.jsx')
   assert.equal(app.includes("'Mensajes'"), false)
   assert.equal(app.includes("label === 'Mensajes'"), false)
+  assert.equal(app.includes('const trends = ['), false)
+  assert.ok(app.includes('buildCommunityTopics(publicConfessions)'))
+  assert.ok(app.includes('Aún no hay temas activos.'))
 })
 
 test('el proyecto conserva el disclaimer académico no oficial', () => {
