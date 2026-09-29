@@ -416,6 +416,11 @@ function LandingPage() {
         <div id="inicio" />
         <section className="hero-section">
           <div className="hero-copy">
+            <div className="tech-status" aria-label="Información técnica del proyecto">
+              <span>SOF-011</span>
+              <span>React + Firebase</span>
+              <span>Proyecto académico</span>
+            </div>
             <p className="eyebrow">CONFIESA. CONECTA. <span>COMPARTE.</span></p>
             <h1>Las confesiones también crean <span>conexiones</span></h1>
             <p className="hero-description">Un espacio moderno para decir lo que sientes, descubrir historias de tu comunidad y conectar sin perder el control de tu privacidad.</p>
@@ -452,8 +457,8 @@ function LandingPage() {
               <div className="phone-card"><strong>#ITLA</strong><p>ITLA no solo forma profesionales, también junta historias increíbles. ✨</p><small>♥ 198 &nbsp; ◌ 41</small></div>
               <div className="phone-bottom">⌂ &nbsp; ⌕ &nbsp; <b>＋</b> &nbsp; ♡ &nbsp; ◯</div>
             </div>
-            <div className="hero-message hero-message--left">Buenas personas.<br/>Grandes historias. ♡</div>
-            <div className="hero-message hero-message--right">Confiesa.<br/>Conecta.<br/>Comparte. ♡</div>
+            <div className="hero-message hero-message--left"><span>SOF-011</span><br/>WEB SOCIAL</div>
+            <div className="hero-message hero-message--right">PRIVACIDAD.<br/>COMUNIDAD.<br/>CONEXIÓN.</div>
           </div>
         </section>
 
@@ -543,7 +548,10 @@ function AppSidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar-quote glass-card"><Icon name="heart" regular /><p>Buenas ideas también conectan corazones.</p></div>
+      <div className="sidebar-quote tech-module">
+        <span className="tech-module__code">SOF-011</span>
+        <p>Proyecto académico no oficial · React + Firebase.</p>
+      </div>
     </aside>
   )
 }
@@ -773,7 +781,7 @@ function FeedPage() {
           <div className="feed-column">
             <section className="dashboard-hero glass-card">
               <div><p className="eyebrow">CONFIESA. CONECTA. COMPARTE.</p><h2>Aquí también nacen <span>grandes historias ♡</span></h2></div>
-              <div className="dashboard-hero__note">Más que una U,<br/>conexiones reales ♡</div>
+              <div className="dashboard-hero__note"><span>ITLA CRUSH</span><small>COMMUNITY // FIREBASE</small></div>
             </section>
 
             <section
