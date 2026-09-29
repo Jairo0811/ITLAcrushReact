@@ -11,6 +11,7 @@ import {
   updateProfile,
 } from 'firebase/auth'
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { ITLA_PROGRAM_VALUES } from '../data/itlaPrograms.js'
 import { requireFirebase } from './firebase'
 
 const TERMS_VERSION = '2026-09-23'
@@ -35,7 +36,7 @@ export function getAuthErrorMessage(error) {
   return 'No pudimos completar la operación. Inténtalo nuevamente.'
 }
 
-async function writeProfile(user, { displayName, authProvider, acceptTerms = false } = {}) {
+async function writeProfile(user, { displayName, program, authProvider, acceptTerms = false } = {}) {
   const { db } = requireFirebase()
   const reference = doc(db, 'users', user.uid)
   const snapshot = await getDoc(reference)
@@ -50,10 +51,15 @@ async function writeProfile(user, { displayName, authProvider, acceptTerms = fal
     return
   }
 
+  if (!ITLA_PROGRAM_VALUES.includes(program)) {
+    throw new Error('Selecciona el tecnólogo al que perteneces para completar tu perfil.')
+  }
+
   await setDoc(reference, {
     uid: user.uid,
     displayName: name,
     email: user.email || '',
+    program,
     role: 'student',
     status: 'active',
     authProvider,
@@ -64,12 +70,13 @@ async function writeProfile(user, { displayName, authProvider, acceptTerms = fal
   })
 }
 
-export async function registerUser({ displayName, email, password, acceptTerms }) {
+export async function registerUser({ displayName, email, password, program, acceptTerms }) {
   const name = displayName.trim()
   const normalizedEmail = email.trim().toLowerCase()
 
   if (name.length < 2) throw new Error('El nombre visible debe tener al menos 2 caracteres.')
   if (password.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.')
+  if (!ITLA_PROGRAM_VALUES.includes(program)) throw new Error('Selecciona tu tecnólogo.')
   if (!acceptTerms) throw new Error('Debes aceptar los Términos de Uso y las Normas de la Comunidad.')
 
   const { auth } = requireFirebase()
@@ -77,7 +84,7 @@ export async function registerUser({ displayName, email, password, acceptTerms }
 
   const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password)
   await updateProfile(credential.user, { displayName: name })
-  await writeProfile(credential.user, { displayName: name, authProvider: 'password', acceptTerms: true })
+  await writeProfile(credential.user, { displayName: name, program, authProvider: 'password', acceptTerms: true })
 
   return credential.user
 }
@@ -89,7 +96,7 @@ export async function loginUser({ email, password }) {
   return credential.user
 }
 
-export async function loginWithMicrosoft({ acceptTerms = false } = {}) {
+export async function loginWithMicrosoft({ acceptTerms = false, program = '' } = {}) {
   const { auth } = requireFirebase()
   await setPersistence(auth, browserLocalPersistence)
 
@@ -97,10 +104,16 @@ export async function loginWithMicrosoft({ acceptTerms = false } = {}) {
   provider.setCustomParameters({ prompt: 'select_account' })
 
   const credential = await signInWithPopup(auth, provider)
-  await writeProfile(credential.user, {
-    authProvider: 'microsoft.com',
-    acceptTerms,
-  })
+  try {
+    await writeProfile(credential.user, {
+      program,
+      authProvider: 'microsoft.com',
+      acceptTerms,
+    })
+  } catch (profileError) {
+    await signOut(auth)
+    throw profileError
+  }
 
   return credential.user
 }
