@@ -25,7 +25,12 @@ Esta política aplica a:
 - `/crear`
 - `/mis-confesiones`
 - `/perfil`
+- `/notificaciones`
+- `/guardados`
+- `/favoritos`
 - `/moderacion`
+- `/admin`
+- `/demo`
 - páginas legales y de normas de la comunidad.
 
 También cubre los procesos completos de autenticación, publicación de confesiones, navegación del feed, perfil y moderación.
@@ -51,18 +56,30 @@ La meta del proyecto es mantener una base compatible con los criterios **A + AA*
 - Diseño responsive y uso predominante de unidades relativas para texto y espacios.
 - Controles de autenticación, privacidad y moderación con nombres accesibles.
 
-## Verificaciones pendientes antes de declarar conformidad interna
+## Verificación automatizada incorporada en Fase 5C
 
-1. Auditoría de contraste mínimo en todos los estados visuales.
-2. Prueba de zoom al 200 % y reflow sin pérdida de contenido.
+El pipeline de CI ejecuta dos capas complementarias:
+
+1. `npm run check:a11y`: comprueba de forma estática idioma, viewport, descripción, skip links, destino `main-content`, foco visible, reducción de movimiento, ausencia de `tabindex` positivo, atributos `alt` y regiones de alerta/estado.
+2. Lighthouse CI: audita `/home`, `/demo` y `/login` con un umbral mínimo automatizado de **0.90 en accesibilidad**.
+
+Estas verificaciones son regresiones técnicas reproducibles y forman parte de cada pull request hacia `main`.
+
+## Verificaciones manuales complementarias
+
+La automatización no equivale por sí sola a conformidad NORTIC B2. Para una declaración interna más fuerte todavía deben conservarse evidencias manuales de:
+
+1. Contraste mínimo en estados normales, hover, focus, error y disabled.
+2. Zoom al 200 % y reflow sin pérdida de contenido.
 3. Recorrido completo solo con teclado.
-4. Pruebas con lector de pantalla (NVDA o equivalente).
-5. Validación automática con axe/Lighthouse como apoyo, nunca como única evidencia.
-6. Revisión de orden de encabezados y landmarks en todas las rutas.
-7. Verificación de mensajes de validación y sugerencias ante errores.
-8. Revisión de cualquier contenido multimedia futuro para subtítulos, transcripción o audiodescripción cuando aplique.
-9. Revisión de accesibilidad de componentes de terceros.
-10. Registro de hallazgos y correcciones antes de cada release.
+4. Lector de pantalla (NVDA o equivalente) en procesos críticos.
+5. Orden de encabezados y landmarks en todas las rutas.
+6. Mensajes de validación y sugerencias ante errores.
+7. Multimedia futura: subtítulos, transcripción o audiodescripción cuando aplique.
+8. Componentes de terceros.
+9. Registro de hallazgos y correcciones antes de cada release.
+
+La documentación de QA de la Fase 5C define el procedimiento y los quality gates reproducibles.
 
 ## Seguimiento
 
