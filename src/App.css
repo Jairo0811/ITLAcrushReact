@@ -837,3 +837,31 @@ button:disabled {
     grid-column: 1 / -1;
   }
 }
+
+
+.demo-card-wrap {
+  position: relative;
+  padding-top: 12px;
+}
+
+.demo-card-label {
+  position: absolute;
+  top: 0;
+  right: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #2a1832;
+  border: 1px solid rgba(255, 196, 84, .32);
+  color: #ffd28a;
+  font-size: .68rem;
+  font-weight: 900;
+}
+
+.demo-card-wrap .card-actions button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
