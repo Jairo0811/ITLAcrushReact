@@ -99,6 +99,14 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
+## 🎨 Sistema visual
+
+La interfaz fue refinada con un lenguaje **institucional + tecnológico**: azul ITLA como estructura, magenta ITLA Crush como señal social, superficies navy, geometría más técnica, menor dependencia de glassmorphism y metadatos en tipografía monoespaciada.
+
+La guía completa está en [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
+---
+
 ## 🔥 Temas de la comunidad
 
 Los temas ya no son contenido decorativo ni una lista hardcodeada. Se generan a partir de los hashtags reales presentes en las confesiones públicas cargadas en el feed.
