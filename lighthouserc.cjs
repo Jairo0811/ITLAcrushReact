@@ -1,8 +1,8 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npm run preview -- --host 0.0.0.0 --port 4173',
-      startServerReadyPattern: 'Local:',
+      startServerCommand: 'npm run preview -- --host 127.0.0.1 --port 4173 2>&1',
+      startServerReadyPattern: '4173',
       numberOfRuns: 1,
       url: [
         'http://127.0.0.1:4173/home',
