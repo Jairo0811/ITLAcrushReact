@@ -73,6 +73,10 @@ function Icon({ name, regular = false, className = '' }) {
   return <i className={`${regular ? 'fa-regular' : 'fa-solid'} fa-${name} icon ${className}`.trim()} aria-hidden="true" />
 }
 
+function SkipLink() {
+  return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
+}
+
 function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
@@ -103,7 +107,7 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
   return (
     <article className="confession-card glass-card">
       <div className="confession-card__header">
-        <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`}>{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
+        <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`} aria-hidden="true">{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
           <strong>{author}</strong>
           <div className="muted-row">{programInfo ? <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
@@ -123,10 +127,16 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
       {reportOpen && onReport && (
         <form className="safety-panel" onSubmit={submitReport}>
           <strong>Reportar esta confesión</strong>
-          <select value={reason} onChange={(event) => setReason(event.target.value)}>
-            {REPORT_REASONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-          <textarea value={details} maxLength="500" onChange={(event) => setDetails(event.target.value)} placeholder="Detalles opcionales para moderación…" />
+          <label>
+            <span>Motivo del reporte</span>
+            <select value={reason} onChange={(event) => setReason(event.target.value)}>
+              {REPORT_REASONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Detalles opcionales</span>
+            <textarea value={details} maxLength="500" onChange={(event) => setDetails(event.target.value)} placeholder="Añade contexto para moderación…" />
+          </label>
           <div className="safety-panel__actions">
             <button type="button" className="button button--soft" onClick={() => setReportOpen(false)}>Cancelar</button>
             <button className="button button--primary" disabled={sendingReport}>{sendingReport ? 'Enviando…' : 'Enviar reporte'}</button>
@@ -145,6 +155,7 @@ function LandingPage() {
 
   return (
     <div className="landing-page page-shell">
+      <SkipLink />
       <header className="landing-nav content-width">
         <Link to="/home" className="brand-link"><BrandLogo compact /></Link>
         <nav className="desktop-nav" aria-label="Navegación principal">
@@ -170,7 +181,8 @@ function LandingPage() {
         </div>
       </header>
 
-      <main id="inicio" className="landing-main content-width">
+      <main id="main-content" className="landing-main content-width" tabIndex="-1">
+        <div id="inicio" />
         <section className="hero-section">
           <div className="hero-copy">
             <p className="eyebrow">CONFIESA. CONECTA. <span>COMPARTE.</span></p>
@@ -198,9 +210,9 @@ function LandingPage() {
               <span><Icon name="users" />Comunidad</span>
             </div>
           </div>
-          <div className="hero-visual" aria-label="Vista conceptual de ITLA Crush">
-            <div className="neon-orb neon-orb--one" />
-            <div className="neon-orb neon-orb--two" />
+          <div className="hero-visual" role="img" aria-label="Vista conceptual de la interfaz de ITLA Crush en un teléfono">
+            <div className="neon-orb neon-orb--one" aria-hidden="true" />
+            <div className="neon-orb neon-orb--two" aria-hidden="true" />
             <div className="hero-phone glass-card">
               <div className="phone-status"><span>9:41</span><span>● ● ●</span></div>
               <BrandLogo />
@@ -345,10 +357,11 @@ function FeedPage() {
 
   return (
     <div className="app-layout page-shell">
+      <SkipLink />
       <AppSidebar />
-      <main className="app-main">
+      <main id="main-content" className="app-main" tabIndex="-1">
         <header className="app-topbar glass-card">
-          <label className="app-search"><span><Icon name="magnifying-glass" /></span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
+          <label className="app-search"><span><Icon name="magnifying-glass" /></span><span className="sr-only">Buscar confesiones o hashtags</span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
           <div className="topbar-actions"><button aria-label="Notificaciones"><Icon name="bell" regular /></button><button aria-label="Tema"><Icon name="sun" regular /></button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
         </header>
 
@@ -359,15 +372,27 @@ function FeedPage() {
               <div className="dashboard-hero__note">Más que una U,<br/>conexiones reales ♡</div>
             </section>
 
-            <section className="quick-compose glass-card" onClick={() => navigate('/crear')} role="button" tabIndex="0">
+            <section
+              className="quick-compose glass-card"
+              onClick={() => navigate('/crear')}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  navigate('/crear')
+                }
+              }}
+              role="button"
+              tabIndex="0"
+              aria-label="Crear una nueva confesión"
+            >
               <div className="avatar">{initial}</div><span>¿Qué quieres confesar hoy?</span><button className="button button--primary">Publicar</button>
             </section>
 
-            <div className="feed-tabs"><button className="active">Más recientes</button><button disabled>Para ti</button><button disabled>Tendencias</button></div>
+            <div className="feed-tabs" role="tablist" aria-label="Filtros del feed"><button className="active" role="tab" aria-selected="true">Más recientes</button><button role="tab" aria-selected="false" disabled>Para ti</button><button role="tab" aria-selected="false" disabled>Tendencias</button></div>
             <div className="feed-list">
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
-              {loading && <div className="glass-card empty-state">Sincronizando con Firestore…</div>}
-              {!loading && error && <div className="glass-card empty-state">{error}</div>}
+              {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Sincronizando con Firestore…</div>}
+              {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
               {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">No encontramos confesiones públicas con esa búsqueda.</div>}
               {visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} onHide={handleHide} onReport={handleReport} />)}
             </div>
@@ -421,8 +446,9 @@ function MyConfessionsPage() {
 
   return (
     <div className="app-layout page-shell">
+      <SkipLink />
       <AppSidebar />
-      <main className="app-main">
+      <main id="main-content" className="app-main" tabIndex="-1">
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">TU HISTORIAL</p><h2>Mis <span>confesiones ♡</span></h2></div>
           <button className="button button--primary" onClick={() => navigate('/crear')}>Nueva confesión</button>
@@ -484,8 +510,9 @@ function ModerationPage() {
 
   return (
     <div className="app-layout page-shell">
+      <SkipLink />
       <AppSidebar />
-      <main className="app-main">
+      <main id="main-content" className="app-main" tabIndex="-1">
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">TRUST & SAFETY</p><h2>Cola de <span>moderación ⚑</span></h2><p>Revisa reportes sin exponer la identidad pública de autores anónimos.</p></div>
         </section>
@@ -506,6 +533,7 @@ function ModerationPage() {
                 <p>{report.confession?.text || 'La confesión ya no está disponible.'}</p>
               </div>
               <textarea
+                aria-label={`Nota interna para el reporte ${report.id}`}
                 value={actionNote[report.id] || ''}
                 maxLength="500"
                 onChange={(event) => setActionNote((current) => ({ ...current, [report.id]: event.target.value }))}
@@ -561,7 +589,8 @@ function CreateConfessionPage() {
   }
 
   return (
-    <div className="create-page page-shell">
+    <main id="main-content" className="create-page page-shell" tabIndex="-1">
+      <SkipLink />
       <div className="create-card glass-card">
         <button className="back-button" onClick={() => navigate('/app')}>← Volver</button>
         <BrandLogo compact />
@@ -573,14 +602,14 @@ function CreateConfessionPage() {
             {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
             <label><span>Para…</span><input value={recipient} maxLength="80" onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
             <label><span>Tu confesión…</span><textarea value={message} maxLength="500" onChange={(event) => setMessage(event.target.value)} placeholder="Escribe aquí tu mensaje…"/><small>{message.length}/500</small></label>
-            <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Visible solo para tu cuenta por ahora</small></div><button type="button" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
-            <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad se oculta ante otros usuarios</small></div><button type="button" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
+            <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" aria-pressed={isPublic} aria-label="Publicar como contenido público" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Visible solo para tu cuenta por ahora</small></div><button type="button" aria-pressed={!isPublic} aria-label="Guardar como contenido privado" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
+            <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad se oculta ante otros usuarios</small></div><button type="button" aria-pressed={isAnonymous} aria-label="Publicar de forma anónima" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" aria-pressed={!isAnonymous} aria-label="Publicar mostrando mi identidad" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
             {isAnonymous && <div className="anonymous-disclosure"><strong>🕶️ Anónimo para la comunidad, no para la plataforma.</strong>El documento público no expone tu UID. La trazabilidad se guarda por separado y solo puede consultarla tu cuenta o moderación autorizada. <Link to="/privacidad">Conoce cómo funciona.</Link></div>}
             <button className="button button--primary publish-button" disabled={!message.trim() || submitting}>{submitting ? 'Publicando…' : '↗ Publicar Confesión'}</button>
           </form>
         )}
       </div>
-    </div>
+    </main>
   )
 }
 
