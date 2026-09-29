@@ -149,3 +149,140 @@
   box-shadow: 0 0 22px color-mix(in srgb, var(--program-color) 14%, transparent);
 }
 
+
+
+/* 2026 Institutional Tech Refresh — Identity */
+.auth-page {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(37, 147, 191, .16), transparent 28rem),
+    radial-gradient(circle at 82% 72%, rgba(255, 59, 148, .09), transparent 25rem),
+    linear-gradient(145deg, #040811, #07111f 56%, #081426);
+}
+
+.auth-ambient {
+  opacity: .55;
+  filter: blur(18px);
+}
+
+.auth-ambient--one {
+  background: radial-gradient(circle, rgba(37, 147, 191, .18), transparent 68%);
+}
+
+.auth-ambient--two {
+  background: radial-gradient(circle, rgba(255, 59, 148, .12), transparent 70%);
+}
+
+.auth-card {
+  border-radius: 14px;
+  border-color: rgba(78, 169, 224, .24);
+  background:
+    linear-gradient(180deg, rgba(8, 24, 40, .97), rgba(5, 15, 27, .98));
+  box-shadow:
+    0 30px 70px rgba(0, 8, 24, .42),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #023877, #2593bf 65%, #ff3b94);
+}
+
+.auth-card .brand-logo {
+  filter: drop-shadow(0 0 18px rgba(37, 147, 191, .14));
+}
+
+.auth-kicker {
+  color: #75cbe9 !important;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.auth-card > p {
+  color: #b8c4d1;
+}
+
+.auth-card form label {
+  color: #dce6ef;
+  font-family: Bahnschrift, "Segoe UI", sans-serif;
+  font-weight: 600;
+}
+
+.auth-card input,
+.auth-card select {
+  border-radius: 8px;
+  border-color: rgba(75, 166, 220, .2);
+  background: rgba(7, 27, 45, .78);
+}
+
+.auth-card input:focus,
+.auth-card select:focus {
+  border-color: rgba(92, 194, 233, .52);
+  box-shadow: 0 0 0 3px rgba(37, 147, 191, .08);
+}
+
+.auth-card select option {
+  color: #102033;
+}
+
+.auth-forgot,
+.auth-switch a,
+.auth-legal-links a {
+  color: #74c9e8;
+}
+
+.auth-divider {
+  color: #8497a9;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: .66rem;
+  letter-spacing: .1em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  background: rgba(74, 164, 218, .12);
+}
+
+.microsoft-button {
+  border-radius: 8px;
+  background: rgba(10, 34, 55, .76);
+  border-color: rgba(76, 166, 220, .22);
+}
+
+.microsoft-button:hover {
+  background: rgba(14, 47, 75, .82);
+  border-color: rgba(91, 189, 230, .38);
+}
+
+.profile-avatar {
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, #0a4f8d, #1784b9 62%, #2593bf);
+  border-color: rgba(109, 205, 240, .3);
+  box-shadow: 0 0 34px rgba(37, 147, 191, .18);
+}
+
+.profile-meta span {
+  border-radius: 8px;
+  background: rgba(7, 27, 45, .7);
+  border-color: rgba(71, 160, 215, .14);
+}
+
+.profile-meta strong {
+  color: #75cbe9;
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+
+.program-badge {
+  border-radius: 6px;
+}
+
+.auth-message {
+  border-radius: 8px;
+}
