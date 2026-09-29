@@ -1,26 +1,26 @@
 # Sistema visual — ITLA Crush
 
-ITLA Crush conserva su identidad social propia, pero evita parecer una plantilla genérica de “glassmorphism + neón”. La interfaz utiliza un lenguaje visual técnico inspirado en la identidad institucional del ITLA y en el carácter académico del proyecto.
+ITLA Crush conserva su identidad social propia en magenta, violeta y navy, pero evita parecer una plantilla genérica de “glassmorphism + neón”. La modernización se concentra en geometría, jerarquía, tipografía y composición técnica sin sustituir la paleta original que ya identificaba al proyecto.
 
 > ITLA Crush es un proyecto académico independiente y no una aplicación oficial del Instituto Tecnológico de Las Américas.
 
 ## Principios
 
-### 1. Institución primero, producto después
+### 1. Identidad Crush primero
 
-La estructura visual usa azul institucional y tonos técnicos como base. El magenta de ITLA Crush funciona como señal social y no como color dominante de todas las superficies.
+La estructura visual mantiene la paleta previa del proyecto: magenta, violeta, rosa y navy profundo. El carácter tecnológico se introduce mediante composición, tipografía técnica, rails, grids, bordes finos y densidad visual controlada, no reemplazando la personalidad cromática existente.
 
 Variables principales:
 
-- ITLA Blue: `#023877`
-- ITLA Red: `#E52229`
-- Tech Blue: `#2593BF`
-- Signal Cyan: `#1BBDD7`
-- Crush Pink: `#FF3B94`
-- Crush Magenta: `#C21872`
-- Surface 0: `#050A12`
-- Surface 1: `#07111F`
-- Surface 2: `#0B1828`
+- Crush Pink: `#FF2F92`
+- Crush Pink 2: `#FF5BB4`
+- Crush Magenta: `#B10F66`
+- Violet Accent: `#8A63FF`
+- Blue Accent: `#2D7CFF`
+- Cyan Accent: `#72D8FF`
+- Surface 0: `#100518`
+- Surface 1: `#16071F`
+- Surface 2: `#241032`
 
 Los colores por tecnólogo siguen siendo semánticos y se aplican en badges/perfiles sin reemplazar la jerarquía principal del producto.
 
@@ -43,18 +43,20 @@ Las tarjetas usan superficies navy casi opacas, líneas azules de baja intensida
 - Metadatos técnicos: `Cascadia Code`, Consolas o monospace equivalente.
 - No se depende de fuentes web externas para mantener el proyecto autocontenido.
 
-### 5. Identidad Crush como señal
+### 5. Identidad Crush como sistema
 
-El rosa/magenta se reserva para:
+El rosa/magenta vuelve a ser parte estructural de la experiencia, acompañado de violeta y navy. Se utiliza en:
 
+- superficies de marca;
 - palabras de énfasis;
-- estado activo;
+- estados activos;
 - Social Core;
 - hashtags;
-- pequeños rails/accent lines;
-- elementos de marca del logo.
+- rails/accent lines;
+- botones principales;
+- elementos del logo.
 
-Esto permite que el producto se sienta ITLA + tecnológico sin perder la personalidad de “Crush”.
+El objetivo es conservar la personalidad visual que ya tenía ITLA Crush, pero con una ejecución más técnica, menos genérica y más consistente.
 
 ### 6. Elementos técnicos reales
 
@@ -113,7 +115,7 @@ El refresh mantiene:
 
 Cuando se agregue un componente nuevo, debe responder a estas preguntas:
 
-1. ¿Usa el azul como estructura y el magenta como señal?
+1. ¿Respeta la paleta magenta/violeta/navy de ITLA Crush?
 2. ¿Necesita realmente un pill o un radio grande?
 3. ¿El glow comunica algo o solo decora?
 4. ¿El dato mostrado es real?
