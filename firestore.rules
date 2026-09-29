@@ -10,6 +10,20 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isModerator() {
+      return isSignedIn()
+        && userDoc().data.role in ['admin', 'moderator'];
+    }
+
+    function ownsConfession(confessionId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
+    }
+
     match /users/{uid} {
       allow create: if isOwner(uid)
         && request.resource.data.keys().hasOnly([
@@ -42,9 +56,68 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // El dominio de confesiones se habilitará con reglas explícitas en la fase Core.
     match /confessions/{confessionId} {
-      allow read, write: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'recipientText', 'text', 'visibility', 'isAnonymous',
+          'authorDisplayName', 'authorBadge', 'tags', 'status',
+          'likeCount', 'commentCount', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.recipientText is string
+        && request.resource.data.recipientText.size() <= 80
+        && request.resource.data.visibility in ['public', 'private']
+        && request.resource.data.isAnonymous is bool
+        && request.resource.data.authorBadge == 'Estudiante'
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 6
+        && request.resource.data.status == 'active'
+        && request.resource.data.likeCount == 0
+        && request.resource.data.commentCount == 0
+        && (
+          (request.resource.data.isAnonymous == true && request.resource.data.authorDisplayName == '')
+          || (
+            request.resource.data.isAnonymous == false
+            && request.resource.data.authorDisplayName == userDoc().data.displayName
+          )
+        )
+        && getAfter(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
+
+      allow read: if (
+          resource.data.visibility == 'public'
+          && resource.data.status == 'active'
+        )
+        || ownsConfession(confessionId)
+        || isModerator();
+
+      allow update: if (
+          ownsConfession(confessionId)
+          && resource.data.status == 'active'
+          && request.resource.data.status == 'deleted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'updatedAt'
+          ])
+        )
+        || isModerator();
+
+      allow delete: if false;
+    }
+
+    match /confessionAuthors/{confessionId} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['authorUid', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/confessions/$(confessionId)).data.status == 'active';
+
+      allow read: if (
+          isSignedIn()
+          && resource.data.authorUid == request.auth.uid
+        )
+        || isModerator();
+
+      allow update, delete: if false;
     }
 
     match /{document=**} {
