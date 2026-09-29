@@ -586,8 +586,14 @@ function DemoPage() {
       <DemoSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
         <div className="demo-banner" role="status">
-          <div><Icon name="flask" /><strong>Estás viendo la versión DEMO</strong></div>
-          <span>Los perfiles, confesiones, contadores y acciones de esta pantalla son ficticios. No se guardan ni modifican datos en Firebase.</span>
+          <div className="demo-banner__lead">
+            <span className="demo-banner__icon"><Icon name="flask" /></span>
+            <span><strong>Modo demo</strong><small>Entorno aislado de la aplicación real</small></span>
+          </div>
+          <div className="demo-banner__facts" aria-label="Características del entorno demo">
+            <span>Datos locales</span>
+            <span>Firebase sin escrituras</span>
+          </div>
           <Link className="button button--primary" to={user ? '/app' : '/registro'}>
             <Icon name={user ? 'arrow-right' : 'user-plus'} /> {user ? 'Ir a la app real' : 'Entrar a la app real'}
           </Link>
@@ -605,13 +611,25 @@ function DemoPage() {
         <section className="dashboard-grid">
           <div className="feed-column">
             <section className="dashboard-hero glass-card demo-hero">
-              <div><p className="eyebrow">VISTA DE DEMOSTRACIÓN</p><h2>Explora ITLA Crush <span>sin tocar datos reales ♡</span></h2><p>Esta ruta reproduce la experiencia visual de la aplicación usando contenido local de ejemplo.</p></div>
-              <div className="dashboard-hero__note">DEMO<br/>NO OFICIAL</div>
+              <div className="dashboard-hero__copy">
+                <p className="eyebrow">ENTORNO DE DEMOSTRACIÓN</p>
+                <h2>Explora la experiencia <span>sin tocar datos reales.</span></h2>
+                <p>Prueba navegación, búsqueda y responsive con contenido local de ejemplo. Esta vista no crea, modifica ni elimina información en Firebase.</p>
+                <div className="demo-hero__meta">
+                  <span><Icon name="database" /> Datos locales</span>
+                  <span><Icon name="shield-halved" /> Entorno separado</span>
+                  <span><Icon name="mobile-screen-button" /> Responsive</span>
+                </div>
+              </div>
+              <div className="demo-environment-badge" aria-label="Ruta de demostración">
+                <span>/demo</span>
+                <small>NO OFICIAL</small>
+              </div>
             </section>
 
             <section className="quick-compose glass-card demo-disabled-control" aria-disabled="true">
               <div className="avatar" aria-hidden="true">D</div>
-              <span>La publicación está deshabilitada en la demo.</span>
+              <span><strong>Publicación deshabilitada</strong><small>La demo nunca escribe contenido en Firebase.</small></span>
               <Link className="button button--primary" to={user ? '/crear' : '/registro'}>{user ? 'Publicar en la app real' : 'Regístrate para publicar'}</Link>
             </section>
 
@@ -696,6 +714,13 @@ function FeedPage() {
   const location = useLocation()
   const name = profile?.displayName || user?.displayName || 'Estudiante'
   const initial = name.charAt(0).toUpperCase()
+  const programInfo = getProgram(profile?.program)
+  const hasFeedFilters = Boolean(searchText.trim() || selectedTopic)
+  const feedState = loading
+    ? { label: 'Sincronizando', detail: 'Firestore', tone: 'loading' }
+    : error
+      ? { label: 'Conexión pendiente', detail: 'Revisa Firebase', tone: 'error' }
+      : { label: 'Feed conectado', detail: 'Firestore', tone: 'online' }
 
   useEffect(() => {
     if (!user) return undefined
@@ -770,15 +795,40 @@ function FeedPage() {
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
         <header className="app-topbar glass-card">
-          <label className="app-search"><span><Icon name="magnifying-glass" /></span><span className="sr-only">Buscar confesiones o hashtags</span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
-          <div className="topbar-actions"><Link to="/notificaciones" aria-label="Notificaciones"><Icon name="bell" regular /></Link><button aria-label="Tema"><Icon name="sun" regular /></button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
+          <label className="app-search">
+            <span><Icon name="magnifying-glass" /></span>
+            <span className="sr-only">Buscar confesiones o hashtags</span>
+            <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" />
+          </label>
+          <div className="topbar-actions">
+            <span className="topbar-live"><i aria-hidden="true" /> Feed real</span>
+            <Link to="/notificaciones" className="topbar-icon-link" aria-label="Notificaciones"><Icon name="bell" regular /></Link>
+            <Link to="/perfil" className="mini-profile">
+              <div className="avatar">{initial}</div>
+              <span>
+                <strong>{name}</strong>
+                <small>{programInfo?.label || 'Cuenta autenticada'}</small>
+              </span>
+            </Link>
+          </div>
         </header>
 
         <section className="dashboard-grid">
           <div className="feed-column">
-            <section className="dashboard-hero glass-card">
-              <div><p className="eyebrow">CONFIESA. CONECTA. COMPARTE.</p><h2>Aquí también nacen <span>grandes historias ♡</span></h2></div>
-              <div className="dashboard-hero__note"><span>ITLA CRUSH</span><small>COMMUNITY // FIREBASE</small></div>
+            <section className="dashboard-hero dashboard-hero--feed glass-card">
+              <div className="dashboard-hero__copy">
+                <p className="eyebrow">TU COMUNIDAD ITLA</p>
+                <h2>Confiesa lo que sientes. <span>Conecta con lo real.</span></h2>
+                <p>Publica con tu identidad o en modo anónimo, descubre temas de la comunidad y conserva el control de tu privacidad.</p>
+                <div className="dashboard-hero__meta">
+                  <span><Icon name="user-shield" /> Privacidad por publicación</span>
+                  {programInfo && <span style={{ '--program-color': programInfo.color }}><Icon name="graduation-cap" /> {programInfo.label}</span>}
+                </div>
+              </div>
+              <div className={`dashboard-status dashboard-status--${feedState.tone}`} role="status">
+                <i aria-hidden="true" />
+                <span><strong>{feedState.label}</strong><small>{feedState.detail}</small></span>
+              </div>
             </section>
 
             <section
@@ -810,7 +860,18 @@ function FeedPage() {
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
               {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Sincronizando con Firestore…</div>}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
-              {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">{selectedTopic ? `Todavía no hay confesiones visibles en ${selectedTopic}.` : 'No encontramos confesiones públicas con esa búsqueda.'}</div>}
+              {!loading && !error && visibleConfessions.length === 0 && (
+                <div className="glass-card empty-state empty-state--actionable">
+                  <span className="empty-state__icon"><Icon name={hasFeedFilters ? 'magnifying-glass' : 'comment-dots'} regular /></span>
+                  <div>
+                    <strong>{hasFeedFilters ? 'No encontramos coincidencias' : 'Todavía no hay confesiones públicas'}</strong>
+                    <p>{selectedTopic ? `No hay publicaciones visibles en ${selectedTopic}.` : searchText.trim() ? 'Prueba con otro texto o hashtag.' : 'La comunidad se verá aquí cuando llegue la primera publicación.'}</p>
+                  </div>
+                  {hasFeedFilters
+                    ? <button type="button" className="button button--soft" onClick={() => { setSearchText(''); setSelectedTopic('') }}>Limpiar filtros</button>
+                    : <Link className="button button--primary" to="/crear">Publicar la primera</Link>}
+                </div>
+              )}
               {visibleConfessions.map((item) => (
                 <PublicConfessionCard
                   item={item}
@@ -835,7 +896,8 @@ function FeedPage() {
                 <div className="topics-empty">
                   <Icon name="hashtag" />
                   <p>Aún no hay temas activos.</p>
-                  <small>Los temas aparecen cuando la comunidad publica confesiones con hashtags o selecciona un tema al publicar.</small>
+                  <small>Los temas nacen de hashtags reales usados por la comunidad.</small>
+                  <Link to="/crear">Crear una confesión con tema <Icon name="arrow-right" /></Link>
                 </div>
               ) : (
                 communityTopics.map((topic, index) => (
