@@ -55,14 +55,15 @@ const sections = [
 export default function LegalPage({ focus }) {
   return (
     <div className="legal-page page-shell">
+      <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
       <header className="legal-header">
-        <Link to="/" className="legal-brand">
+        <Link to="/home" className="legal-brand">
           <img src="/itla-crush-logo.webp" alt="ITLA Crush" />
         </Link>
-        <Link to="/" className="button button--soft">← Volver</Link>
+        <Link to="/home" className="button button--soft">← Volver</Link>
       </header>
 
-      <main className="legal-content">
+      <main id="main-content" className="legal-content" tabIndex="-1">
         <section className="legal-hero glass-card">
           <span className="legal-kicker">SEGURIDAD · PRIVACIDAD · RESPETO</span>
           <h1>Reglas claras para conectar con confianza.</h1>
