@@ -68,9 +68,12 @@ function usePublicConfessions() {
 
 function BrandLogo({ compact = false }) {
   return (
-    <div className={`brand-logo ${compact ? 'brand-logo--compact' : ''}`} aria-label="ITLA Crush">
-      <span className="brand-logo__itla">ITLA</span>
-      <span className="brand-logo__crush">CRUSH <span aria-hidden="true">♥</span></span>
+    <div className={`brand-logo ${compact ? 'brand-logo--compact' : ''}`}>
+      <img
+        className="brand-logo__image"
+        src="/itla-crush-logo.webp"
+        alt="ITLA Crush"
+      />
       {!compact && <small>CONFIESA. CONECTA. COMPARTE.</small>}
     </div>
   )
