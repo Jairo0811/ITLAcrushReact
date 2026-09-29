@@ -99,6 +99,18 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
+## 🧪 Demo vs aplicación real
+
+Para evitar confusiones entre contenido de ejemplo y datos reales, el proyecto separa explícitamente ambos entornos:
+
+- **`/demo`**: demostración visual pública con datos ficticios locales. No requiere autenticación y no escribe ni modifica información en Firebase.
+- **`/app`**: aplicación real protegida, conectada a Firebase Authentication y Cloud Firestore.
+- La interfaz de demostración muestra avisos visibles de **MODO DEMO** y deshabilita acciones simuladas.
+- La landing identifica por separado el feed público real y el acceso a la demo.
+
+Esta separación también refuerza el carácter académico del proyecto y evita que usuarios interpreten datos simulados como publicaciones reales.
+
+---
 ## ♿ Accesibilidad y NORTIC B2
 
 Como parte de la modernización del proyecto, ITLA Crush adopta de forma **voluntaria** una base de accesibilidad inspirada en la **NORTIC B2:2017 — Norma sobre Accesibilidad Web del Estado Dominicano**, con objetivo técnico de cubrir los criterios A y AA que resulten aplicables.
