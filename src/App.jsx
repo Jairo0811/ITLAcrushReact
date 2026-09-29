@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
+import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import './App.css'
 
@@ -66,6 +67,7 @@ function Icon({ children }) {
 function PublicConfessionCard({ item, onDelete }) {
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
+  const programInfo = item.isAnonymous ? null : getProgram(item.authorProgram)
 
   return (
     <article className="confession-card glass-card">
@@ -73,7 +75,7 @@ function PublicConfessionCard({ item, onDelete }) {
         <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`}>{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
           <strong>{author}</strong>
-          <div className="muted-row"><span className="tiny-badge">{item.authorBadge || 'Estudiante'}</span><span>{formatRelativeTime(item.createdAt)}</span></div>
+          <div className="muted-row">{programInfo ? <span className={`tiny-badge program-badge program-badge--${programInfo.tone}`}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
         <button className="icon-button" aria-label="Más opciones">•••</button>
       </div>
