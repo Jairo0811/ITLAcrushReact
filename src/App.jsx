@@ -1,50 +1,53 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext.jsx'
+import { createConfession, subscribePublicConfessions } from './services/confessionService.js'
 import './App.css'
 
-const confessions = [
-  {
-    id: 1,
-    author: 'Anónimo',
-    badge: 'Estudiante',
-    time: 'hace 2 horas',
-    text: 'Me gusta alguien de mi clase de programación… Siempre me ayuda y tiene una vibra increíble. ¿Alguien más siente que en el ITLA el amor también compila?',
-    tags: ['#AmorITLA', '#Programación'],
-    likes: 248,
-    comments: 37,
-    anonymous: true,
-  },
-  {
-    id: 2,
-    author: 'María S.',
-    badge: 'Software',
-    time: 'hace 4 horas',
-    text: 'ITLA no solo me está formando profesionalmente, también me dio amistades que se sienten como familia. Qué suerte la mía. 💕',
-    tags: ['#Gratitud', '#VidaITLA'],
-    likes: 312,
-    comments: 12,
-    anonymous: false,
-  },
-  {
-    id: 3,
-    author: 'Crush Secreto',
-    badge: 'Anónimo',
-    time: 'hace 6 horas',
-    text: 'Hay miradas en la biblioteca que dicen más que mil palabras…',
-    tags: ['#Biblioteca', '#CrushSecreto'],
-    likes: 190,
-    comments: 28,
-    anonymous: true,
-  },
+const trends = [
+  ['#AmorITLA', 'Explora conversaciones de la comunidad'],
+  ['#VidaITLA', 'Historias del día a día'],
+  ['#Biblioteca', 'Momentos entre clases'],
+  ['#CrushSecreto', 'Confesiones anónimas'],
+  ['#IngenieríaDelAmor', 'Cuando el código también conecta'],
 ]
 
-const trends = [
-  ['#AmorITLA', '1.2K publicaciones'],
-  ['#VidaITLA', '892 publicaciones'],
-  ['#Biblioteca', '745 publicaciones'],
-  ['#CrushSecreto', '623 publicaciones'],
-  ['#IngenieríaDelAmor', '410 publicaciones'],
-]
+function formatRelativeTime(date) {
+  if (!date) return 'ahora'
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000))
+  if (seconds < 60) return 'ahora'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `hace ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `hace ${hours} h`
+  const days = Math.floor(hours / 24)
+  return `hace ${days} d`
+}
+
+function usePublicConfessions() {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const unsubscribe = subscribePublicConfessions(
+      (nextItems) => {
+        setItems(nextItems)
+        setLoading(false)
+        setError('')
+      },
+      (snapshotError) => {
+        console.error('No se pudo cargar el feed de confesiones.', snapshotError)
+        setError('No pudimos cargar las confesiones en este momento.')
+        setLoading(false)
+      },
+    )
+
+    return unsubscribe
+  }, [])
+
+  return { items, loading, error }
+}
 
 function BrandLogo({ compact = false }) {
   return (
@@ -61,22 +64,25 @@ function Icon({ children }) {
 }
 
 function PublicConfessionCard({ item }) {
-  const [liked, setLiked] = useState(false)
+  const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
+  const tags = item.tags ?? []
+
   return (
     <article className="confession-card glass-card">
       <div className="confession-card__header">
-        <div className={`avatar ${item.anonymous ? 'avatar--anonymous' : ''}`}>{item.anonymous ? '◉' : item.author.charAt(0)}</div>
+        <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`}>{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
-          <strong>{item.author}</strong>
-          <div className="muted-row"><span className="tiny-badge">{item.badge}</span><span>{item.time}</span></div>
+          <strong>{author}</strong>
+          <div className="muted-row"><span className="tiny-badge">{item.authorBadge || 'Estudiante'}</span><span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
         <button className="icon-button" aria-label="Más opciones">•••</button>
       </div>
+      {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
       <p>{item.text}</p>
-      <div className="tag-row">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+      {tags.length > 0 && <div className="tag-row">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
       <div className="card-actions">
-        <button onClick={() => setLiked((value) => !value)} className={liked ? 'is-liked' : ''}>♥ {item.likes + (liked ? 1 : 0)}</button>
-        <button>◌ {item.comments}</button>
+        <button title="Las reacciones persistentes llegan en una fase posterior">♥ {item.likeCount ?? 0}</button>
+        <button title="Los comentarios persistentes llegan en una fase posterior">◌ {item.commentCount ?? 0}</button>
         <button>↗ Compartir</button>
         <button className="bookmark" aria-label="Guardar">♡</button>
       </div>
@@ -85,6 +91,8 @@ function PublicConfessionCard({ item }) {
 }
 
 function LandingPage() {
+  const { items: publicConfessions, loading, error } = usePublicConfessions()
+
   return (
     <div className="landing-page page-shell">
       <header className="landing-nav content-width">
@@ -147,7 +155,10 @@ function LandingPage() {
             <Link to="/app">Ver todas →</Link>
           </div>
           <div className="landing-card-grid">
-            {confessions.map((item) => <PublicConfessionCard item={item} key={item.id} />)}
+            {loading && <div className="glass-card empty-state">Cargando confesiones…</div>}
+            {!loading && error && <div className="glass-card empty-state">{error}</div>}
+            {!loading && !error && publicConfessions.length === 0 && <div className="glass-card empty-state">Todavía no hay confesiones públicas. Sé la primera persona en compartir una.</div>}
+            {publicConfessions.slice(0, 3).map((item) => <PublicConfessionCard item={item} key={item.id} />)}
           </div>
         </section>
 
@@ -191,17 +202,26 @@ function AppSidebar() {
 }
 
 function FeedPage() {
-  const [query, setQuery] = useState('')
-  const visibleConfessions = useMemo(() => confessions.filter((item) => `${item.text} ${item.tags.join(' ')}`.toLowerCase().includes(query.toLowerCase())), [query])
+  const [searchText, setSearchText] = useState('')
+  const { items: publicConfessions, loading, error } = usePublicConfessions()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
+  const name = profile?.displayName || user?.displayName || 'Estudiante'
+  const initial = name.charAt(0).toUpperCase()
+
+  const visibleConfessions = useMemo(() => {
+    const normalized = searchText.trim().toLowerCase()
+    if (!normalized) return publicConfessions
+    return publicConfessions.filter((item) => `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized))
+  }, [publicConfessions, searchText])
 
   return (
     <div className="app-layout page-shell">
       <AppSidebar />
       <main className="app-main">
         <header className="app-topbar glass-card">
-          <label className="app-search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar confesiones, personas o #hashtags…" /></label>
-          <div className="topbar-actions"><button>♢<span className="notification-dot">12</span></button><button>☼</button><div className="mini-profile"><div className="avatar">A</div><span><strong>Ana Torres</strong><small>Sigue sintiendo ♥</small></span></div></div>
+          <label className="app-search"><span>⌕</span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
+          <div className="topbar-actions"><button>♢</button><button>☼</button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
         </header>
 
         <section className="dashboard-grid">
@@ -212,38 +232,63 @@ function FeedPage() {
             </section>
 
             <section className="quick-compose glass-card" onClick={() => navigate('/crear')} role="button" tabIndex="0">
-              <div className="avatar">A</div><span>¿Qué quieres confesar hoy?</span><button className="button button--primary">Publicar</button>
+              <div className="avatar">{initial}</div><span>¿Qué quieres confesar hoy?</span><button className="button button--primary">Publicar</button>
             </section>
 
-            <div className="feed-tabs"><button className="active">Para ti</button><button>Más recientes</button><button>Tendencias</button></div>
+            <div className="feed-tabs"><button className="active">Más recientes</button><button disabled>Para ti</button><button disabled>Tendencias</button></div>
             <div className="feed-list">
-              {visibleConfessions.length ? visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} />) : <div className="glass-card empty-state">No encontramos confesiones con esa búsqueda.</div>}
+              {loading && <div className="glass-card empty-state">Sincronizando con Firestore…</div>}
+              {!loading && error && <div className="glass-card empty-state">{error}</div>}
+              {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">No encontramos confesiones públicas con esa búsqueda.</div>}
+              {visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} />)}
             </div>
           </div>
 
           <aside className="right-rail">
-            <section className="glass-card rail-card"><div className="rail-title"><h3>🔥 Tendencias de hoy</h3><button>Ver todas</button></div>{trends.map(([tag, count], index) => <div className="trend-row" key={tag}><b>{index + 1}</b><span><strong>{tag}</strong><small>{count}</small></span></div>)}</section>
-            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear">♥<span>Buscar Crush</span></Link><Link to="/crear">▥<span>Crear encuesta</span></Link><Link to="/registro">＋<span>Invitar amigos</span></Link><Link to="/crear">◉<span>Modo anónimo</span></Link></div></section>
+            <section className="glass-card rail-card"><div className="rail-title"><h3>🔥 Temas de la comunidad</h3></div>{trends.map(([tag, description], index) => <div className="trend-row" key={tag}><b>{index + 1}</b><span><strong>{tag}</strong><small>{description}</small></span></div>)}</section>
+            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear">♥<span>Nueva confesión</span></Link><Link to="/perfil">◯<span>Mi perfil</span></Link><Link to="/normas">⚑<span>Normas</span></Link><Link to="/crear">◉<span>Modo anónimo</span></Link></div></section>
           </aside>
         </section>
       </main>
-      <nav className="mobile-bottom-nav"><Link to="/app">⌂<small>Inicio</small></Link><Link to="/app">⌕<small>Explorar</small></Link><Link className="mobile-create" to="/crear">＋<small>Crear</small></Link><Link to="/app">♢<small>Alertas</small></Link><Link to="/app">◯<small>Perfil</small></Link></nav>
+      <nav className="mobile-bottom-nav"><Link to="/app">⌂<small>Inicio</small></Link><Link to="/app">⌕<small>Explorar</small></Link><Link className="mobile-create" to="/crear">＋<small>Crear</small></Link><Link to="/normas">⚑<small>Normas</small></Link><Link to="/perfil">◯<small>Perfil</small></Link></nav>
     </div>
   )
 }
 
 function CreateConfessionPage() {
   const navigate = useNavigate()
+  const { user, profile } = useAuth()
   const [recipient, setRecipient] = useState('')
   const [message, setMessage] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [published, setPublished] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    if (!message.trim()) return
-    setPublished(true)
+    if (!message.trim() || submitting) return
+
+    setSubmitting(true)
+    setError('')
+
+    try {
+      await createConfession({
+        user,
+        profile,
+        recipientText: recipient,
+        message,
+        visibility: isPublic ? 'public' : 'private',
+        isAnonymous,
+      })
+      setPublished(true)
+    } catch (publishError) {
+      console.error('No se pudo publicar la confesión.', publishError)
+      setError(publishError.message || 'No pudimos publicar tu confesión.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -253,14 +298,16 @@ function CreateConfessionPage() {
         <BrandLogo compact />
         <div className="create-heading"><div className="send-icon">↗</div><h1>Tu historia también cuenta</h1><p>Confiesa. Conecta. Comparte.</p></div>
         {published ? (
-          <div className="success-panel"><span>♡</span><h2>Confesión preparada</h2><p>La interfaz ya refleja el flujo del mockup. En la siguiente fase conectaremos este envío con Firebase y las reglas de seguridad.</p><button className="button button--primary" onClick={() => navigate('/app')}>Volver al feed</button></div>
+          <div className="success-panel"><span>♡</span><h2>Confesión publicada</h2><p>{isPublic ? 'Ya forma parte del feed público de ITLA Crush.' : 'Se guardó como privada y solo tu cuenta puede leerla en esta fase.'}</p><button className="button button--primary" onClick={() => navigate('/app')}>Volver al feed</button></div>
         ) : (
           <form onSubmit={submit} className="confession-form">
-            <label><span>Para…</span><input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
+            {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
+            <label><span>Para…</span><input value={recipient} maxLength="80" onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
             <label><span>Tu confesión…</span><textarea value={message} maxLength="500" onChange={(event) => setMessage(event.target.value)} placeholder="Escribe aquí tu mensaje…"/><small>{message.length}/500</small></label>
-            <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Solo la persona podrá verlo</small></div><button type="button" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
+            <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Visible solo para tu cuenta por ahora</small></div><button type="button" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
             <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad se oculta ante otros usuarios</small></div><button type="button" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
-            {isAnonymous && <div className="anonymous-disclosure"><strong>🕶️ Anónimo para la comunidad, no para la plataforma.</strong>ITLA Crush conserva internamente la asociación con tu cuenta para seguridad, moderación y cumplimiento legal. <Link to="/privacidad">Conoce cómo funciona.</Link></div>}\n            <button className="button button--primary publish-button" disabled={!message.trim()}>↗ Publicar Confesión</button>
+            {isAnonymous && <div className="anonymous-disclosure"><strong>🕶️ Anónimo para la comunidad, no para la plataforma.</strong>El documento público no expone tu UID. La trazabilidad se guarda por separado y solo puede consultarla tu cuenta o moderación autorizada. <Link to="/privacidad">Conoce cómo funciona.</Link></div>}
+            <button className="button button--primary publish-button" disabled={!message.trim() || submitting}>{submitting ? 'Publicando…' : '↗ Publicar Confesión'}</button>
           </form>
         )}
       </div>
