@@ -363,7 +363,7 @@ El modelo aplica el principio de que **anónimo para la comunidad no significa a
 
 ## ⚙️ Requisitos previos
 
-- Node.js 18 o superior.
+- Node.js 24 LTS recomendado para reproducir el entorno de CI.
 - npm.
 - Una cuenta de Google Firebase.
 - Un proyecto web configurado en Firebase.
