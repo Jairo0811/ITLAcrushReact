@@ -21,7 +21,7 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   </a>
 </p>
 
-> Estado actual: **reconstrucción en desarrollo**. La arquitectura, el modelo funcional y la documentación base están definidos; la implementación completa de autenticación, confesiones, seguridad y experiencia de usuario continúa pendiente.
+> Estado actual: **Fases 1–4 implementadas**. ITLA Crush ya dispone de identidad visual, autenticación con Firebase, confesiones reales en Firestore, separación entre anonimato público y trazabilidad interna, Trust & Safety, demo aislada de la aplicación real, diseño responsive y una base voluntaria de accesibilidad alineada con NORTIC B2. La siguiente etapa es el hardening de portafolio/producción.
 
 </div>
 
@@ -126,53 +126,83 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Área | Estado |
 |---|---|
 | Definición funcional y alcance | ✅ Completados |
-| Stack tecnológico | ✅ Definido |
-| Arquitectura propuesta | ✅ Documentada |
-| Modelo de datos | ✅ Propuesto |
-| Identidad visual y documentación | ✅ Disponibles |
-| Configuración base de React y Vite | 🚧 En desarrollo |
-| Firebase Authentication | 🚧 Pendiente de completar |
-| Cloud Firestore | 🚧 Pendiente de completar |
-| Publicación de confesiones | 🚧 Pendiente de completar |
-| Visibilidad pública y privada | 🚧 Pendiente de completar |
-| Anonimato e identificación | 🚧 Pendiente de completar |
-| Reglas de seguridad de Firestore | 🚧 Pendientes |
-| Dashboard y perfil | 🚧 Planificados |
-| Pruebas automatizadas | 🚧 Pendientes |
-| Preparación para producción | 🚧 Pendiente |
+| Identidad visual y responsive | ✅ Implementados |
+| React + Vite | ✅ Implementados |
+| Firebase Authentication — email/contraseña | ✅ Implementado |
+| Firebase Authentication — Microsoft | ✅ Integrado; cuentas institucionales pueden requerir aprobación administrativa del tenant |
+| Persistencia con Cloud Firestore | ✅ Implementada |
+| Confesiones públicas y privadas | ✅ Implementadas |
+| Publicación anónima o identificada | ✅ Implementada |
+| Trazabilidad interna de autor | ✅ Implementada sin exponer el UID en el documento público |
+| Historial de mis confesiones | ✅ Implementado |
+| Reglas e índices de Firestore | ✅ Definidos y desplegados |
+| Dashboard y perfil | ✅ Implementados |
+| Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
+| Demo separada de la aplicación real | ✅ `/demo` vs `/app` |
+| Accesibilidad / NORTIC B2 | 🚧 Alineación voluntaria A + AA en progreso |
+| CI | ✅ `npm ci`, lint y build en GitHub Actions |
+| Pruebas automatizadas de comportamiento | 🚧 Pendientes |
+| Optimización de bundle / code splitting | 🚧 Pendiente |
+| Preparación para producción | 🚧 Fase 5 |
 
-El repositorio debe considerarse **en desarrollo** hasta completar el flujo funcional principal, las reglas de seguridad, las pruebas y la validación para producción.
+La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se concentran en **hardening**, pruebas, accesibilidad verificable, optimización del bundle y preparación para despliegue/portafolio.
+
+### 🗺️ Fases de modernización
+
+| Fase | Alcance | Estado |
+|---:|---|---|
+| 1 | Fundación, UI e identidad visual | ✅ Completada |
+| 2 | Identidad y Firebase Authentication | ✅ Completada |
+| 3 | Crush Core y Cloud Firestore | ✅ Completada |
+| 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
+| 5 | Portfolio hardening, pruebas, rendimiento y preparación para producción | ⏭️ Siguiente |
 
 ---
 
-## 🚀 Funcionalidades previstas
+## 🚀 Funcionalidades actuales
 
-### 🌐 Usuarios no autenticados
+### 🌐 Visitantes
 
-- Consultar confesiones públicas.
+- Acceder a la landing pública en `/home`.
+- Explorar una demo aislada en `/demo` con contenido ficticio.
+- Consultar el feed público real cuando Firestore lo permite.
 - Crear una cuenta.
-- Iniciar sesión.
+- Iniciar sesión mediante email/contraseña.
+- Iniciar el flujo OAuth de Microsoft.
+- Recuperar la contraseña.
+- Consultar términos, privacidad y normas de la comunidad.
 
 ### 🔐 Usuarios autenticados
 
-- Crear confesiones.
-- Consultar confesiones privadas.
-- Seleccionar un destinatario registrado.
-- Introducir manualmente otro destinatario.
-- Publicar de forma anónima.
-- Publicar mostrando su identidad.
-- Cerrar sesión de forma segura.
+- Acceder al dashboard real en `/app`.
+- Crear confesiones públicas o privadas.
+- Publicar de forma anónima o identificada.
+- Mantener la relación interna entre autor y confesión sin exponerla públicamente.
+- Consultar sus propias confesiones.
+- Retirar sus propias publicaciones mediante borrado lógico.
+- Buscar contenido del feed.
+- Ocultar publicaciones de su propio feed.
+- Reportar publicaciones por motivos estructurados.
+- Consultar y cerrar su sesión desde el perfil.
 
-### ✨ Mejoras planificadas
+### 🛡️ Moderación
 
-- Dashboard personalizado.
-- Perfil de usuario.
-- Buscador por destinatario.
-- Filtros por visibilidad y anonimato.
-- Estados de carga y mensajes de error claros.
-- Diseño adaptable a dispositivos móviles.
-- Reglas de seguridad de Firestore.
-- Componentes reutilizables.
+Las cuentas con rol `moderator` o `admin` pueden:
+
+- Revisar la cola de reportes.
+- Marcar reportes como `open`, `reviewing`, `resolved` o `dismissed`.
+- Cambiar el estado de una confesión entre `active`, `under_review` y `removed`.
+- Registrar notas internas y trazabilidad de las acciones de moderación.
+- Trabajar sin revelar públicamente la identidad de autores anónimos.
+
+### 🧪 Demo vs aplicación real
+
+| Ruta | Propósito | Datos |
+|---|---|---|
+| `/demo` | Demostración pública de la interfaz | Ficticios y locales; no escribe en Firebase |
+| `/app` | Aplicación funcional | Reales; protegidos por autenticación y reglas de Firestore |
+
+La demo incluye avisos persistentes de **MODO DEMO**, etiquetas de contenido ficticio y acciones simuladas deshabilitadas para evitar confusión con la aplicación real.
 
 ---
 
@@ -214,7 +244,7 @@ El repositorio debe considerarse **en desarrollo** hasta completar el flujo func
 
 ---
 
-## 🏗️ Arquitectura propuesta
+## 🏗️ Arquitectura
 
 ```text
 src/
@@ -249,49 +279,40 @@ src/
 
 ---
 
-## 🗄️ Modelo de datos propuesto
+## 🗄️ Modelo de datos actual
 
-### Usuario
+### `users/{uid}`
 
-```json
-{
-  "uid": "firebase-user-id",
-  "username": "usuario",
-  "firstName": "Nombre",
-  "lastName": "Apellido",
-  "email": "usuario@correo.com",
-  "createdAt": "timestamp"
-}
-```
+Perfil del usuario autenticado: nombre visible, correo, tecnólogo, proveedor de autenticación, rol, estado y aceptación de términos.
 
-### Confesión
+### `confessions/{confessionId}`
 
-```json
-{
-  "authorId": "firebase-user-id",
-  "authorName": "Nombre del autor",
-  "recipientId": "user-id-or-null",
-  "recipientName": "Nombre del destinatario",
-  "message": "Contenido de la confesión",
-  "isPublic": true,
-  "isAnonymous": false,
-  "createdAt": "timestamp"
-}
-```
+Documento visible según permisos. Contiene el texto, destinatario, visibilidad, modo anónimo/identificado, datos públicos del autor cuando aplica, etiquetas, estado y contadores.
+
+### `confessionAuthors/{confessionId}`
+
+Relación privada entre la confesión y el `authorUid`. Permite trazabilidad y autorización sin incluir el UID en el documento público.
+
+### Trust & Safety
+
+- `reports/{confessionId}_{reporterUid}`: reportes únicos por usuario y confesión.
+- `hiddenConfessions/{ownerUid}_{confessionId}`: contenido oculto solo para una cuenta.
+- `moderationCases/{confessionId}`: metadatos internos de moderación separados del contenido público.
+
+El modelo aplica el principio de que **anónimo para la comunidad no significa anónimo para el sistema**.
 
 ---
 
-## 🔄 Flujo general previsto
+## 🔄 Flujo general
 
-1. El visitante accede a la aplicación.
-2. Consulta confesiones públicas sin autenticarse.
-3. Crea una cuenta o inicia sesión.
-4. Selecciona un destinatario registrado o introduce otro nombre.
-5. Redacta la confesión.
-6. Define si será pública o privada.
-7. Define si será anónima o identificada.
-8. La información se almacena en Cloud Firestore.
-9. La aplicación muestra el contenido de acuerdo con la sesión y los permisos del usuario.
+1. El visitante entra a la landing o explora la demo aislada.
+2. Para usar la aplicación real crea una cuenta o inicia sesión.
+3. El usuario autenticado redacta una confesión y define su visibilidad.
+4. Decide si publica de forma anónima o identificada.
+5. Firestore guarda de forma atómica la confesión y su relación privada de autoría.
+6. El feed muestra únicamente contenido permitido por las reglas y el estado de moderación.
+7. El usuario puede ocultar o reportar contenido.
+8. Moderación puede revisar los casos sin convertir la identidad interna del autor en información pública.
 
 ---
 
@@ -395,7 +416,7 @@ npm run preview
 
 El sistema cubrirá el registro y autenticación de usuarios, la creación de confesiones, la selección de destinatarios y la consulta de contenido público o privado según los permisos establecidos.
 
-La reconstrucción mantendrá el propósito académico del proyecto original, pero se desarrollará con una arquitectura modular y una calidad suficiente para ser presentada como proyecto de portafolio.
+La reconstrucción mantiene el propósito académico del proyecto original y evoluciona hacia una implementación moderna orientada a portafolio. **No es una aplicación oficial del ITLA**, ni representa un producto, servicio o canal institucional de esa entidad.
 
 ---
 
