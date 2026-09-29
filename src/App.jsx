@@ -150,7 +150,7 @@ function LandingPage() {
         <nav className="desktop-nav" aria-label="Navegación principal">
           <a href="#inicio">Inicio</a>
           <a href="#confesiones">Confesiones</a>
-          <a href="#como-funciona">Cómo funciona</a>
+          <a href="#como-funciona">¿Cómo funciona?</a>
           <a href="#comunidad">Comunidad</a>
         </nav>
         <div className="nav-actions">
@@ -235,7 +235,7 @@ function LandingPage() {
         </section>
 
         <section id="como-funciona" className="how-section">
-          <div className="section-heading"><div><p className="eyebrow">SIMPLE Y DIRECTO</p><h2>Cómo funciona</h2></div></div>
+          <div className="section-heading"><div><p className="eyebrow">SIMPLE Y DIRECTO</p><h2>¿Cómo funciona?</h2></div></div>
           <div className="steps-grid">
             <div className="glass-card"><span>01</span><h3>Crea tu cuenta</h3><p>Construye tu perfil y entra a la comunidad.</p></div>
             <div className="glass-card"><span>02</span><h3>Elige cómo expresarte</h3><p>Publica de forma identificada o anónima y define la visibilidad.</p></div>
