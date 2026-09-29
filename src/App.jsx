@@ -15,6 +15,51 @@ const trends = [
   ['#IngenieríaDelAmor', 'Cuando el código también conecta'],
 ]
 
+const demoConfessions = [
+  {
+    id: 'demo-1',
+    recipientText: 'Alguien de Desarrollo de Software',
+    text: 'Esta es una confesión ficticia para mostrar cómo se vería una publicación real en ITLA Crush. 💻💕 #Demo',
+    visibility: 'public',
+    isAnonymous: true,
+    authorDisplayName: '',
+    authorProgram: '',
+    tags: ['#Demo'],
+    status: 'active',
+    likeCount: 24,
+    commentCount: 6,
+    createdAt: new Date(Date.now() - 8 * 60 * 1000),
+  },
+  {
+    id: 'demo-2',
+    recipientText: 'Biblioteca',
+    text: 'Demo visual: nos cruzamos estudiando para el parcial y todavía me acuerdo de tu sonrisa. 📚✨ #AmorITLA',
+    visibility: 'public',
+    isAnonymous: false,
+    authorDisplayName: 'Estudiante Demo',
+    authorProgram: 'desarrollo-software',
+    tags: ['#AmorITLA'],
+    status: 'active',
+    likeCount: 18,
+    commentCount: 3,
+    createdAt: new Date(Date.now() - 32 * 60 * 1000),
+  },
+  {
+    id: 'demo-3',
+    recipientText: 'La comunidad',
+    text: 'Todo el contenido de esta pantalla es ficticio y no se guarda en Firebase. Sirve únicamente para explorar la interfaz. #ModoDemo',
+    visibility: 'public',
+    isAnonymous: true,
+    authorDisplayName: '',
+    authorProgram: '',
+    tags: ['#ModoDemo'],
+    status: 'active',
+    likeCount: 12,
+    commentCount: 1,
+    createdAt: new Date(Date.now() - 75 * 60 * 1000),
+  },
+]
+
 function formatRelativeTime(date) {
   if (!date) return 'ahora'
   const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000))
@@ -199,7 +244,7 @@ function LandingPage() {
               ) : (
                 <>
                   <Link className="button button--primary button--large" to="/registro">Únete ahora <Icon name="arrow-right" /></Link>
-                  <Link className="button button--soft button--large" to="/app"><Icon name="eye" /> Ver demo</Link>
+                  <Link className="button button--soft button--large" to="/demo"><Icon name="eye" /> Ver demo</Link>
                 </>
               )}
             </div>
@@ -227,16 +272,16 @@ function LandingPage() {
         </section>
 
         <section className="stats-panel glass-card" id="comunidad">
-          <div><strong>+10K</strong><span>Confesiones compartidas</span></div>
-          <div><strong>+5K</strong><span>Conexiones reales</span></div>
-          <div><strong>Privacidad</strong><span>Anonimato público con trazabilidad interna</span></div>
-          <div className="stats-panel__highlight"><strong>La comunidad que se atreve ♡</strong></div>
+          <div><strong>Proyecto académico</strong><span>Reconstrucción independiente y no oficial</span></div>
+          <div><strong>Demo separada</strong><span>Datos ficticios que no escriben en Firebase</span></div>
+          <div><strong>App real</strong><span>Autenticación y datos reales en rutas protegidas</span></div>
+          <div className="stats-panel__highlight"><strong>Privacidad + accesibilidad ♡</strong></div>
         </section>
 
         <section id="confesiones" className="landing-feed">
           <div className="section-heading">
-            <div><p className="eyebrow">HISTORIAS REALES</p><h2>Confesiones públicas</h2><p>Sentimientos, amistades y momentos que forman parte de la vida ITLA.</p></div>
-            <Link to="/app">Ver todas →</Link>
+            <div><p className="eyebrow">FEED PÚBLICO REAL</p><h2>Confesiones públicas</h2><p>Esta sección usa datos reales publicados en Firestore. La demo visual está separada y usa contenido ficticio.</p></div>
+            <Link to={user ? '/app' : '/demo'}>{user ? 'Abrir feed real →' : 'Explorar demo →'}</Link>
           </div>
           <div className="landing-card-grid">
             {loading && <div className="glass-card empty-state">Cargando confesiones…</div>}
@@ -309,6 +354,107 @@ function AppSidebar() {
       </nav>
       <div className="sidebar-quote glass-card"><Icon name="heart" regular /><p>Buenas ideas también conectan corazones.</p></div>
     </aside>
+  )
+}
+
+
+function DemoSidebar() {
+  return (
+    <aside className="app-sidebar demo-sidebar">
+      <Link to="/demo"><BrandLogo /></Link>
+      <div className="demo-mode-chip"><Icon name="flask" /> MODO DEMO</div>
+      <nav aria-label="Navegación de demostración">
+        <NavLink to="/demo" className="sidebar-link sidebar-link--active"><span><Icon name="house" /></span>Vista general</NavLink>
+        <Link to="/home" className="sidebar-link"><span><Icon name="arrow-left" /></span>Volver al inicio</Link>
+      </nav>
+      <div className="sidebar-quote glass-card"><Icon name="circle-info" /><p>Ninguna acción de esta pantalla modifica datos reales.</p></div>
+    </aside>
+  )
+}
+
+function DemoPage() {
+  const [searchText, setSearchText] = useState('')
+  const { user } = useAuth()
+
+  const visibleDemoConfessions = useMemo(() => {
+    const normalized = searchText.trim().toLowerCase()
+    if (!normalized) return demoConfessions
+    return demoConfessions.filter((item) =>
+      `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized),
+    )
+  }, [searchText])
+
+  return (
+    <div className="app-layout page-shell demo-page">
+      <SkipLink />
+      <DemoSidebar />
+      <main id="main-content" className="app-main" tabIndex="-1">
+        <div className="demo-banner" role="status">
+          <div><Icon name="flask" /><strong>Estás viendo la versión DEMO</strong></div>
+          <span>Los perfiles, confesiones, contadores y acciones de esta pantalla son ficticios. No se guardan ni modifican datos en Firebase.</span>
+          <Link className="button button--primary" to={user ? '/app' : '/registro'}>
+            <Icon name={user ? 'arrow-right' : 'user-plus'} /> {user ? 'Ir a la app real' : 'Entrar a la app real'}
+          </Link>
+        </div>
+
+        <header className="app-topbar glass-card demo-topbar">
+          <label className="app-search">
+            <span><Icon name="magnifying-glass" /></span>
+            <span className="sr-only">Buscar contenido ficticio de la demo</span>
+            <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar en la demo…" />
+          </label>
+          <span className="demo-pill"><Icon name="flask" /> Datos ficticios</span>
+        </header>
+
+        <section className="dashboard-grid">
+          <div className="feed-column">
+            <section className="dashboard-hero glass-card demo-hero">
+              <div><p className="eyebrow">VISTA DE DEMOSTRACIÓN</p><h2>Explora ITLA Crush <span>sin tocar datos reales ♡</span></h2><p>Esta ruta reproduce la experiencia visual de la aplicación usando contenido local de ejemplo.</p></div>
+              <div className="dashboard-hero__note">DEMO<br/>NO OFICIAL</div>
+            </section>
+
+            <section className="quick-compose glass-card demo-disabled-control" aria-disabled="true">
+              <div className="avatar" aria-hidden="true">D</div>
+              <span>La publicación está deshabilitada en la demo.</span>
+              <Link className="button button--primary" to={user ? '/crear' : '/registro'}>{user ? 'Publicar en la app real' : 'Regístrate para publicar'}</Link>
+            </section>
+
+            <div className="feed-tabs" role="tablist" aria-label="Filtros de demostración">
+              <button className="active" role="tab" aria-selected="true">Ejemplos</button>
+              <button role="tab" aria-selected="false" disabled>Para ti</button>
+              <button role="tab" aria-selected="false" disabled>Tendencias</button>
+            </div>
+
+            <div className="feed-list">
+              {visibleDemoConfessions.length === 0 && <div className="glass-card empty-state">No hay ejemplos que coincidan con esa búsqueda.</div>}
+              {visibleDemoConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} />)}
+            </div>
+          </div>
+
+          <aside className="right-rail">
+            <section className="glass-card rail-card demo-info-card">
+              <div className="rail-title"><h3><Icon name="circle-info" /> ¿Qué es esta demo?</h3></div>
+              <p>Una vista aislada para probar diseño, navegación y responsive sin autenticación y sin mezclar contenido ficticio con el feed real.</p>
+            </section>
+            <section className="glass-card rail-card">
+              <div className="rail-title"><h3><Icon name="shield-halved" /> Separación de entornos</h3></div>
+              <div className="demo-environment-list">
+                <span><b>/demo</b><small>Contenido ficticio, solo interfaz.</small></span>
+                <span><b>/app</b><small>Aplicación real protegida y conectada a Firebase.</small></span>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+
+      <nav className="mobile-bottom-nav demo-mobile-nav">
+        <Link to="/home"><Icon name="arrow-left" /><small>Inicio</small></Link>
+        <Link to="/demo"><Icon name="flask" /><small>Demo</small></Link>
+        <Link className="mobile-create" to={user ? '/app' : '/registro'}><Icon name="arrow-right" /><small>App real</small></Link>
+        <Link to="/normas"><Icon name="flag" /><small>Normas</small></Link>
+        <Link to="/home"><Icon name="house" /><small>Portada</small></Link>
+      </nav>
+    </div>
   )
 }
 
@@ -646,6 +792,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/home" element={<LandingPage />} />
+      <Route path="/demo" element={<DemoPage />} />
       <Route path="/app" element={<FeedPage />} />
       <Route path="/crear" element={<CreateConfessionPage />} />
       <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
