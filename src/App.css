@@ -499,3 +499,39 @@ button { color: inherit; }
     flex-direction: column;
   }
 }
+
+
+.session-actions-loading,
+.session-hero-loading {
+  display: inline-block;
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.09), rgba(255,255,255,.04));
+  background-size: 200% 100%;
+  animation: sessionShimmer 1.1s linear infinite;
+}
+
+.session-actions-loading {
+  width: 210px;
+  height: 46px;
+}
+
+.session-hero-loading {
+  width: 250px;
+  height: 52px;
+}
+
+@keyframes sessionShimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (max-width: 620px) {
+  .session-actions-loading {
+    width: 120px;
+    height: 40px;
+  }
+
+  .session-hero-loading {
+    width: 100%;
+  }
+}
