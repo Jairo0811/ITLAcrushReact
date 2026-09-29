@@ -244,7 +244,7 @@ export default function IdentityShell() {
   if (location.pathname === '/legal') return <LegalPage />
   if (location.pathname === '/perfil') return <ProtectedRoute><ProfilePage /></ProtectedRoute>
 
-  if (location.pathname === '/app' || location.pathname === '/crear') {
+  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones') {
     return <ProtectedRoute><App /></ProtectedRoute>
   }
 
