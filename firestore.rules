@@ -271,8 +271,9 @@ service cloud.firestore {
               'confessionId', 'kind', 'actorDisplayName', 'actorProgram',
               'status', 'createdAt', 'updatedAt'
             ])
-            && existsAfter(/databases/$(database)/documents/reactionOwners/$(request.resource.data.confessionId + '_' + request.auth.uid))
-            && getAfter(/databases/$(database)/documents/reactionOwners/$(request.resource.data.confessionId + '_' + request.auth.uid)).data.activityId == activityId
+            && activityId == request.resource.data.confessionId + '_' + request.auth.uid
+            && existsAfter(/databases/$(database)/documents/reactionOwners/$(activityId))
+            && getAfter(/databases/$(database)/documents/reactionOwners/$(activityId)).data.activityId == activityId
           )
           || (
             request.resource.data.kind == 'comment'
@@ -316,9 +317,10 @@ service cloud.firestore {
 
       allow delete: if resource.data.kind == 'reaction'
         && isActiveUser()
-        && exists(/databases/$(database)/documents/reactionOwners/$(resource.data.confessionId + '_' + request.auth.uid))
-        && get(/databases/$(database)/documents/reactionOwners/$(resource.data.confessionId + '_' + request.auth.uid)).data.activityId == activityId
-        && !existsAfter(/databases/$(database)/documents/reactionOwners/$(resource.data.confessionId + '_' + request.auth.uid));
+        && activityId == resource.data.confessionId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/reactionOwners/$(activityId))
+        && get(/databases/$(database)/documents/reactionOwners/$(activityId)).data.ownerUid == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/reactionOwners/$(activityId));
     }
 
     match /reactionOwners/{ownerId} {
@@ -328,9 +330,10 @@ service cloud.firestore {
         ])
         && request.resource.data.ownerUid == request.auth.uid
         && ownerId == request.resource.data.confessionId + '_' + request.auth.uid
-        && existsAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.activityId))
-        && getAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.activityId)).data.kind == 'reaction'
-        && getAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.activityId)).data.confessionId == request.resource.data.confessionId;
+        && request.resource.data.activityId == ownerId
+        && existsAfter(/databases/$(database)/documents/socialActivity/$(ownerId))
+        && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.kind == 'reaction'
+        && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.confessionId == request.resource.data.confessionId;
 
       allow read: if isActiveUser()
         && resource.data.ownerUid == request.auth.uid;
