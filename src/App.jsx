@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-ro
 import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
+import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
 import './App.css'
 
 const trends = [
@@ -64,10 +65,32 @@ function Icon({ children }) {
   return <span className="icon" aria-hidden="true">{children}</span>
 }
 
-function PublicConfessionCard({ item, onDelete }) {
+function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
   const programInfo = item.isAnonymous ? null : getProgram(item.authorProgram)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reason, setReason] = useState('harassment')
+  const [details, setDetails] = useState('')
+  const [sendingReport, setSendingReport] = useState(false)
+  const [safetyMessage, setSafetyMessage] = useState('')
+
+  const submitReport = async (event) => {
+    event.preventDefault()
+    if (!onReport || sendingReport) return
+    setSendingReport(true)
+    setSafetyMessage('')
+    try {
+      await onReport(item.id, reason, details)
+      setSafetyMessage('Reporte enviado. La publicación se ocultó de tu feed.')
+      setReportOpen(false)
+      setDetails('')
+    } catch (reportError) {
+      setSafetyMessage(reportError.message || 'No pudimos enviar el reporte.')
+    } finally {
+      setSendingReport(false)
+    }
+  }
 
   return (
     <article className="confession-card glass-card">
@@ -77,7 +100,7 @@ function PublicConfessionCard({ item, onDelete }) {
           <strong>{author}</strong>
           <div className="muted-row">{programInfo ? <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
-        <button className="icon-button" aria-label="Más opciones">•••</button>
+        {onReport ? <button className="icon-button" aria-label="Opciones de seguridad" onClick={() => setReportOpen((value) => !value)}>•••</button> : <span />}
       </div>
       {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
       <p>{item.text}</p>
@@ -86,8 +109,23 @@ function PublicConfessionCard({ item, onDelete }) {
         <button title="Las reacciones persistentes llegan en una fase posterior">♥ {item.likeCount ?? 0}</button>
         <button title="Los comentarios persistentes llegan en una fase posterior">◌ {item.commentCount ?? 0}</button>
         <button>↗ Compartir</button>
-        {onDelete ? <button className="bookmark" onClick={() => onDelete(item.id)}>Eliminar</button> : <button className="bookmark" aria-label="Guardar">♡</button>}
+        {onDelete && <button className="bookmark" onClick={() => onDelete(item.id)}>Eliminar</button>}
+        {onHide && !onDelete && <button className="bookmark" onClick={() => onHide(item.id)}>Ocultar</button>}
       </div>
+      {reportOpen && onReport && (
+        <form className="safety-panel" onSubmit={submitReport}>
+          <strong>Reportar esta confesión</strong>
+          <select value={reason} onChange={(event) => setReason(event.target.value)}>
+            {REPORT_REASONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+          <textarea value={details} maxLength="500" onChange={(event) => setDetails(event.target.value)} placeholder="Detalles opcionales para moderación…" />
+          <div className="safety-panel__actions">
+            <button type="button" className="button button--soft" onClick={() => setReportOpen(false)}>Cancelar</button>
+            <button className="button button--primary" disabled={sendingReport}>{sendingReport ? 'Enviando…' : 'Enviar reporte'}</button>
+          </div>
+        </form>
+      )}
+      {safetyMessage && <div className="safety-message" role="status">{safetyMessage}</div>}
     </article>
   )
 }
@@ -178,6 +216,7 @@ function LandingPage() {
 }
 
 function AppSidebar() {
+  const { profile } = useAuth()
   const items = [
     ['/', '⌂', 'Inicio'],
     ['/app', '⌕', 'Explorar'],
@@ -187,6 +226,7 @@ function AppSidebar() {
     ['/app', '♡', 'Guardados'],
     ['/app', '♥', 'Favoritos'],
     ['/perfil', '◯', 'Mi Perfil'],
+    ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', '⚑', 'Moderación']] : []),
   ]
   return (
     <aside className="app-sidebar">
@@ -205,17 +245,46 @@ function AppSidebar() {
 
 function FeedPage() {
   const [searchText, setSearchText] = useState('')
+  const [hiddenIds, setHiddenIds] = useState(() => new Set())
+  const [safetyError, setSafetyError] = useState('')
   const { items: publicConfessions, loading, error } = usePublicConfessions()
   const { user, profile } = useAuth()
   const navigate = useNavigate()
   const name = profile?.displayName || user?.displayName || 'Estudiante'
   const initial = name.charAt(0).toUpperCase()
 
+  useEffect(() => {
+    if (!user) return undefined
+    return subscribeHiddenConfessionIds(
+      user.uid,
+      setHiddenIds,
+      (hiddenError) => console.error('No se pudieron cargar las publicaciones ocultas.', hiddenError),
+    )
+  }, [user])
+
   const visibleConfessions = useMemo(() => {
     const normalized = searchText.trim().toLowerCase()
-    if (!normalized) return publicConfessions
-    return publicConfessions.filter((item) => `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized))
-  }, [publicConfessions, searchText])
+    const available = publicConfessions.filter((item) => !hiddenIds.has(item.id))
+    if (!normalized) return available
+    return available.filter((item) => `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized))
+  }, [hiddenIds, publicConfessions, searchText])
+
+  const handleHide = async (confessionId) => {
+    setSafetyError('')
+    try {
+      await hideConfession({ confessionId, ownerUid: user.uid })
+      setHiddenIds((current) => new Set([...current, confessionId]))
+    } catch (hideError) {
+      setSafetyError(hideError.message || 'No pudimos ocultar esa publicación.')
+    }
+  }
+
+  const handleReport = async (confessionId, reason, details) => {
+    setSafetyError('')
+    await reportConfession({ confessionId, reporterUid: user.uid, reason, details })
+    await hideConfession({ confessionId, ownerUid: user.uid })
+    setHiddenIds((current) => new Set([...current, confessionId]))
+  }
 
   return (
     <div className="app-layout page-shell">
@@ -239,10 +308,11 @@ function FeedPage() {
 
             <div className="feed-tabs"><button className="active">Más recientes</button><button disabled>Para ti</button><button disabled>Tendencias</button></div>
             <div className="feed-list">
+              {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
               {loading && <div className="glass-card empty-state">Sincronizando con Firestore…</div>}
               {!loading && error && <div className="glass-card empty-state">{error}</div>}
               {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">No encontramos confesiones públicas con esa búsqueda.</div>}
-              {visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} />)}
+              {visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} onHide={handleHide} onReport={handleReport} />)}
             </div>
           </div>
 
@@ -305,6 +375,96 @@ function MyConfessionsPage() {
           {!loading && error && <div className="glass-card empty-state">{error}</div>}
           {!loading && !error && items.length === 0 && <div className="glass-card empty-state">Todavía no has publicado confesiones.</div>}
           {items.map((item) => <PublicConfessionCard key={item.id} item={item} onDelete={remove} />)}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function ModerationPage() {
+  const { user, profile } = useAuth()
+  const [reports, setReports] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [actionNote, setActionNote] = useState({})
+
+  const canModerate = profile?.role === 'moderator' || profile?.role === 'admin'
+
+  useEffect(() => {
+    if (!canModerate) {
+      setLoading(false)
+      return undefined
+    }
+
+    return subscribeModerationReports(
+      (nextReports) => {
+        setReports(nextReports)
+        setLoading(false)
+        setError('')
+      },
+      (reportError) => {
+        console.error('No se pudo cargar la cola de moderación.', reportError)
+        setError('No pudimos cargar la cola de moderación.')
+        setLoading(false)
+      },
+    )
+  }, [canModerate])
+
+  const review = async (report, confessionStatus, reportStatus) => {
+    setError('')
+    try {
+      await moderateConfession({
+        confessionId: report.confessionId,
+        moderatorUid: user.uid,
+        action: confessionStatus,
+        note: actionNote[report.id] || '',
+      })
+      await updateReportStatus(report.id, reportStatus)
+    } catch (moderationError) {
+      setError(moderationError.message || 'No pudimos completar la acción de moderación.')
+    }
+  }
+
+  if (!canModerate) {
+    return <div className="not-found page-shell"><BrandLogo /><h1>403</h1><p>Esta sección está reservada para moderación autorizada.</p><Link className="button button--primary" to="/app">Volver al feed</Link></div>
+  }
+
+  return (
+    <div className="app-layout page-shell">
+      <AppSidebar />
+      <main className="app-main">
+        <section className="dashboard-hero glass-card">
+          <div><p className="eyebrow">TRUST & SAFETY</p><h2>Cola de <span>moderación ⚑</span></h2><p>Revisa reportes sin exponer la identidad pública de autores anónimos.</p></div>
+        </section>
+        <div className="moderation-list">
+          {loading && <div className="glass-card empty-state">Cargando reportes…</div>}
+          {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
+          {!loading && !error && reports.length === 0 && <div className="glass-card empty-state">No hay reportes en la cola.</div>}
+          {reports.map((report) => (
+            <article className="glass-card moderation-card" key={report.id}>
+              <div className="moderation-card__header">
+                <strong>{REPORT_REASONS.find((item) => item.value === report.reason)?.label || report.reason}</strong>
+                <span className={`moderation-status moderation-status--${report.status}`}>{report.status}</span>
+              </div>
+              <small>{formatRelativeTime(report.createdAt)} · {report.confessionId}</small>
+              {report.details && <p><strong>Detalle del reporte:</strong> {report.details}</p>}
+              <div className="moderation-content">
+                <span>Contenido reportado</span>
+                <p>{report.confession?.text || 'La confesión ya no está disponible.'}</p>
+              </div>
+              <textarea
+                value={actionNote[report.id] || ''}
+                maxLength="500"
+                onChange={(event) => setActionNote((current) => ({ ...current, [report.id]: event.target.value }))}
+                placeholder="Nota interna de moderación…"
+              />
+              <div className="moderation-actions">
+                <button className="button button--soft" onClick={() => updateReportStatus(report.id, 'reviewing')}>Marcar en revisión</button>
+                <button className="button button--soft" onClick={() => review(report, 'active', 'dismissed')}>Mantener</button>
+                <button className="button button--primary" onClick={() => review(report, 'removed', 'resolved')}>Retirar contenido</button>
+              </div>
+            </article>
+          ))}
         </div>
       </main>
     </div>
@@ -407,6 +567,7 @@ export default function App() {
       <Route path="/app" element={<FeedPage />} />
       <Route path="/crear" element={<CreateConfessionPage />} />
       <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
+      <Route path="/moderacion" element={<ModerationPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="*" element={<NotFound />} />
