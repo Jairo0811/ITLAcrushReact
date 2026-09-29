@@ -99,6 +99,16 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ---
 
+## ♿ Accesibilidad y NORTIC B2
+
+Como parte de la modernización del proyecto, ITLA Crush adopta de forma **voluntaria** una base de accesibilidad inspirada en la **NORTIC B2:2017 — Norma sobre Accesibilidad Web del Estado Dominicano**, con objetivo técnico de cubrir los criterios A y AA que resulten aplicables.
+
+Esto **no implica certificación oficial** ni debe interpretarse como un producto o servicio institucional del ITLA. ITLA Crush continúa siendo un proyecto final académico independiente.
+
+La política, alcance, controles implementados y verificaciones pendientes se documentan en [`docs/NORTIC_B2_ACCESSIBILITY.md`](docs/NORTIC_B2_ACCESSIBILITY.md).
+
+---
+
 ## 🚦 Estado del proyecto
 
 | Área | Estado |
