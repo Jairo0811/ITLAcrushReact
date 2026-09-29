@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   limit,
   onSnapshot,
   orderBy,
@@ -81,12 +82,26 @@ export function subscribeModerationReports(callback, onError) {
 
   return onSnapshot(
     reportsQuery,
-    (snapshot) => callback(snapshot.docs.map((item) => ({
-      id: item.id,
-      ...item.data(),
-      createdAt: item.data().createdAt?.toDate?.() ?? null,
-      updatedAt: item.data().updatedAt?.toDate?.() ?? null,
-    }))),
+    async (snapshot) => {
+      try {
+        const reports = await Promise.all(snapshot.docs.map(async (item) => {
+          const data = item.data()
+          const confessionSnapshot = await getDoc(doc(db, 'confessions', data.confessionId))
+          return {
+            id: item.id,
+            ...data,
+            createdAt: data.createdAt?.toDate?.() ?? null,
+            updatedAt: data.updatedAt?.toDate?.() ?? null,
+            confession: confessionSnapshot.exists()
+              ? { id: confessionSnapshot.id, ...confessionSnapshot.data() }
+              : null,
+          }
+        }))
+        callback(reports)
+      } catch (readError) {
+        onError?.(readError)
+      }
+    },
     onError,
   )
 }
