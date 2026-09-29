@@ -243,6 +243,31 @@ function LandingPage() {
           </div>
         </section>
       </main>
+
+      <footer className="landing-footer">
+        <div className="content-width landing-footer__content">
+          <div className="landing-footer__brand">
+            <BrandLogo compact />
+            <div>
+              <strong>Proyecto académico no oficial</strong>
+              <p>
+                ITLA Crush es un proyecto final académico e independiente. No es una aplicación oficial,
+                producto, servicio ni canal institucional del Instituto Tecnológico de Las Américas (ITLA).
+              </p>
+            </div>
+          </div>
+
+          <nav className="landing-footer__links" aria-label="Información legal">
+            <Link to="/terminos">Términos de uso</Link>
+            <Link to="/privacidad">Privacidad</Link>
+            <Link to="/normas">Normas de la comunidad</Link>
+          </nav>
+
+          <small className="landing-footer__note">
+            El nombre, identidad institucional y marcas de ITLA pertenecen a sus respectivos titulares.
+          </small>
+        </div>
+      </footer>
     </div>
   )
 }
