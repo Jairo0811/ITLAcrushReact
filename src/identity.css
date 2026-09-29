@@ -340,3 +340,18 @@
   border-color: rgba(255,94,179,.14);
 }
 .profile-meta strong { color: #ff75bc; }
+
+
+.microsoft-access-note {
+  margin: 10px 0 0;
+  color: #bda8c8;
+  font-size: .76rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.microsoft-access-note strong {
+  color: #ff78bf;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-weight: 800;
+}
