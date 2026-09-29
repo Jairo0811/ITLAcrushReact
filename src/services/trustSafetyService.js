@@ -10,6 +10,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore'
 import { requireFirebase } from './firebase'
 
@@ -127,11 +128,18 @@ export async function moderateConfession({ confessionId, moderatorUid, action, n
   if (normalizedNote.length > 500) throw new Error('La nota de moderación no puede superar 500 caracteres.')
 
   const { db } = requireFirebase()
-  await updateDoc(doc(db, 'confessions', confessionId), {
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'confessions', confessionId), {
     status: action,
-    moderationNote: normalizedNote,
+    updatedAt: serverTimestamp(),
+  })
+  batch.set(doc(db, 'moderationCases', confessionId), {
+    confessionId,
+    lastAction: action,
+    note: normalizedNote,
     moderatedBy: moderatorUid,
     moderatedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  })
+  }, { merge: true })
+  await batch.commit()
 }
