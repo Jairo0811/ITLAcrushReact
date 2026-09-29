@@ -1,11 +1,14 @@
 import {
   collection,
+  doc,
   getCountFromServer,
   limit,
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   where,
+  writeBatch,
 } from 'firebase/firestore'
 import { requireFirebase } from './firebase'
 
@@ -156,4 +159,101 @@ export function subscribeRecentReports(callback, onError) {
     })),
     onError,
   )
+}
+
+
+export const ADMIN_ROLES = ['student', 'moderator', 'admin']
+export const ACCOUNT_STATUSES = ['active', 'suspended', 'blocked']
+
+export function subscribeAdminUsers(callback, onError) {
+  const { db } = requireFirebase()
+  const usersQuery = query(
+    collection(db, 'users'),
+    orderBy('createdAt', 'desc'),
+    limit(100),
+  )
+
+  return onSnapshot(
+    usersQuery,
+    (snapshot) => callback(snapshot.docs.map((item) => {
+      const data = item.data()
+      return {
+        id: item.id,
+        ...data,
+        createdAt: mapTimestamp(data, 'createdAt'),
+        updatedAt: mapTimestamp(data, 'updatedAt'),
+      }
+    })),
+    onError,
+  )
+}
+
+export function subscribeAdminAuditLogs(callback, onError) {
+  const { db } = requireFirebase()
+  const auditQuery = query(
+    collection(db, 'adminAuditLogs'),
+    orderBy('createdAt', 'desc'),
+    limit(50),
+  )
+
+  return onSnapshot(
+    auditQuery,
+    (snapshot) => callback(snapshot.docs.map((item) => {
+      const data = item.data()
+      return {
+        id: item.id,
+        ...data,
+        createdAt: mapTimestamp(data, 'createdAt'),
+      }
+    })),
+    onError,
+  )
+}
+
+export async function updateUserAccess({
+  actorUid,
+  targetUser,
+  nextRole,
+  nextStatus,
+}) {
+  if (!actorUid || !targetUser?.id) throw new Error('No pudimos identificar la cuenta administrativa o el usuario.')
+  if (actorUid === targetUser.id) throw new Error('Por seguridad, no puedes modificar tu propio rol o estado desde este panel.')
+  if (!ADMIN_ROLES.includes(nextRole)) throw new Error('Selecciona un rol válido.')
+  if (!ACCOUNT_STATUSES.includes(nextStatus)) throw new Error('Selecciona un estado de cuenta válido.')
+
+  const previousRole = targetUser.role || 'student'
+  const previousStatus = targetUser.status || 'active'
+  if (previousRole === nextRole && previousStatus === nextStatus) {
+    throw new Error('No hay cambios de acceso para guardar.')
+  }
+
+  const { db } = requireFirebase()
+  const auditRef = doc(collection(db, 'adminAuditLogs'))
+  const userRef = doc(db, 'users', targetUser.id)
+  const batch = writeBatch(db)
+
+  let action = 'access_changed'
+  if (previousRole !== nextRole && previousStatus === nextStatus) action = 'role_changed'
+  if (previousRole === nextRole && previousStatus !== nextStatus) action = 'status_changed'
+
+  batch.update(userRef, {
+    role: nextRole,
+    status: nextStatus,
+    lastAdminActionId: auditRef.id,
+    updatedAt: serverTimestamp(),
+  })
+
+  batch.set(auditRef, {
+    actorUid,
+    targetUid: targetUser.id,
+    targetEmail: targetUser.email || '',
+    action,
+    previousRole,
+    newRole: nextRole,
+    previousStatus,
+    newStatus: nextStatus,
+    createdAt: serverTimestamp(),
+  })
+
+  await batch.commit()
 }
