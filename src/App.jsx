@@ -2,20 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
+import { COMMUNITY_TOPICS, buildCommunityTopics } from './data/communityTopics.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
 import { ACCOUNT_STATUSES, ADMIN_ROLES, loadAdminMetrics, subscribeAdminAuditLogs, subscribeAdminUsers, subscribeRecentConfessions, subscribeRecentReports, updateUserAccess } from './services/adminService.js'
 import { addComment, subscribeConfessionSocial, subscribeFavoriteConfessions, subscribeMyReactionIds, subscribeSavedConfessionIds, subscribeSavedConfessions, subscribeSocialNotifications, toggleReaction, toggleSaved } from './services/socialService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
 import './App.css'
-
-const trends = [
-  ['#AmorITLA', 'Explora conversaciones de la comunidad'],
-  ['#VidaITLA', 'Historias del día a día'],
-  ['#Biblioteca', 'Momentos entre clases'],
-  ['#CrushSecreto', 'Confesiones anónimas'],
-  ['#IngenieríaDelAmor', 'Cuando el código también conecta'],
-]
 
 const demoConfessions = [
   {
@@ -135,6 +128,7 @@ function PublicConfessionCard({
   isSaved = false,
   onToggleLike,
   onToggleSave,
+  onSelectTag,
 }) {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
@@ -272,7 +266,15 @@ function PublicConfessionCard({
       </div>
       {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
       <p>{item.text}</p>
-      {tags.length > 0 && <div className="tag-row">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
+      {tags.length > 0 && (
+        <div className="tag-row">
+          {tags.map((tag) => (
+            onSelectTag
+              ? <button type="button" key={tag} onClick={() => onSelectTag(tag)}>{tag}</button>
+              : <span key={tag}>{tag}</span>
+          ))}
+        </div>
+      )}
 
       <div className="card-actions">
         <button
@@ -679,6 +681,7 @@ function useSocialPreferences(uid) {
 
 function FeedPage() {
   const [searchText, setSearchText] = useState('')
+  const [selectedTopic, setSelectedTopic] = useState('')
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
   const [safetyError, setSafetyError] = useState('')
   const { items: publicConfessions, loading, error } = usePublicConfessions()
@@ -698,12 +701,28 @@ function FeedPage() {
     )
   }, [user])
 
+  const communityTopics = useMemo(
+    () => buildCommunityTopics(publicConfessions),
+    [publicConfessions],
+  )
+
   const visibleConfessions = useMemo(() => {
-    const normalized = searchText.trim().toLowerCase()
+    const normalized = searchText.trim().toLocaleLowerCase('es')
+    const normalizedTopic = selectedTopic.toLocaleLowerCase('es')
     const available = publicConfessions.filter((item) => !hiddenIds.has(item.id))
-    if (!normalized) return available
-    return available.filter((item) => `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized))
-  }, [hiddenIds, publicConfessions, searchText])
+
+    return available.filter((item) => {
+      const matchesTopic = !normalizedTopic
+        || (item.tags ?? []).some((tag) => tag.toLocaleLowerCase('es') === normalizedTopic)
+
+      if (!matchesTopic) return false
+      if (!normalized) return true
+
+      return `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`
+        .toLocaleLowerCase('es')
+        .includes(normalized)
+    })
+  }, [hiddenIds, publicConfessions, searchText, selectedTopic])
 
   useEffect(() => {
     const confessionId = new URLSearchParams(location.search).get('confession')
@@ -774,11 +793,19 @@ function FeedPage() {
             </section>
 
             <div className="feed-tabs" role="tablist" aria-label="Filtros del feed"><button className="active" role="tab" aria-selected="true">Más recientes</button><button role="tab" aria-selected="false" disabled>Para ti</button><button role="tab" aria-selected="false" disabled>Tendencias</button></div>
+            {selectedTopic && (
+              <div className="active-topic-filter" role="status">
+                <span>Mostrando tema <strong>{selectedTopic}</strong></span>
+                <button type="button" onClick={() => setSelectedTopic('')} aria-label={`Quitar filtro ${selectedTopic}`}>
+                  <Icon name="xmark" /> Quitar filtro
+                </button>
+              </div>
+            )}
             <div className="feed-list">
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
               {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Sincronizando con Firestore…</div>}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
-              {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">No encontramos confesiones públicas con esa búsqueda.</div>}
+              {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">{selectedTopic ? `Todavía no hay confesiones visibles en ${selectedTopic}.` : 'No encontramos confesiones públicas con esa búsqueda.'}</div>}
               {visibleConfessions.map((item) => (
                 <PublicConfessionCard
                   item={item}
@@ -790,13 +817,40 @@ function FeedPage() {
                   onToggleSave={handleToggleSave}
                   onHide={handleHide}
                   onReport={handleReport}
+                  onSelectTag={setSelectedTopic}
                 />
               ))}
             </div>
           </div>
 
           <aside className="right-rail">
-            <section className="glass-card rail-card"><div className="rail-title"><h3>🔥 Temas de la comunidad</h3></div>{trends.map(([tag, description], index) => <div className="trend-row" key={tag}><b>{index + 1}</b><span><strong>{tag}</strong><small>{description}</small></span></div>)}</section>
+            <section className="glass-card rail-card community-topics-card">
+              <div className="rail-title"><h3>🔥 Temas de la comunidad</h3></div>
+              {communityTopics.length === 0 ? (
+                <div className="topics-empty">
+                  <Icon name="hashtag" />
+                  <p>Aún no hay temas activos.</p>
+                  <small>Los temas aparecen cuando la comunidad publica confesiones con hashtags o selecciona un tema al publicar.</small>
+                </div>
+              ) : (
+                communityTopics.map((topic, index) => (
+                  <button
+                    type="button"
+                    className={selectedTopic.toLocaleLowerCase('es') === topic.tag.toLocaleLowerCase('es') ? 'trend-row trend-row--active' : 'trend-row'}
+                    key={topic.tag}
+                    onClick={() => setSelectedTopic(topic.tag)}
+                    aria-pressed={selectedTopic.toLocaleLowerCase('es') === topic.tag.toLocaleLowerCase('es')}
+                  >
+                    <b>{index + 1}</b>
+                    <span>
+                      <strong>{topic.tag}</strong>
+                      <small>{topic.description}</small>
+                    </span>
+                    <em>{topic.count}</em>
+                  </button>
+                ))
+              )}
+            </section>
             <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear"><Icon name="heart" /><span>Nueva confesión</span></Link><Link to="/notificaciones"><Icon name="bell" regular /><span>Notificaciones</span></Link><Link to="/guardados"><Icon name="bookmark" regular /><span>Guardados</span></Link><Link to="/favoritos"><Icon name="heart" regular /><span>Favoritos</span></Link></div></section>
           </aside>
         </section>
@@ -1389,6 +1443,7 @@ function CreateConfessionPage() {
   const { user, profile } = useAuth()
   const [recipient, setRecipient] = useState('')
   const [message, setMessage] = useState('')
+  const [selectedTopic, setSelectedTopic] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [published, setPublished] = useState(false)
@@ -1410,6 +1465,7 @@ function CreateConfessionPage() {
         message,
         visibility: isPublic ? 'public' : 'private',
         isAnonymous,
+        topicTag: selectedTopic,
       })
       setPublished(true)
     } catch (publishError) {
@@ -1433,6 +1489,25 @@ function CreateConfessionPage() {
           <form onSubmit={submit} className="confession-form">
             {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
             <label><span>Para…</span><input value={recipient} maxLength="80" onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
+            <fieldset className="topic-selector">
+              <legend>Tema <small>(opcional)</small></legend>
+              <p>El tema ayuda a que tu confesión aparezca en las conversaciones de la comunidad.</p>
+              <div className="topic-selector__grid">
+                {COMMUNITY_TOPICS.map((topic) => (
+                  <button
+                    type="button"
+                    key={topic.tag}
+                    className={selectedTopic === topic.tag ? 'topic-choice topic-choice--active' : 'topic-choice'}
+                    aria-pressed={selectedTopic === topic.tag}
+                    onClick={() => setSelectedTopic((current) => current === topic.tag ? '' : topic.tag)}
+                  >
+                    <strong>{topic.tag}</strong>
+                    <small>{topic.label}</small>
+                  </button>
+                ))}
+              </div>
+              {selectedTopic && <small className="topic-selector__selected">Tema seleccionado: {selectedTopic}</small>}
+            </fieldset>
             <label><span>Tu confesión…</span><textarea value={message} maxLength="500" onChange={(event) => setMessage(event.target.value)} placeholder="Escribe aquí tu mensaje…"/><small>{message.length}/500</small></label>
             <div className="choice-card glass-card"><div><strong>◉ Público</strong><small>Visible para la comunidad</small></div><button type="button" aria-pressed={isPublic} aria-label="Publicar como contenido público" className={`toggle ${isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(true)}><span /></button><div><strong>♢ Privado</strong><small>Visible solo para tu cuenta por ahora</small></div><button type="button" aria-pressed={!isPublic} aria-label="Guardar como contenido privado" className={`toggle ${!isPublic ? 'toggle--on' : ''}`} onClick={() => setIsPublic(false)}><span /></button></div>
             <div className="choice-card glass-card"><div><strong>◉ Anónimo</strong><small>Tu identidad se oculta ante otros usuarios</small></div><button type="button" aria-pressed={isAnonymous} aria-label="Publicar de forma anónima" className={`toggle ${isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(true)}><span /></button><div><strong>◯ Identificado</strong><small>Tu nombre será visible</small></div><button type="button" aria-pressed={!isAnonymous} aria-label="Publicar mostrando mi identidad" className={`toggle ${!isAnonymous ? 'toggle--on' : ''}`} onClick={() => setIsAnonymous(false)}><span /></button></div>
