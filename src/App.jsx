@@ -29,15 +29,13 @@ function formatRelativeTime(date) {
 
 function usePublicConfessions() {
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(isFirebaseConfigured)
+  const [error, setError] = useState(
+    isFirebaseConfigured ? '' : 'Firebase no está configurado en este equipo. Revisa tu archivo .env.',
+  )
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      setLoading(false)
-      setError('Firebase no está configurado en este equipo. Revisa tu archivo .env.')
-      return undefined
-    }
+    if (!isFirebaseConfigured) return undefined
 
     let unsubscribe
     try {
