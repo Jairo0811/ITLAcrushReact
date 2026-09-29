@@ -62,11 +62,21 @@ https://itla-crush-cb9bd.firebaseapp.com/__/auth/handler
 
 El acceso de cuentas institucionales del ITLA puede seguir sujeto a consentimiento o aprobación del administrador del tenant. Eso es una dependencia administrativa externa al código de ITLA Crush.
 
-## 4. Compilación de producción
+## 4. Quality gate y compilación de producción
+
+Antes del release ejecuta el hardening completo de la Fase 5C:
 
 ```bash
 npm ci
-npm run lint
+npm run quality
+npm run audit:prod
+```
+
+`npm run quality` incluye lint, tests, comprobación estática de accesibilidad, build y presupuesto de bundle. Lighthouse CI se ejecuta en GitHub Actions porque requiere Chromium.
+
+Si solo necesitas compilar:
+
+```bash
 npm run build
 ```
 
