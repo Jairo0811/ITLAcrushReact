@@ -39,7 +39,7 @@ Los moderadores también pueden cambiar el estado del reporte:
 - `resolved`
 - `dismissed`
 
-Cada acción de moderación puede incluir una nota interna y registra `moderatedBy` y `moderatedAt`.
+Cada acción de moderación puede incluir una nota interna. El documento público de la confesión solo cambia `status` y `updatedAt`; los metadatos internos (`note`, `moderatedBy`, `moderatedAt`, `lastAction`) se guardan por separado en `moderationCases/{confessionId}` para que nunca formen parte del contenido público.
 
 ## Privacidad
 
