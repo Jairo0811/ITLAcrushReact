@@ -5,6 +5,7 @@ import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
 import { ACCOUNT_STATUSES, ADMIN_ROLES, loadAdminMetrics, subscribeAdminAuditLogs, subscribeAdminUsers, subscribeRecentConfessions, subscribeRecentReports, updateUserAccess } from './services/adminService.js'
+import { addComment, subscribeConfessionSocial, subscribeFavoriteConfessions, subscribeMyReactionIds, subscribeSavedConfessionIds, subscribeSavedConfessions, subscribeSocialNotifications, toggleReaction, toggleSaved } from './services/socialService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
 import './App.css'
 
@@ -123,15 +124,46 @@ function SkipLink() {
   return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
 
-function PublicConfessionCard({ item, onDelete, onHide, onReport, isDemo = false }) {
+function PublicConfessionCard({
+  item,
+  onDelete,
+  onHide,
+  onReport,
+  isDemo = false,
+  socialEnabled = false,
+  isLiked = false,
+  isSaved = false,
+  onToggleLike,
+  onToggleSave,
+}) {
+  const { user, profile } = useAuth()
+  const navigate = useNavigate()
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
   const programInfo = item.isAnonymous ? null : getProgram(item.authorProgram)
   const [reportOpen, setReportOpen] = useState(false)
+  const [commentsOpen, setCommentsOpen] = useState(false)
   const [reason, setReason] = useState('harassment')
   const [details, setDetails] = useState('')
+  const [commentText, setCommentText] = useState('')
   const [sendingReport, setSendingReport] = useState(false)
+  const [sendingComment, setSendingComment] = useState(false)
   const [safetyMessage, setSafetyMessage] = useState('')
+  const [socialMessage, setSocialMessage] = useState('')
+  const [social, setSocial] = useState({
+    likeCount: item.likeCount ?? 0,
+    comments: [],
+  })
+  const isOwnerView = Boolean(onDelete)
+
+  useEffect(() => {
+    if (isDemo) return undefined
+    return subscribeConfessionSocial(
+      item.id,
+      setSocial,
+      (socialError) => console.error('No se pudieron sincronizar las interacciones.', socialError),
+    )
+  }, [isDemo, item.id])
 
   const submitReport = async (event) => {
     event.preventDefault()
@@ -150,8 +182,86 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport, isDemo = false
     }
   }
 
+  const requestAppAccess = () => {
+    if (!user) {
+      navigate('/login', { state: { from: `/app?confession=${item.id}` } })
+      return false
+    }
+    if (!socialEnabled) {
+      navigate(`/app?confession=${item.id}`)
+      return false
+    }
+    return true
+  }
+
+  const submitComment = async (event) => {
+    event.preventDefault()
+    if (!requestAppAccess() || sendingComment || isOwnerView) return
+    setSendingComment(true)
+    setSocialMessage('')
+    try {
+      await addComment({
+        confessionId: item.id,
+        user,
+        profile,
+        text: commentText,
+      })
+      setCommentText('')
+      setSocialMessage('Comentario publicado.')
+    } catch (commentError) {
+      setSocialMessage(commentError.message || 'No pudimos publicar el comentario.')
+    } finally {
+      setSendingComment(false)
+    }
+  }
+
+  const handleLike = async () => {
+    if (!requestAppAccess() || isOwnerView || !onToggleLike) return
+    setSocialMessage('')
+    try {
+      await onToggleLike(item.id)
+    } catch (reactionError) {
+      setSocialMessage(reactionError.message || 'No pudimos actualizar tu reacción.')
+    }
+  }
+
+  const handleSave = async () => {
+    if (!requestAppAccess() || !onToggleSave) return
+    setSocialMessage('')
+    try {
+      await onToggleSave(item.id)
+    } catch (saveError) {
+      setSocialMessage(saveError.message || 'No pudimos actualizar tus guardados.')
+    }
+  }
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/app?confession=${encodeURIComponent(item.id)}`
+    const shareData = {
+      title: 'ITLA Crush',
+      text: 'Mira esta confesión en ITLA Crush.',
+      url: shareUrl,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+        setSocialMessage('Compartido desde tu dispositivo.')
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl)
+        setSocialMessage('Enlace copiado al portapapeles.')
+      } else {
+        setSocialMessage(shareUrl)
+      }
+    } catch (shareError) {
+      if (shareError?.name !== 'AbortError') {
+        setSocialMessage('No pudimos compartir el enlace en este momento.')
+      }
+    }
+  }
+
   return (
-    <article className="confession-card glass-card">
+    <article id={`confession-${item.id}`} className="confession-card glass-card">
       <div className="confession-card__header">
         <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`} aria-hidden="true">{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
@@ -163,13 +273,85 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport, isDemo = false
       {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
       <p>{item.text}</p>
       {tags.length > 0 && <div className="tag-row">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
+
       <div className="card-actions">
-        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Las reacciones persistentes llegan en una fase posterior'}><Icon name="heart" regular /> {item.likeCount ?? 0}</button>
-        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Los comentarios persistentes llegan en una fase posterior'}><Icon name="comment" regular /> {item.commentCount ?? 0}</button>
-        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}><Icon name="share-nodes" /> Compartir</button>
+        <button
+          className={isLiked ? 'social-action social-action--active' : 'social-action'}
+          disabled={isDemo || isOwnerView}
+          aria-pressed={isLiked}
+          title={isOwnerView ? 'No puedes reaccionar a tu propia confesión' : isDemo ? 'Acción deshabilitada en la demo' : 'Reaccionar'}
+          onClick={handleLike}
+        >
+          <Icon name="heart" regular={!isLiked} /> {social.likeCount}
+        </button>
+        <button
+          disabled={isDemo}
+          aria-expanded={commentsOpen}
+          aria-controls={`comments-${item.id}`}
+          onClick={() => {
+            if (isDemo) return
+            if (!user || !socialEnabled) {
+              requestAppAccess()
+              return
+            }
+            setCommentsOpen((value) => !value)
+          }}
+        >
+          <Icon name="comment" regular /> {social.comments.length}
+        </button>
+        <button disabled={isDemo} onClick={handleShare} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}>
+          <Icon name="share-nodes" /> Compartir
+        </button>
+        {socialEnabled && !isOwnerView && (
+          <button className={isSaved ? 'bookmark social-action--active' : 'bookmark'} aria-pressed={isSaved} onClick={handleSave}>
+            <Icon name="bookmark" regular={!isSaved} /> {isSaved ? 'Guardado' : 'Guardar'}
+          </button>
+        )}
         {onDelete && <button className="bookmark" onClick={() => onDelete(item.id)}><Icon name="trash-can" /> Eliminar</button>}
         {onHide && !onDelete && <button className="bookmark" onClick={() => onHide(item.id)}><Icon name="eye-slash" /> Ocultar</button>}
       </div>
+
+      {commentsOpen && socialEnabled && (
+        <section id={`comments-${item.id}`} className="comments-panel" aria-label="Comentarios">
+          <div className="comments-panel__header">
+            <strong>Comentarios</strong>
+            <span>{social.comments.length}</span>
+          </div>
+          {social.comments.length === 0 && <p className="comments-empty">Todavía no hay comentarios.</p>}
+          {social.comments.slice(0, 8).map((comment) => {
+            const commenterProgram = getProgram(comment.actorProgram)
+            return (
+              <article className="comment-row" key={comment.id}>
+                <div className="avatar avatar--small" aria-hidden="true">{comment.actorDisplayName?.charAt(0)?.toUpperCase() || 'E'}</div>
+                <div>
+                  <strong>{comment.actorDisplayName || 'Estudiante'}</strong>
+                  <div className="muted-row">
+                    {commenterProgram && <span className="tiny-badge program-badge" style={{ '--program-color': commenterProgram.color }}>{commenterProgram.label}</span>}
+                    <span>{formatRelativeTime(comment.createdAt)}</span>
+                  </div>
+                  <p>{comment.text}</p>
+                </div>
+              </article>
+            )
+          })}
+          {!isOwnerView && (
+            <form className="comment-form" onSubmit={submitComment}>
+              <label className="sr-only" htmlFor={`comment-input-${item.id}`}>Escribe un comentario</label>
+              <input
+                id={`comment-input-${item.id}`}
+                value={commentText}
+                onChange={(event) => setCommentText(event.target.value)}
+                maxLength="280"
+                placeholder="Escribe un comentario respetuoso…"
+              />
+              <button className="button button--primary" disabled={!commentText.trim() || sendingComment}>
+                {sendingComment ? 'Enviando…' : 'Comentar'}
+              </button>
+            </form>
+          )}
+        </section>
+      )}
+
       {reportOpen && onReport && (
         <form className="safety-panel" onSubmit={submitReport}>
           <strong>Reportar esta confesión</strong>
@@ -190,6 +372,7 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport, isDemo = false
         </form>
       )}
       {safetyMessage && <div className="safety-message" role="status">{safetyMessage}</div>}
+      {socialMessage && <div className="safety-message" role="status">{socialMessage}</div>}
     </article>
   )
 }
@@ -334,30 +517,27 @@ function AppSidebar() {
   const { profile } = useAuth()
   const items = [
     ['/app', 'house', 'Inicio'],
-    ['/app', 'magnifying-glass', 'Explorar'],
     ['/mis-confesiones', 'clock-rotate-left', 'Mis Confesiones'],
-    ['/app', 'paper-plane', 'Mensajes'],
-    ['/app', 'bell', 'Notificaciones'],
-    ['/app', 'bookmark', 'Guardados'],
-    ['/app', 'heart', 'Favoritos'],
+    ['/notificaciones', 'bell', 'Notificaciones'],
+    ['/guardados', 'bookmark', 'Guardados'],
+    ['/favoritos', 'heart', 'Favoritos'],
     ['/perfil', 'circle-user', 'Mi Perfil'],
     ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', 'flag', 'Moderación']] : []),
     ...(profile?.role === 'admin' ? [['/admin', 'gauge-high', 'Administración']] : []),
   ]
+
   return (
     <aside className="app-sidebar">
       <Link to="/app"><BrandLogo /></Link>
-      <nav>
-        {items.map(([to, icon, label], index) => (
+      <nav aria-label="Navegación de la aplicación">
+        {items.map(([to, icon, label]) => (
           <NavLink
-            key={`${label}-${index}`}
+            key={label}
             to={to}
-            className={({ isActive }) => {
-              const active = to === '/app' ? index === 1 && isActive : isActive
-              return active ? 'sidebar-link sidebar-link--active' : 'sidebar-link'
-            }}
+            end={to === '/app'}
+            className={({ isActive }) => (isActive ? 'sidebar-link sidebar-link--active' : 'sidebar-link')}
           >
-            <span><Icon name={icon} /></span>{label}{label === 'Mensajes' && <b>3</b>}{label === 'Notificaciones' && <b>12</b>}
+            <span><Icon name={icon} /></span>{label}
           </NavLink>
         ))}
       </nav>
@@ -472,13 +652,40 @@ function DemoPage() {
   )
 }
 
+function useSocialPreferences(uid) {
+  const [likedIds, setLikedIds] = useState(() => new Set())
+  const [savedIds, setSavedIds] = useState(() => new Set())
+
+  useEffect(() => {
+    if (!uid) return undefined
+    const unsubscribeLikes = subscribeMyReactionIds(
+      uid,
+      setLikedIds,
+      (error) => console.error('No se pudieron cargar tus favoritos.', error),
+    )
+    const unsubscribeSaved = subscribeSavedConfessionIds(
+      uid,
+      setSavedIds,
+      (error) => console.error('No se pudieron cargar tus guardados.', error),
+    )
+    return () => {
+      unsubscribeLikes()
+      unsubscribeSaved()
+    }
+  }, [uid])
+
+  return { likedIds, savedIds }
+}
+
 function FeedPage() {
   const [searchText, setSearchText] = useState('')
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
   const [safetyError, setSafetyError] = useState('')
   const { items: publicConfessions, loading, error } = usePublicConfessions()
   const { user, profile } = useAuth()
+  const { likedIds, savedIds } = useSocialPreferences(user?.uid)
   const navigate = useNavigate()
+  const location = useLocation()
   const name = profile?.displayName || user?.displayName || 'Estudiante'
   const initial = name.charAt(0).toUpperCase()
 
@@ -498,6 +705,13 @@ function FeedPage() {
     return available.filter((item) => `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(normalized))
   }, [hiddenIds, publicConfessions, searchText])
 
+  useEffect(() => {
+    const confessionId = new URLSearchParams(location.search).get('confession')
+    if (!confessionId || visibleConfessions.length === 0) return
+    const target = document.getElementById(`confession-${confessionId}`)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [location.search, visibleConfessions.length])
+
   const handleHide = async (confessionId) => {
     setSafetyError('')
     try {
@@ -515,6 +729,17 @@ function FeedPage() {
     setHiddenIds((current) => new Set([...current, confessionId]))
   }
 
+  const handleToggleLike = (confessionId) => toggleReaction({
+    confessionId,
+    user,
+    profile,
+  })
+
+  const handleToggleSave = (confessionId) => toggleSaved({
+    uid: user.uid,
+    confessionId,
+  })
+
   return (
     <div className="app-layout page-shell">
       <SkipLink />
@@ -522,7 +747,7 @@ function FeedPage() {
       <main id="main-content" className="app-main" tabIndex="-1">
         <header className="app-topbar glass-card">
           <label className="app-search"><span><Icon name="magnifying-glass" /></span><span className="sr-only">Buscar confesiones o hashtags</span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
-          <div className="topbar-actions"><button aria-label="Notificaciones"><Icon name="bell" regular /></button><button aria-label="Tema"><Icon name="sun" regular /></button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
+          <div className="topbar-actions"><Link to="/notificaciones" aria-label="Notificaciones"><Icon name="bell" regular /></Link><button aria-label="Tema"><Icon name="sun" regular /></button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
         </header>
 
         <section className="dashboard-grid">
@@ -554,17 +779,29 @@ function FeedPage() {
               {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Sincronizando con Firestore…</div>}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
               {!loading && !error && visibleConfessions.length === 0 && <div className="glass-card empty-state">No encontramos confesiones públicas con esa búsqueda.</div>}
-              {visibleConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} onHide={handleHide} onReport={handleReport} />)}
+              {visibleConfessions.map((item) => (
+                <PublicConfessionCard
+                  item={item}
+                  key={item.id}
+                  socialEnabled
+                  isLiked={likedIds.has(item.id)}
+                  isSaved={savedIds.has(item.id)}
+                  onToggleLike={handleToggleLike}
+                  onToggleSave={handleToggleSave}
+                  onHide={handleHide}
+                  onReport={handleReport}
+                />
+              ))}
             </div>
           </div>
 
           <aside className="right-rail">
             <section className="glass-card rail-card"><div className="rail-title"><h3>🔥 Temas de la comunidad</h3></div>{trends.map(([tag, description], index) => <div className="trend-row" key={tag}><b>{index + 1}</b><span><strong>{tag}</strong><small>{description}</small></span></div>)}</section>
-            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear"><Icon name="heart" /><span>Nueva confesión</span></Link><Link to="/perfil"><Icon name="circle-user" regular /><span>Mi perfil</span></Link><Link to="/normas"><Icon name="flag" /><span>Normas</span></Link><Link to="/crear"><Icon name="user-secret" /><span>Modo anónimo</span></Link></div></section>
+            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear"><Icon name="heart" /><span>Nueva confesión</span></Link><Link to="/notificaciones"><Icon name="bell" regular /><span>Notificaciones</span></Link><Link to="/guardados"><Icon name="bookmark" regular /><span>Guardados</span></Link><Link to="/favoritos"><Icon name="heart" regular /><span>Favoritos</span></Link></div></section>
           </aside>
         </section>
       </main>
-      <nav className="mobile-bottom-nav"><Link to="/app"><Icon name="house" /><small>Inicio</small></Link><Link to="/app"><Icon name="magnifying-glass" /><small>Explorar</small></Link><Link className="mobile-create" to="/crear"><Icon name="plus" /><small>Crear</small></Link><Link to="/normas"><Icon name="flag" /><small>Normas</small></Link><Link to="/perfil"><Icon name="circle-user" regular /><small>Perfil</small></Link></nav>
+      <nav className="mobile-bottom-nav"><Link to="/app"><Icon name="house" /><small>Inicio</small></Link><Link to="/notificaciones"><Icon name="bell" regular /><small>Alertas</small></Link><Link className="mobile-create" to="/crear"><Icon name="plus" /><small>Crear</small></Link><Link to="/guardados"><Icon name="bookmark" regular /><small>Guardados</small></Link><Link to="/perfil"><Icon name="circle-user" regular /><small>Perfil</small></Link></nav>
     </div>
   )
 }
@@ -630,6 +867,124 @@ const emptyAdminMetrics = {
   confessions: { total: 0, public: 0, private: 0, anonymous: 0, active: 0, underReview: 0, removed: 0 },
   reports: { total: 0, open: 0, reviewing: 0, resolved: 0, dismissed: 0 },
   moderationCases: 0,
+}
+
+function SocialCollectionPage({ mode }) {
+  const { user, profile } = useAuth()
+  const { likedIds, savedIds } = useSocialPreferences(user?.uid)
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const isFavorites = mode === 'favorites'
+
+  useEffect(() => {
+    if (!user) return undefined
+    const subscribe = isFavorites ? subscribeFavoriteConfessions : subscribeSavedConfessions
+    return subscribe(
+      user.uid,
+      (nextItems) => {
+        setItems(nextItems)
+        setLoading(false)
+        setError('')
+      },
+      (subscriptionError) => {
+        console.error('No se pudo cargar la colección social.', subscriptionError)
+        setError(isFavorites ? 'No pudimos cargar tus favoritos.' : 'No pudimos cargar tus guardados.')
+        setLoading(false)
+      },
+    )
+  }, [isFavorites, user])
+
+  const handleToggleLike = (confessionId) => toggleReaction({ confessionId, user, profile })
+  const handleToggleSave = (confessionId) => toggleSaved({ uid: user.uid, confessionId })
+
+  return (
+    <div className="app-layout page-shell">
+      <SkipLink />
+      <AppSidebar />
+      <main id="main-content" className="app-main" tabIndex="-1">
+        <section className="dashboard-hero glass-card">
+          <div>
+            <p className="eyebrow">{isFavorites ? 'TUS REACCIONES' : 'TU COLECCIÓN'}</p>
+            <h2>{isFavorites ? <>Tus <span>favoritos ♡</span></> : <>Confesiones <span>guardadas ♡</span></>}</h2>
+            <p>{isFavorites ? 'Publicaciones a las que has reaccionado.' : 'Publicaciones que guardaste para volver a leerlas después.'}</p>
+          </div>
+          <div className="dashboard-hero__note">{isFavorites ? 'ME GUSTA' : 'GUARDADOS'}<br/>PERSONALES</div>
+        </section>
+
+        <div className="feed-list social-collection-list">
+          {loading && <div className="glass-card empty-state" role="status">Cargando…</div>}
+          {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
+          {!loading && !error && items.length === 0 && <div className="glass-card empty-state">{isFavorites ? 'Todavía no tienes confesiones favoritas.' : 'Todavía no has guardado ninguna confesión.'}</div>}
+          {items.map((item) => (
+            <PublicConfessionCard
+              key={item.id}
+              item={item}
+              socialEnabled
+              isLiked={likedIds.has(item.id)}
+              isSaved={savedIds.has(item.id)}
+              onToggleLike={handleToggleLike}
+              onToggleSave={handleToggleSave}
+            />
+          ))}
+        </div>
+      </main>
+    </div>
+  )
+}
+
+function NotificationsPage() {
+  const { user } = useAuth()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!user) return undefined
+    return subscribeSocialNotifications(
+      user.uid,
+      (nextItems) => {
+        setItems(nextItems)
+        setLoading(false)
+        setError('')
+      },
+      (notificationError) => {
+        console.error('No se pudieron cargar las notificaciones.', notificationError)
+        setError('No pudimos cargar tus notificaciones.')
+        setLoading(false)
+      },
+    )
+  }, [user])
+
+  return (
+    <div className="app-layout page-shell">
+      <SkipLink />
+      <AppSidebar />
+      <main id="main-content" className="app-main" tabIndex="-1">
+        <section className="dashboard-hero glass-card">
+          <div><p className="eyebrow">ACTIVIDAD SOCIAL</p><h2>Tus <span>notificaciones ♡</span></h2><p>Reacciones y comentarios recibidos en tus confesiones públicas.</p></div>
+          <div className="dashboard-hero__note">ACTIVIDAD<br/>RECIENTE</div>
+        </section>
+
+        <section className="glass-card notifications-card">
+          {loading && <div className="empty-state" role="status">Sincronizando actividad…</div>}
+          {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
+          {!loading && !error && items.length === 0 && <div className="empty-state">Todavía no tienes actividad social nueva.</div>}
+          {items.map((item) => (
+            <Link className="notification-row" to={`/app?confession=${item.confessionId}`} key={`${item.kind}-${item.id}`}>
+              <span className="notification-icon"><Icon name={item.kind === 'reaction' ? 'heart' : 'comment'} /></span>
+              <div>
+                <strong>{item.actorDisplayName || 'Alguien'} {item.kind === 'reaction' ? 'reaccionó a tu confesión' : 'comentó tu confesión'}</strong>
+                <p>{item.kind === 'comment' ? item.text : item.confessionLabel}</p>
+                <small>{formatRelativeTime(item.createdAt)}</small>
+              </div>
+              <Icon name="chevron-right" />
+            </Link>
+          ))}
+        </section>
+      </main>
+    </div>
+  )
 }
 
 function AdminMetricCard({ icon, label, value, detail, tone = 'default' }) {
@@ -1127,6 +1482,9 @@ export default function App() {
       <Route path="/app" element={<FeedPage />} />
       <Route path="/crear" element={<CreateConfessionPage />} />
       <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
+      <Route path="/notificaciones" element={<NotificationsPage />} />
+      <Route path="/guardados" element={<SocialCollectionPage mode="saved" />} />
+      <Route path="/favoritos" element={<SocialCollectionPage mode="favorites" />} />
       <Route path="/moderacion" element={<ModerationPage />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
