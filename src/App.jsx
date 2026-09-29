@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
-import { createConfession, subscribePublicConfessions } from './services/confessionService.js'
+import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import './App.css'
 
 const trends = [
@@ -63,7 +63,7 @@ function Icon({ children }) {
   return <span className="icon" aria-hidden="true">{children}</span>
 }
 
-function PublicConfessionCard({ item }) {
+function PublicConfessionCard({ item, onDelete }) {
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
 
@@ -84,7 +84,7 @@ function PublicConfessionCard({ item }) {
         <button title="Las reacciones persistentes llegan en una fase posterior">♥ {item.likeCount ?? 0}</button>
         <button title="Los comentarios persistentes llegan en una fase posterior">◌ {item.commentCount ?? 0}</button>
         <button>↗ Compartir</button>
-        <button className="bookmark" aria-label="Guardar">♡</button>
+        {onDelete ? <button className="bookmark" onClick={() => onDelete(item.id)}>Eliminar</button> : <button className="bookmark" aria-label="Guardar">♡</button>}
       </div>
     </article>
   )
@@ -179,7 +179,7 @@ function AppSidebar() {
   const items = [
     ['/', '⌂', 'Inicio'],
     ['/app', '⌕', 'Explorar'],
-    ['/app', '◌', 'Mis Confesiones'],
+    ['/mis-confesiones', '◌', 'Mis Confesiones'],
     ['/app', '↗', 'Mensajes'],
     ['/app', '♢', 'Notificaciones'],
     ['/app', '♡', 'Guardados'],
@@ -251,6 +251,60 @@ function FeedPage() {
         </section>
       </main>
       <nav className="mobile-bottom-nav"><Link to="/app">⌂<small>Inicio</small></Link><Link to="/app">⌕<small>Explorar</small></Link><Link className="mobile-create" to="/crear">＋<small>Crear</small></Link><Link to="/normas">⚑<small>Normas</small></Link><Link to="/perfil">◯<small>Perfil</small></Link></nav>
+    </div>
+  )
+}
+
+function MyConfessionsPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!user) return undefined
+    const unsubscribe = subscribeMyConfessions(
+      user.uid,
+      (nextItems) => {
+        setItems(nextItems)
+        setLoading(false)
+        setError('')
+      },
+      (readError) => {
+        console.error('No se pudieron cargar tus confesiones.', readError)
+        setError('No pudimos cargar tus confesiones.')
+        setLoading(false)
+      },
+    )
+    return unsubscribe
+  }, [user])
+
+  const remove = async (confessionId) => {
+    try {
+      await deleteOwnConfession(confessionId)
+      setItems((current) => current.filter((item) => item.id !== confessionId))
+    } catch (deleteError) {
+      console.error('No se pudo retirar la confesión.', deleteError)
+      setError('No pudimos retirar esa confesión.')
+    }
+  }
+
+  return (
+    <div className="app-layout page-shell">
+      <AppSidebar />
+      <main className="app-main">
+        <section className="dashboard-hero glass-card">
+          <div><p className="eyebrow">TU HISTORIAL</p><h2>Mis <span>confesiones ♡</span></h2></div>
+          <button className="button button--primary" onClick={() => navigate('/crear')}>Nueva confesión</button>
+        </section>
+        <div className="feed-list" style={{ marginTop: '16px' }}>
+          {loading && <div className="glass-card empty-state">Cargando tus confesiones…</div>}
+          {!loading && error && <div className="glass-card empty-state">{error}</div>}
+          {!loading && !error && items.length === 0 && <div className="glass-card empty-state">Todavía no has publicado confesiones.</div>}
+          {items.map((item) => <PublicConfessionCard key={item.id} item={item} onDelete={remove} />)}
+        </div>
+      </main>
     </div>
   )
 }
@@ -350,6 +404,7 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/app" element={<FeedPage />} />
       <Route path="/crear" element={<CreateConfessionPage />} />
+      <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="*" element={<NotFound />} />
