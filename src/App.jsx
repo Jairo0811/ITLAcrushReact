@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
@@ -651,7 +651,7 @@ function AdminPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  const refreshMetrics = async () => {
+  const refreshMetrics = useCallback(async () => {
     setRefreshing(true)
     try {
       const nextMetrics = await loadAdminMetrics()
@@ -664,11 +664,11 @@ function AdminPage() {
       setRefreshing(false)
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     refreshMetrics()
-  }, [])
+  }, [refreshMetrics])
 
   useEffect(() => {
     const subscriptions = [
