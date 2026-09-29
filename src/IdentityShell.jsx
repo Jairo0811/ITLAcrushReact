@@ -264,6 +264,7 @@ export default function IdentityShell() {
     const titles = {
       '/': 'ITLA Crush',
       '/home': 'Inicio | ITLA Crush',
+      '/demo': 'Demo | ITLA Crush',
       '/login': 'Iniciar sesión | ITLA Crush',
       '/registro': 'Registro | ITLA Crush',
       '/recuperar': 'Recuperar contraseña | ITLA Crush',
