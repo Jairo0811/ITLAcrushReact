@@ -37,13 +37,22 @@ export function subscribePublicConfessions(callback, onError) {
     collection(db, 'confessions'),
     where('visibility', '==', 'public'),
     where('status', '==', 'active'),
-    orderBy('createdAt', 'desc'),
-    limit(50),
   )
 
   return onSnapshot(
     feedQuery,
-    (snapshot) => callback(snapshot.docs.map(mapConfession)),
+    (snapshot) => {
+      const items = snapshot.docs
+        .map(mapConfession)
+        .sort((left, right) => {
+          const leftTime = left.createdAt?.getTime?.() ?? 0
+          const rightTime = right.createdAt?.getTime?.() ?? 0
+          return rightTime - leftTime
+        })
+        .slice(0, 50)
+
+      callback(items)
+    },
     onError,
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import App from './App.jsx'
 import LegalPage from './LegalPage.jsx'
@@ -9,9 +9,12 @@ import './App.css'
 
 function BrandLogo() {
   return (
-    <div className="brand-logo" aria-label="ITLA Crush">
-      <span className="brand-logo__itla">ITLA</span>
-      <span className="brand-logo__crush">CRUSH <span aria-hidden="true">♥</span></span>
+    <div className="brand-logo">
+      <img
+        className="brand-logo__image"
+        src="/itla-crush-logo.png"
+        alt="ITLA Crush"
+      />
       <small>CONFIESA. CONECTA. COMPARTE.</small>
     </div>
   )
@@ -19,6 +22,10 @@ function BrandLogo() {
 
 function MicrosoftMark() {
   return <span aria-hidden="true"><i /><i /><i /><i /></span>
+}
+
+function SkipLink() {
+  return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
 
 function AuthPage({ mode }) {
@@ -85,11 +92,12 @@ function AuthPage({ mode }) {
   }
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <div className="auth-ambient auth-ambient--one" />
       <div className="auth-ambient auth-ambient--two" />
       <section className="auth-card glass-card">
-        <Link to="/"><BrandLogo /></Link>
+        <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Las historias también viven aquí. ♡</p>
         <h1>{isLogin ? 'Vuelve a conectar' : 'Crea tu espacio'}</h1>
         <p>{isLogin ? 'Entra a tu comunidad y continúa descubriendo historias.' : 'Únete para confesar, conectar y compartir con control sobre tu identidad.'}</p>
@@ -160,7 +168,7 @@ function AuthPage({ mode }) {
         </div>
         <small className="auth-note">Tu identidad puede ocultarse ante la comunidad, pero no ante los controles internos de seguridad y moderación.</small>
       </section>
-    </div>
+    </main>
   )
 }
 
@@ -188,9 +196,10 @@ function PasswordResetPage() {
   }
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <section className="auth-card glass-card">
-        <Link to="/"><BrandLogo /></Link>
+        <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Recupera tu conexión. ♡</p>
         <h1>Restablecer contraseña</h1>
         <p>Escribe el correo asociado a tu cuenta y recibirás un enlace para crear una contraseña nueva.</p>
@@ -202,7 +211,7 @@ function PasswordResetPage() {
         </form>
         <div className="auth-switch"><Link to="/login">← Volver a iniciar sesión</Link></div>
       </section>
-    </div>
+    </main>
   )
 }
 
@@ -215,7 +224,7 @@ function ProfilePage() {
     setSigningOut(true)
     try {
       await logout()
-      navigate('/', { replace: true })
+      navigate('/home', { replace: true })
     } finally {
       setSigningOut(false)
     }
@@ -225,7 +234,8 @@ function ProfilePage() {
   const programInfo = getProgram(profile?.program)
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <section className="auth-card profile-card glass-card">
         <Link to="/app"><BrandLogo /></Link>
         <div className="profile-avatar" aria-hidden="true">{name.charAt(0).toUpperCase()}</div>
@@ -242,12 +252,43 @@ function ProfilePage() {
           <button className="button button--primary" onClick={handleLogout} disabled={signingOut}>{signingOut ? 'Cerrando…' : 'Cerrar sesión'}</button>
         </div>
       </section>
-    </div>
+    </main>
   )
 }
 
 export default function IdentityShell() {
   const location = useLocation()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    const titles = {
+      '/': 'ITLA Crush',
+      '/home': 'Inicio | ITLA Crush',
+      '/demo': 'Demo | ITLA Crush',
+      '/login': 'Iniciar sesión | ITLA Crush',
+      '/registro': 'Registro | ITLA Crush',
+      '/recuperar': 'Recuperar contraseña | ITLA Crush',
+      '/app': 'Feed | ITLA Crush',
+      '/crear': 'Nueva confesión | ITLA Crush',
+      '/mis-confesiones': 'Mis confesiones | ITLA Crush',
+      '/perfil': 'Mi perfil | ITLA Crush',
+      '/moderacion': 'Moderación | ITLA Crush',
+      '/terminos': 'Términos de uso | ITLA Crush',
+      '/privacidad': 'Privacidad | ITLA Crush',
+      '/normas': 'Normas de la comunidad | ITLA Crush',
+      '/legal': 'Información legal | ITLA Crush',
+    }
+
+    document.title = titles[location.pathname] || 'ITLA Crush'
+  }, [location.pathname])
+
+  if (loading && location.pathname === '/') {
+    return <div className="auth-loading">Restaurando tu sesión en ITLA Crush…</div>
+  }
+
+  if (location.pathname === '/') {
+    return <Navigate to={user ? '/app' : '/home'} replace />
+  }
 
   if (location.pathname === '/login') return <AuthPage mode="login" />
   if (location.pathname === '/registro') return <AuthPage mode="register" />
@@ -258,7 +299,7 @@ export default function IdentityShell() {
   if (location.pathname === '/legal') return <LegalPage />
   if (location.pathname === '/perfil') return <ProtectedRoute><ProfilePage /></ProtectedRoute>
 
-  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones') {
+  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones' || location.pathname === '/moderacion') {
     return <ProtectedRoute><App /></ProtectedRoute>
   }
 

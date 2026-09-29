@@ -17,7 +17,7 @@ Campos:
 - `visibility`: `public` o `private`
 - `isAnonymous`
 - `authorDisplayName`: vacío cuando la publicación es anónima
-- `authorBadge`
+- `authorProgram`: vacío cuando la publicación es anónima; contiene el Tecnólogo en publicaciones identificadas
 - `tags`
 - `status`: `active` o `deleted`
 - `likeCount`
