@@ -107,7 +107,7 @@ export async function createConfession({
     visibility,
     isAnonymous,
     authorDisplayName: isAnonymous ? '' : (profile?.displayName || user.displayName || 'Estudiante'),
-    authorBadge: 'Estudiante',
+    authorProgram: isAnonymous ? '' : (profile?.program || ''),
     tags: normalizeTags(text),
     status: 'active',
     likeCount: 0,
