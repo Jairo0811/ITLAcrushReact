@@ -1207,3 +1207,130 @@ button:disabled {
     text-align: left;
   }
 }
+
+
+.admin-account-manager {
+  margin-top: 14px;
+}
+
+.admin-section-note {
+  margin: -2px 0 14px;
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.admin-user-list {
+  display: grid;
+}
+
+.admin-user-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) minmax(140px, .7fr) minmax(140px, .7fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+
+.admin-user-identity {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  align-self: center;
+}
+
+.admin-user-identity strong,
+.admin-user-identity small {
+  min-width: 0;
+}
+
+.admin-user-identity > strong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-user-identity > small {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-row label {
+  display: grid;
+  gap: 6px;
+  color: #c8b7ce;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.admin-user-row select {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 11px;
+  padding: 10px 11px;
+  background: rgba(10,4,20,.75);
+  color: #f6edf8;
+}
+
+.admin-user-row select:disabled {
+  opacity: .58;
+}
+
+.admin-save-access {
+  min-height: 42px;
+}
+
+.admin-self-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(95, 205, 255, .1);
+  border: 1px solid rgba(95, 205, 255, .22);
+  color: #aaddff !important;
+  font-size: .62rem !important;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.admin-table-row--audit {
+  grid-template-columns: minmax(0, 1.2fr) minmax(150px, 1fr) minmax(170px, 1fr) auto;
+}
+
+.admin-audit-table .admin-table-row > span {
+  line-height: 1.35;
+}
+
+@media (max-width: 980px) {
+  .admin-user-row {
+    grid-template-columns: minmax(0, 1fr) minmax(130px, .6fr) minmax(130px, .6fr);
+  }
+
+  .admin-save-access {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+
+  .admin-table-row--audit {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-user-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .admin-save-access {
+    width: 100%;
+  }
+
+  .admin-table-row--audit {
+    grid-template-columns: 1fr;
+  }
+}
