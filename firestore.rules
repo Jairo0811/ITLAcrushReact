@@ -14,9 +14,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
+    function isAllowedMicrosoftEmail(email) {
+      return email is string
+        && email.matches('.*@itla[.]edu[.]do');
+    }
+
+    function hasAllowedMicrosoftIdentity() {
+      return userDoc().data.authProvider != 'microsoft.com'
+        || isAllowedMicrosoftEmail(userDoc().data.email);
+    }
+
     function isActiveUser() {
       return isSignedIn()
-        && userDoc().data.status == 'active';
+        && userDoc().data.status == 'active'
+        && hasAllowedMicrosoftIdentity();
     }
 
     function isModerator() {
@@ -69,6 +80,14 @@ service cloud.firestore {
         && request.resource.data.role == 'student'
         && request.resource.data.status == 'active'
         && request.resource.data.authProvider in ['password', 'microsoft.com']
+        && (
+          request.resource.data.authProvider == 'password'
+          || (
+            request.resource.data.authProvider == 'microsoft.com'
+            && request.auth.token.firebase.sign_in_provider == 'microsoft.com'
+            && isAllowedMicrosoftEmail(request.resource.data.email)
+          )
+        )
         && request.resource.data.termsVersion == '2026-09-23'
         && request.resource.data.termsAcceptedAt != null;
 
