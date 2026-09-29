@@ -75,7 +75,7 @@ function PublicConfessionCard({ item, onDelete }) {
         <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`}>{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
           <strong>{author}</strong>
-          <div className="muted-row">{programInfo ? <span className={`tiny-badge program-badge program-badge--${programInfo.tone}`}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
+          <div className="muted-row">{programInfo ? <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
         <button className="icon-button" aria-label="Más opciones">•••</button>
       </div>
