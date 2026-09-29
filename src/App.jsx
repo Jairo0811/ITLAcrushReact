@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
+import { loadAdminMetrics, subscribeRecentConfessions, subscribeRecentReports, subscribeRecentUsers } from './services/adminService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
 import './App.css'
 
@@ -341,13 +342,21 @@ function AppSidebar() {
     ['/app', 'heart', 'Favoritos'],
     ['/perfil', 'circle-user', 'Mi Perfil'],
     ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', 'flag', 'Moderación']] : []),
+    ...(profile?.role === 'admin' ? [['/admin', 'gauge-high', 'Administración']] : []),
   ]
   return (
     <aside className="app-sidebar">
       <Link to="/app"><BrandLogo /></Link>
       <nav>
         {items.map(([to, icon, label], index) => (
-          <NavLink key={`${label}-${index}`} to={to} className={({ isActive }) => (index === 1 && isActive ? 'sidebar-link sidebar-link--active' : 'sidebar-link')}>
+          <NavLink
+            key={`${label}-${index}`}
+            to={to}
+            className={({ isActive }) => {
+              const active = to === '/app' ? index === 1 && isActive : isActive
+              return active ? 'sidebar-link sidebar-link--active' : 'sidebar-link'
+            }}
+          >
             <span><Icon name={icon} /></span>{label}{label === 'Mensajes' && <b>3</b>}{label === 'Notificaciones' && <b>12</b>}
           </NavLink>
         ))}
@@ -615,6 +624,185 @@ function MyConfessionsPage() {
   )
 }
 
+
+const emptyAdminMetrics = {
+  users: { total: 0, active: 0, restricted: 0, admins: 0, moderators: 0 },
+  confessions: { total: 0, public: 0, private: 0, anonymous: 0, active: 0, underReview: 0, removed: 0 },
+  reports: { total: 0, open: 0, reviewing: 0, resolved: 0, dismissed: 0 },
+  moderationCases: 0,
+}
+
+function AdminMetricCard({ icon, label, value, detail, tone = 'default' }) {
+  return (
+    <article className={`glass-card admin-metric admin-metric--${tone}`}>
+      <div className="admin-metric__icon"><Icon name={icon} /></div>
+      <div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>
+    </article>
+  )
+}
+
+function AdminPage() {
+  const { profile } = useAuth()
+  const [metrics, setMetrics] = useState(emptyAdminMetrics)
+  const [recentUsers, setRecentUsers] = useState([])
+  const [recentConfessions, setRecentConfessions] = useState([])
+  const [recentReports, setRecentReports] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState('')
+
+  const refreshMetrics = async () => {
+    setRefreshing(true)
+    try {
+      const nextMetrics = await loadAdminMetrics()
+      setMetrics(nextMetrics)
+      setError('')
+    } catch (adminError) {
+      console.error('No se pudieron cargar las métricas administrativas.', adminError)
+      setError('No pudimos cargar las métricas administrativas. Verifica que las reglas de Firestore para administradores estén desplegadas.')
+    } finally {
+      setRefreshing(false)
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshMetrics()
+  }, [])
+
+  useEffect(() => {
+    const subscriptions = [
+      subscribeRecentUsers(
+        setRecentUsers,
+        (readError) => {
+          console.error('No se pudieron cargar los usuarios recientes.', readError)
+          setError('El monitoreo de usuarios requiere las reglas administrativas actualizadas.')
+        },
+      ),
+      subscribeRecentConfessions(
+        setRecentConfessions,
+        (readError) => {
+          console.error('No se pudieron cargar las confesiones recientes.', readError)
+          setError('No pudimos cargar la actividad reciente de confesiones.')
+        },
+      ),
+      subscribeRecentReports(
+        setRecentReports,
+        (readError) => {
+          console.error('No se pudieron cargar los reportes recientes.', readError)
+          setError('No pudimos cargar la actividad reciente de reportes.')
+        },
+      ),
+    ]
+
+    return () => subscriptions.forEach((unsubscribe) => unsubscribe?.())
+  }, [])
+
+  const reportReason = (value) => REPORT_REASONS.find((item) => item.value === value)?.label || value
+
+  return (
+    <div className="app-layout page-shell admin-page">
+      <SkipLink />
+      <AppSidebar />
+      <main id="main-content" className="app-main" tabIndex="-1">
+        <header className="admin-heading glass-card">
+          <div>
+            <p className="eyebrow">CENTRO DE ADMINISTRACIÓN</p>
+            <h1>Monitoreo de <span>ITLA Crush</span></h1>
+            <p>Vista global para supervisar actividad, seguridad y salud operativa sin mezclarla con la experiencia de usuario.</p>
+          </div>
+          <div className="admin-heading__actions">
+            <span className="admin-role-chip"><Icon name="shield-halved" /> {profile?.role || 'admin'}</span>
+            <button className="button button--primary" onClick={refreshMetrics} disabled={refreshing}>
+              <Icon name="rotate" /> {refreshing ? 'Actualizando…' : 'Actualizar'}
+            </button>
+          </div>
+        </header>
+
+        {error && <div className="auth-message auth-message--error admin-alert" role="alert">{error}</div>}
+
+        <section className="admin-metrics" aria-label="Métricas principales">
+          <AdminMetricCard icon="users" label="Usuarios" value={loading ? '…' : metrics.users.total} detail={`${metrics.users.active} activos · ${metrics.users.restricted} restringidos`} />
+          <AdminMetricCard icon="comments" label="Confesiones" value={loading ? '…' : metrics.confessions.total} detail={`${metrics.confessions.public} públicas · ${metrics.confessions.private} privadas`} />
+          <AdminMetricCard icon="user-secret" label="Anónimas" value={loading ? '…' : metrics.confessions.anonymous} detail="Identidad pública oculta" />
+          <AdminMetricCard icon="triangle-exclamation" label="Reportes abiertos" value={loading ? '…' : metrics.reports.open} detail={`${metrics.reports.reviewing} en revisión`} tone={metrics.reports.open > 0 ? 'warning' : 'default'} />
+          <AdminMetricCard icon="shield" label="Casos moderados" value={loading ? '…' : metrics.moderationCases} detail={`${metrics.confessions.removed} contenidos retirados`} />
+          <AdminMetricCard icon="user-shield" label="Equipo interno" value={loading ? '…' : metrics.users.admins + metrics.users.moderators} detail={`${metrics.users.admins} admin · ${metrics.users.moderators} moderadores`} />
+        </section>
+
+        <section className="admin-health-grid">
+          <article className="glass-card admin-health-card">
+            <div className="rail-title"><h2><Icon name="heart-pulse" /> Estado operativo</h2></div>
+            <div className="admin-health-row"><span>Firebase</span><b className="status-ok"><Icon name="circle-check" /> Configurado</b></div>
+            <div className="admin-health-row"><span>Sesión administrativa</span><b className="status-ok"><Icon name="circle-check" /> Activa</b></div>
+            <div className="admin-health-row"><span>Feed activo</span><b>{metrics.confessions.active}</b></div>
+            <div className="admin-health-row"><span>En revisión</span><b>{metrics.confessions.underReview}</b></div>
+            <div className="admin-health-row"><span>Reportes resueltos</span><b>{metrics.reports.resolved}</b></div>
+          </article>
+
+          <article className="glass-card admin-health-card">
+            <div className="rail-title"><h2><Icon name="scale-balanced" /> Privacidad y control</h2></div>
+            <p>El panel muestra métricas operativas y perfiles administrativos necesarios para monitoreo. No revela automáticamente la identidad interna detrás de confesiones anónimas.</p>
+            <div className="admin-health-row"><span>Contenido anónimo</span><b>{metrics.confessions.anonymous}</b></div>
+            <div className="admin-health-row"><span>Contenido retirado</span><b>{metrics.confessions.removed}</b></div>
+            <div className="admin-health-row"><span>Reportes descartados</span><b>{metrics.reports.dismissed}</b></div>
+          </article>
+        </section>
+
+        <section className="admin-monitor-grid">
+          <article className="glass-card admin-table-card">
+            <div className="admin-section-heading"><div><p className="eyebrow">CUENTAS</p><h2>Usuarios recientes</h2></div><span>{recentUsers.length} visibles</span></div>
+            <div className="admin-table" role="table" aria-label="Usuarios recientes">
+              {recentUsers.length === 0 && <div className="admin-empty">Sin usuarios recientes para mostrar.</div>}
+              {recentUsers.map((item) => {
+                const program = getProgram(item.program)
+                return (
+                  <div className="admin-table-row" role="row" key={item.id}>
+                    <div><strong>{item.displayName || 'Sin nombre'}</strong><small>{item.email || 'Sin correo'}</small></div>
+                    <span>{program?.label || item.program || 'Sin tecnólogo'}</span>
+                    <span className={`admin-status admin-status--${item.status || 'active'}`}>{item.status || 'active'}</span>
+                    <small>{formatRelativeTime(item.createdAt)}</small>
+                  </div>
+                )
+              })}
+            </div>
+          </article>
+
+          <article className="glass-card admin-table-card">
+            <div className="admin-section-heading"><div><p className="eyebrow">CONTENIDO</p><h2>Confesiones recientes</h2></div><Link to="/moderacion">Abrir moderación →</Link></div>
+            <div className="admin-table" role="table" aria-label="Confesiones recientes">
+              {recentConfessions.length === 0 && <div className="admin-empty">Sin actividad reciente.</div>}
+              {recentConfessions.map((item) => (
+                <div className="admin-table-row admin-table-row--content" role="row" key={item.id}>
+                  <div><strong>{item.isAnonymous ? 'Anónima' : (item.authorDisplayName || 'Identificada')}</strong><small>{item.text?.slice(0, 95) || 'Sin contenido'}{item.text?.length > 95 ? '…' : ''}</small></div>
+                  <span>{item.visibility}</span>
+                  <span className={`admin-status admin-status--${item.status}`}>{item.status}</span>
+                  <small>{formatRelativeTime(item.createdAt)}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="glass-card admin-table-card admin-table-card--wide">
+            <div className="admin-section-heading"><div><p className="eyebrow">TRUST & SAFETY</p><h2>Reportes recientes</h2></div><Link to="/moderacion">Gestionar cola →</Link></div>
+            <div className="admin-table" role="table" aria-label="Reportes recientes">
+              {recentReports.length === 0 && <div className="admin-empty">No hay reportes recientes.</div>}
+              {recentReports.map((item) => (
+                <div className="admin-table-row" role="row" key={item.id}>
+                  <div><strong>{reportReason(item.reason)}</strong><small>Confesión {item.confessionId}</small></div>
+                  <span className={`moderation-status moderation-status--${item.status}`}>{item.status}</span>
+                  <span>{item.details ? 'Con detalle' : 'Sin detalle'}</span>
+                  <small>{formatRelativeTime(item.createdAt)}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+  )
+}
+
 function ModerationPage() {
   const { user, profile } = useAuth()
   const canModerate = profile?.role === 'moderator' || profile?.role === 'admin'
@@ -802,6 +990,7 @@ export default function App() {
       <Route path="/crear" element={<CreateConfessionPage />} />
       <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
       <Route path="/moderacion" element={<ModerationPage />} />
+      <Route path="/admin" element={<AdminPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="*" element={<NotFound />} />
