@@ -24,6 +24,10 @@ function MicrosoftMark() {
   return <span aria-hidden="true"><i /><i /><i /><i /></span>
 }
 
+function SkipLink() {
+  return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
+}
+
 function AuthPage({ mode }) {
   const isLogin = mode === 'login'
   const { user, login, loginMicrosoft, register, error, isConfigured } = useAuth()
@@ -88,7 +92,8 @@ function AuthPage({ mode }) {
   }
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <div className="auth-ambient auth-ambient--one" />
       <div className="auth-ambient auth-ambient--two" />
       <section className="auth-card glass-card">
@@ -163,7 +168,7 @@ function AuthPage({ mode }) {
         </div>
         <small className="auth-note">Tu identidad puede ocultarse ante la comunidad, pero no ante los controles internos de seguridad y moderación.</small>
       </section>
-    </div>
+    </main>
   )
 }
 
@@ -191,7 +196,8 @@ function PasswordResetPage() {
   }
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <section className="auth-card glass-card">
         <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Recupera tu conexión. ♡</p>
@@ -205,7 +211,7 @@ function PasswordResetPage() {
         </form>
         <div className="auth-switch"><Link to="/login">← Volver a iniciar sesión</Link></div>
       </section>
-    </div>
+    </main>
   )
 }
 
@@ -228,7 +234,8 @@ function ProfilePage() {
   const programInfo = getProgram(profile?.program)
 
   return (
-    <div className="auth-page page-shell">
+    <main id="main-content" className="auth-page page-shell" tabIndex="-1">
+      <SkipLink />
       <section className="auth-card profile-card glass-card">
         <Link to="/app"><BrandLogo /></Link>
         <div className="profile-avatar" aria-hidden="true">{name.charAt(0).toUpperCase()}</div>
@@ -245,7 +252,7 @@ function ProfilePage() {
           <button className="button button--primary" onClick={handleLogout} disabled={signingOut}>{signingOut ? 'Cerrando…' : 'Cerrar sesión'}</button>
         </div>
       </section>
-    </div>
+    </main>
   )
 }
 
