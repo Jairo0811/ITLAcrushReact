@@ -86,19 +86,19 @@ export async function toggleReaction({ confessionId, user, profile }) {
   if (!user) throw new Error('Debes iniciar sesión para reaccionar.')
 
   const { db } = requireFirebase()
-  const ownerRef = doc(db, 'reactionOwners', reactionOwnerId(confessionId, user.uid))
+  const ownerId = reactionOwnerId(confessionId, user.uid)
+  const ownerRef = doc(db, 'reactionOwners', ownerId)
+  const activityRef = doc(db, 'socialActivity', ownerId)
   const ownerSnapshot = await getDoc(ownerRef)
   const batch = writeBatch(db)
 
   if (ownerSnapshot.exists()) {
-    const activityId = ownerSnapshot.data().activityId
-    batch.delete(doc(db, 'socialActivity', activityId))
+    batch.delete(activityRef)
     batch.delete(ownerRef)
     await batch.commit()
     return false
   }
 
-  const activityRef = doc(collection(db, 'socialActivity'))
   batch.set(activityRef, {
     confessionId,
     kind: 'reaction',
@@ -111,7 +111,7 @@ export async function toggleReaction({ confessionId, user, profile }) {
   batch.set(ownerRef, {
     ownerUid: user.uid,
     confessionId,
-    activityId: activityRef.id,
+    activityId: ownerId,
     createdAt: serverTimestamp(),
   })
   await batch.commit()
