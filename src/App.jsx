@@ -250,7 +250,7 @@ function LandingPage() {
 function AppSidebar() {
   const { profile } = useAuth()
   const items = [
-    ['/', 'house', 'Inicio'],
+    ['/app', 'house', 'Inicio'],
     ['/app', 'magnifying-glass', 'Explorar'],
     ['/mis-confesiones', 'clock-rotate-left', 'Mis Confesiones'],
     ['/app', 'paper-plane', 'Mensajes'],
@@ -262,7 +262,7 @@ function AppSidebar() {
   ]
   return (
     <aside className="app-sidebar">
-      <Link to="/"><BrandLogo /></Link>
+      <Link to="/app"><BrandLogo /></Link>
       <nav>
         {items.map(([to, icon, label], index) => (
           <NavLink key={`${label}-${index}`} to={to} className={({ isActive }) => (index === 1 && isActive ? 'sidebar-link sidebar-link--active' : 'sidebar-link')}>
