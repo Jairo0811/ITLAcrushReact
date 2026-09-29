@@ -79,6 +79,16 @@ test('Firebase Hosting mantiene fallback SPA y cabeceras mínimas', () => {
   assert.ok(keys.has('x-frame-options'))
 })
 
+test('dashboard y demo no dependen de controles decorativos', () => {
+  const app = read('src/App.jsx')
+
+  assert.equal(app.includes('aria-label="Tema"'), false)
+  assert.ok(app.includes('className="topbar-live"'))
+  assert.ok(app.includes('empty-state empty-state--actionable'))
+  assert.ok(app.includes('demo-banner__facts'))
+  assert.ok(app.includes('Firebase sin escrituras'))
+})
+
 test('la interfaz no anuncia funcionalidades sociales ficticias', () => {
   const app = read('src/App.jsx')
   assert.equal(app.includes("'Mensajes'"), false)
