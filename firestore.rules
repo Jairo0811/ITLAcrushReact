@@ -10,13 +10,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function isActiveUser() {
       return isSignedIn()
         && userDoc().data.status == 'active';
-    }
-
-    function userDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
     function isModerator() {
