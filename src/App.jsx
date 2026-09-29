@@ -37,9 +37,7 @@ function usePublicConfessions() {
   useEffect(() => {
     if (!isFirebaseConfigured) return undefined
 
-    let unsubscribe
-    try {
-      unsubscribe = subscribePublicConfessions(
+    const unsubscribe = subscribePublicConfessions(
       (nextItems) => {
         setItems(nextItems)
         setLoading(false)
@@ -51,12 +49,6 @@ function usePublicConfessions() {
         setLoading(false)
       },
     )
-    } catch (subscriptionError) {
-      console.error('No se pudo iniciar la conexión con Firestore.', subscriptionError)
-      setError('No pudimos conectar con Firebase. Revisa la configuración local.')
-      setLoading(false)
-      return undefined
-    }
 
     return unsubscribe
   }, [])
