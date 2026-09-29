@@ -41,6 +41,7 @@ VITE_FIREBASE_PROJECT_ID=itla-crush-cb9bd
 VITE_FIREBASE_STORAGE_BUCKET=itla-crush-cb9bd.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
+VITE_MICROSOFT_TENANT=itla.edu.do
 ```
 
 ## 3. Firebase Authentication
@@ -49,6 +50,7 @@ Antes de publicar verifica en Firebase Console:
 
 - Email/Password habilitado.
 - Microsoft habilitado.
+- `VITE_MICROSOFT_TENANT=itla.edu.do` configurado para limitar OAuth al tenant institucional.
 - Dominios autorizados para:
   - `itla-crush-cb9bd.web.app`
   - `itla-crush-cb9bd.firebaseapp.com`
@@ -60,7 +62,7 @@ La URL de redirección configurada en Microsoft Entra debe corresponder con la q
 https://itla-crush-cb9bd.firebaseapp.com/__/auth/handler
 ```
 
-El acceso de cuentas institucionales del ITLA puede seguir sujeto a consentimiento o aprobación del administrador del tenant. Eso es una dependencia administrativa externa al código de ITLA Crush.
+El acceso Microsoft queda limitado por código y reglas a cuentas `@itla.edu.do`. Aun así, esas cuentas pueden seguir sujetas a consentimiento o aprobación del administrador del tenant. Esa aprobación es una dependencia administrativa externa al código de ITLA Crush.
 
 ## 4. Quality gate y compilación de producción
 
