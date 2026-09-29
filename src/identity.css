@@ -1,0 +1,111 @@
+.auth-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #ff77bd;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.auth-message {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  text-align: left;
+  font-size: .86rem;
+  line-height: 1.45;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.auth-message--error {
+  color: #ffd5e9;
+  background: rgba(203, 24, 90, .18);
+  border-color: rgba(255, 74, 145, .35);
+}
+
+.auth-message--warning {
+  color: #ffe4b5;
+  background: rgba(255, 168, 43, .1);
+  border-color: rgba(255, 188, 88, .25);
+}
+
+.auth-message--success {
+  color: #c9ffe7;
+  background: rgba(37, 190, 126, .12);
+  border-color: rgba(95, 236, 173, .28);
+}
+
+.auth-message code {
+  color: inherit;
+  font-weight: 800;
+}
+
+.auth-forgot {
+  justify-self: end;
+  color: #ff77bd;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.auth-submit:disabled,
+.profile-actions .button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-card {
+  width: min(560px, 100%);
+}
+
+.profile-avatar {
+  width: 92px;
+  height: 92px;
+  margin: 4px auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 2.4rem;
+  font-weight: 900;
+  background: linear-gradient(145deg, #ff2f92, #9a36ff 55%, #2464ff);
+  box-shadow: 0 0 45px rgba(255, 47, 146, .35);
+  border: 1px solid rgba(255,255,255,.25);
+}
+
+.profile-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.profile-meta span {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border-radius: 16px;
+  color: #cdbad7;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 90, 176, .16);
+}
+
+.profile-meta strong {
+  color: #ff75bc;
+  font-size: .76rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.profile-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .profile-meta,
+  .profile-actions {
+    grid-template-columns: 1fr;
+  }
+}
