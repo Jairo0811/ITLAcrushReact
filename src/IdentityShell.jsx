@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import App from './App.jsx'
 import LegalPage from './LegalPage.jsx'
@@ -252,6 +252,27 @@ function ProfilePage() {
 export default function IdentityShell() {
   const location = useLocation()
   const { user, loading } = useAuth()
+
+  useEffect(() => {
+    const titles = {
+      '/': 'ITLA Crush',
+      '/home': 'Inicio | ITLA Crush',
+      '/login': 'Iniciar sesión | ITLA Crush',
+      '/registro': 'Registro | ITLA Crush',
+      '/recuperar': 'Recuperar contraseña | ITLA Crush',
+      '/app': 'Feed | ITLA Crush',
+      '/crear': 'Nueva confesión | ITLA Crush',
+      '/mis-confesiones': 'Mis confesiones | ITLA Crush',
+      '/perfil': 'Mi perfil | ITLA Crush',
+      '/moderacion': 'Moderación | ITLA Crush',
+      '/terminos': 'Términos de uso | ITLA Crush',
+      '/privacidad': 'Privacidad | ITLA Crush',
+      '/normas': 'Normas de la comunidad | ITLA Crush',
+      '/legal': 'Información legal | ITLA Crush',
+    }
+
+    document.title = titles[location.pathname] || 'ITLA Crush'
+  }, [location.pathname])
 
   if (loading && location.pathname === '/') {
     return <div className="auth-loading">Restaurando tu sesión en ITLA Crush…</div>
