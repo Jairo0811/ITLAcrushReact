@@ -101,7 +101,7 @@ Desarrollar una aplicación web interactiva con React y Firebase que permita reg
 
 ## 🎨 Sistema visual
 
-La interfaz fue refinada con un lenguaje **institucional + tecnológico**: azul ITLA como estructura, magenta ITLA Crush como señal social, superficies navy, geometría más técnica, menor dependencia de glassmorphism y metadatos en tipografía monoespaciada.
+La interfaz fue refinada con un lenguaje **tecnológico y académico** sin perder la identidad visual original: magenta, violeta y navy siguen siendo la base de ITLA Crush, mientras la modernización se concentra en geometría más técnica, menor dependencia de glassmorphism y metadatos en tipografía monoespaciada.
 
 La guía completa está en [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
