@@ -50,12 +50,11 @@ button { color: inherit; }
   backdrop-filter: blur(18px);
 }
 
-.brand-logo { display: inline-flex; flex-direction: column; line-height: .82; min-width: 145px; filter: drop-shadow(0 0 14px rgba(84, 126, 255, 0.24)); }
-.brand-logo__itla { font-family: Georgia, 'Times New Roman', serif; font-size: 2.1rem; font-weight: 900; font-style: italic; letter-spacing: -0.08em; background: linear-gradient(180deg,#fff 0%,#72d8ff 16%,#2468f2 48%,#08217f 75%,#fff 82%,#1d4ed8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 3px 0 rgba(0,0,40,.35); }
-.brand-logo__crush { align-self: flex-end; margin-right: 6px; margin-top: 4px; font-size: 1rem; font-weight: 1000; letter-spacing: .08em; background: linear-gradient(180deg,#fff,#ff74bd 34%,#ff237f 63%,#7d083f); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.brand-logo small { margin-top: 10px; font-size: .48rem; letter-spacing: .22em; color: #f4d8ec; white-space: nowrap; }
-.brand-logo--compact .brand-logo__itla { font-size: 1.8rem; }
-.brand-logo--compact .brand-logo__crush { font-size: .84rem; }
+.brand-logo { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1; min-width: 145px; filter: drop-shadow(0 0 14px rgba(84, 126, 255, 0.24)); }
+.brand-logo__image { display: block; width: 172px; max-width: 100%; height: auto; object-fit: contain; }
+.brand-logo small { margin-top: 8px; font-size: .48rem; letter-spacing: .22em; color: #f4d8ec; white-space: nowrap; }
+.brand-logo--compact { min-width: 122px; }
+.brand-logo--compact .brand-logo__image { width: 138px; }
 
 .button { border: 0; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 12px 18px; font-weight: 800; cursor: pointer; transition: .2s ease; }
 .button:hover { transform: translateY(-1px); }
