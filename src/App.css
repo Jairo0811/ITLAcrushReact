@@ -63,7 +63,32 @@ button { color: inherit; }
 .button--soft { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); }
 .button--large { padding: 15px 24px; border-radius: 18px; }
 
-.landing-nav { min-height: 92px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; }
+.landing-nav { min-height: 110px; display: grid; grid-template-columns: 190px 1fr auto; align-items: center; gap: 28px; }
+.landing-nav .brand-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  justify-self: start;
+  width: 190px;
+  min-height: 96px;
+  position: relative;
+  z-index: 3;
+}
+.landing-nav .brand-logo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+}
+.landing-nav .brand-logo__image {
+  display: block;
+  width: 170px;
+  height: auto;
+  max-height: 96px;
+  object-fit: contain;
+  opacity: 1;
+  visibility: visible;
+}
 .desktop-nav { display: flex; justify-content: center; gap: 28px; color: #e7d9ed; font-size: .92rem; }
 .desktop-nav a:hover { color: white; }
 .nav-actions { display: flex; gap: 10px; }
