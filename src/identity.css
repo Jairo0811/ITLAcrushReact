@@ -286,3 +286,57 @@
 .auth-message {
   border-radius: 8px;
 }
+
+
+/* Crush palette restoration — identity surfaces */
+.auth-page {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255,45,148,.24), transparent 28rem),
+    radial-gradient(circle at 84% 72%, rgba(89,73,255,.16), transparent 25rem),
+    linear-gradient(145deg, #0d0618, #180921 56%, #260a2a);
+}
+.auth-ambient--one { background: radial-gradient(circle, rgba(255,45,148,.22), transparent 68%); }
+.auth-ambient--two { background: radial-gradient(circle, rgba(89,73,255,.16), transparent 70%); }
+.auth-card {
+  border-color: rgba(255,94,179,.24);
+  background: linear-gradient(180deg, rgba(44,16,59,.97), rgba(20,8,32,.98));
+  box-shadow: 0 30px 70px rgba(70,0,56,.34), inset 0 1px 0 rgba(255,255,255,.035);
+}
+.auth-card::before { background: linear-gradient(90deg, #7f54ff, #d642ff 58%, #ff3b94); }
+.auth-kicker { color: #ff7dc2 !important; }
+.auth-card > p { color: #cbb7d8; }
+.auth-card form label { color: #f4eaf7; }
+.auth-card input,
+.auth-card select {
+  border-color: rgba(255,94,179,.2);
+  background: rgba(46,16,60,.72);
+}
+.auth-card input:focus,
+.auth-card select:focus {
+  border-color: rgba(255,98,185,.48);
+  box-shadow: 0 0 0 3px rgba(255,47,146,.08);
+}
+.auth-forgot,
+.auth-switch a,
+.auth-legal-links a { color: #ff75bc; }
+.auth-divider { color: #9f8aaa; }
+.auth-divider::before,
+.auth-divider::after { background: rgba(255,94,179,.1); }
+.microsoft-button {
+  background: rgba(49,18,63,.66);
+  border-color: rgba(255,94,179,.17);
+}
+.microsoft-button:hover {
+  background: rgba(65,20,77,.74);
+  border-color: rgba(255,101,185,.3);
+}
+.profile-avatar {
+  background: linear-gradient(145deg, #8738ff, #d63fff 50%, #ff2f92);
+  border-color: rgba(255,175,220,.28);
+  box-shadow: 0 0 34px rgba(255,47,146,.18);
+}
+.profile-meta span {
+  background: rgba(45,15,58,.66);
+  border-color: rgba(255,94,179,.14);
+}
+.profile-meta strong { color: #ff75bc; }
