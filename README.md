@@ -206,6 +206,8 @@ Las cuentas autenticadas cuentan con interacciones sociales persistentes respald
 
 La interfaz ya no presenta contadores ficticios de mensajes/notificaciones ni accesos a mensajería privada sin implementar. La mensajería directa queda fuera del alcance obligatorio de esta restauración académica.
 
+La arquitectura, colecciones y reglas de esta fase se documentan en [`docs/SOCIAL_CORE.md`](docs/SOCIAL_CORE.md).
+
 ### 🛡️ Moderación
 
 Las cuentas con rol `moderator` o `admin` pueden:
