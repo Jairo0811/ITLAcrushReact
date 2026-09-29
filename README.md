@@ -21,7 +21,7 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   </a>
 </p>
 
-> Estado actual: **Fases 1–4 completadas y Fase 5 en progreso**. Las fases 5A (administración) y 5B (Social Core) están completadas. La Fase 5D deja preparado el despliegue en Firebase Hosting, la configuración SPA, cabeceras de seguridad, scripts de release y documentación de producción. La Fase 5C continúa pendiente como hardening posterior de QA, accesibilidad verificable y rendimiento.
+> Estado actual: **Fases 1–4 y 5A–5C completadas**. ITLA Crush ya cuenta con administración, Social Core, quality gates automatizados, verificación técnica de accesibilidad, auditoría de dependencias y presupuestos de bundle. La Fase 5D está preparada para el despliegue en Firebase Hosting y su cierre depende del release real y del smoke test posterior.
 
 </div>
 
@@ -141,10 +141,10 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
 | Social Core | ✅ Reacciones, comentarios, favoritos, guardados, compartir y notificaciones |
 | Demo separada de la aplicación real | ✅ `/demo` vs `/app` |
-| Accesibilidad / NORTIC B2 | 🚧 Alineación voluntaria A + AA en progreso |
-| CI | ✅ `npm ci`, lint y build en GitHub Actions |
-| Pruebas automatizadas de comportamiento | 🚧 Pendientes |
-| Optimización de bundle / code splitting | 🚧 Pendiente |
+| Accesibilidad / NORTIC B2 | ✅ Quality gates automáticos y checklist manual; alineación voluntaria, sin certificación oficial |
+| CI | ✅ Audit, lint, tests, a11y, build, bundle budget y Lighthouse |
+| Pruebas automatizadas de comportamiento/contrato | ✅ Node Test Runner |
+| Optimización de bundle / code splitting | ✅ Vite 8/Rolldown + presupuesto automático |
 | Preparación para producción | 🚧 Fase 5D preparada; pendiente despliegue y smoke test |
 
 La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se concentran en **hardening**, pruebas, accesibilidad verificable, optimización del bundle y preparación para despliegue/portafolio.
@@ -159,7 +159,7 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 | 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
 | 5A | Administración, monitoreo y auditoría | ✅ Completada |
 | 5B | Social Core: reacciones, comentarios, favoritos, guardados, compartir y notificaciones | ✅ Completada |
-| 5C | QA, accesibilidad verificable y rendimiento | ⏳ Pendiente |
+| 5C | QA, accesibilidad verificable y rendimiento | ✅ Completada |
 | 5D | Firebase Hosting, configuración de producción, release runbook y cierre | 🚧 Preparada para despliegue |
 
 ---
@@ -438,6 +438,29 @@ http://192.168.1.50:5173
 ```
 
 Si Windows solicita acceso de firewall para Node.js, permite únicamente redes privadas.
+
+---
+
+## ✅ Quality gates — Fase 5C
+
+La Fase 5C añade controles reproducibles para evitar regresiones antes de fusionar cambios a `main`.
+
+```bash
+npm run audit:prod
+npm run lint
+npm test
+npm run check:a11y
+npm run build
+npm run check:bundle
+```
+
+También se ejecuta **Lighthouse CI** sobre `/home`, `/demo` y `/login`, con accesibilidad >= 0.90 como condición obligatoria.
+
+El build utiliza code splitting de Vite 8/Rolldown para separar Firebase, React y otras dependencias del código principal, y `npm run check:bundle` impide reintroducir chunks JavaScript por encima del presupuesto definido.
+
+La guía completa de QA, accesibilidad y rendimiento está en [`docs/QA_ACCESSIBILITY_PERFORMANCE.md`](docs/QA_ACCESSIBILITY_PERFORMANCE.md).
+
+> Estas verificaciones apoyan la alineación voluntaria con NORTIC B2. No sustituyen una evaluación/certificación oficial ni las pruebas manuales complementarias de teclado, zoom y lector de pantalla.
 
 ---
 
