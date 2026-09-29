@@ -134,12 +134,10 @@ service cloud.firestore {
         || (
           isModerator()
           && request.resource.data.status in ['active', 'under_review', 'removed']
-          && request.resource.data.moderatedBy == request.auth.uid
-          && request.resource.data.moderationNote is string
-          && request.resource.data.moderationNote.size() <= 500
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'moderationNote', 'moderatedBy', 'moderatedAt', 'updatedAt'
+            'status', 'updatedAt'
           ])
+          && getAfter(/databases/$(database)/documents/moderationCases/$(confessionId)).data.moderatedBy == request.auth.uid
         );
 
       allow delete: if false;
@@ -208,6 +206,21 @@ service cloud.firestore {
         && resource.data.ownerUid == request.auth.uid;
 
       allow update: if false;
+    }
+
+    match /moderationCases/{confessionId} {
+      allow create, update: if isModerator()
+        && request.resource.data.keys().hasOnly([
+          'confessionId', 'lastAction', 'note', 'moderatedBy', 'moderatedAt', 'updatedAt'
+        ])
+        && request.resource.data.confessionId == confessionId
+        && request.resource.data.lastAction in ['active', 'under_review', 'removed']
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 500
+        && request.resource.data.moderatedBy == request.auth.uid;
+
+      allow read: if isModerator();
+      allow delete: if false;
     }
 
     match /{document=**} {
