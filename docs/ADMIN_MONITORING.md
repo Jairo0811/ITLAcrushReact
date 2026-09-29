@@ -83,8 +83,35 @@ Los cambios administrativos requieren desplegar las reglas de Firestore:
 npx firebase-tools deploy --only firestore
 ```
 
+## Gestión de cuentas
+
+La consola administrativa permite ahora:
+
+- Cambiar el rol entre `student`, `moderator` y `admin`.
+- Cambiar el estado entre `active`, `suspended` y `blocked`.
+- Reactivar cuentas previamente suspendidas o bloqueadas.
+- Impedir que el administrador modifique su propio rol o estado desde la interfaz.
+- Aplicar los cambios junto con una entrada de auditoría en una misma operación por lote.
+
+Cada actualización genera un documento inmutable en `adminAuditLogs` con:
+
+- UID del administrador que ejecutó la acción.
+- UID y correo de la cuenta afectada.
+- Tipo de acción.
+- Rol anterior y nuevo.
+- Estado anterior y nuevo.
+- Fecha del cambio.
+
+Las reglas de Firestore enlazan el cambio del usuario con su entrada de auditoría mediante `lastAdminActionId`, de modo que una modificación administrativa de rol o estado no puede aprobarse sin el registro correspondiente.
+
+## Aplicación inmediata de restricciones
+
+El perfil autenticado se observa en tiempo real. Si un administrador cambia una cuenta a `suspended` o `blocked`, la interfaz protegida detecta el nuevo estado sin requerir un nuevo inicio de sesión.
+
+Además, las reglas utilizan `isActiveUser()` para impedir que una cuenta restringida cree nuevas confesiones, reportes u operaciones de comunidad aunque conserve una sesión de Firebase Authentication.
+
 ## Alcance actual
 
-La primera versión del panel es principalmente de **monitoreo de solo lectura**. Las acciones de moderación continúan en `/moderacion`.
+Las acciones sobre contenido denunciado continúan en `/moderacion`, mientras que `/admin` concentra monitoreo, gestión de acceso y auditoría.
 
-La gestión avanzada de cuentas (suspender, rehabilitar, cambiar roles, auditoría detallada y bitácora administrativa) debe incorporarse de manera controlada en iteraciones posteriores, con reglas específicas y trazabilidad de cada acción.
+La desactivación del usuario directamente en Firebase Authentication sigue fuera del frontend y requeriría Firebase Admin SDK o una función backend confiable si se decide incorporar en una etapa posterior.
