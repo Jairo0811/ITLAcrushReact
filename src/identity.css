@@ -149,21 +149,3 @@
   box-shadow: 0 0 22px color-mix(in srgb, var(--program-color) 14%, transparent);
 }
 
-.program-badge--cyan { --program-color: #2dd4bf; }
-.program-badge--pink { --program-color: #ff5fb7; }
-.program-badge--red { --program-color: #ff5b6e; }
-.program-badge--blue { --program-color: #5596ff; }
-.program-badge--violet { --program-color: #9b6cff; }
-.program-badge--orange { --program-color: #ff914d; }
-.program-badge--green { --program-color: #58d47b; }
-.program-badge--slate { --program-color: #9aa7bd; }
-.program-badge--indigo { --program-color: #6f7dff; }
-.program-badge--amber { --program-color: #f5b942; }
-.program-badge--teal { --program-color: #37c8c0; }
-.program-badge--lime { --program-color: #9bd84f; }
-.program-badge--fuchsia { --program-color: #df5cff; }
-.program-badge--sky { --program-color: #55c7ff; }
-.program-badge--rose { --program-color: #ff668a; }
-.program-badge--gold { --program-color: #e5c153; }
-.program-badge--purple { --program-color: #b16cff; }
-.program-badge--emerald { --program-color: #42d89b; }
