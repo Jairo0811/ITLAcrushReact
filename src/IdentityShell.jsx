@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import App from './App.jsx'
 import LegalPage from './LegalPage.jsx'
 import { useAuth } from './context/AuthContext.jsx'
+import { getProgram, ITLA_PROGRAMS } from './data/itlaPrograms.js'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import './App.css'
 
@@ -27,6 +28,7 @@ function AuthPage({ mode }) {
   const location = useLocation()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
+  const [program, setProgram] = useState('')
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -50,7 +52,7 @@ function AuthPage({ mode }) {
       if (isLogin) {
         await login({ email, password })
       } else {
-        await register({ displayName, email, password, acceptTerms: acceptedTerms })
+        await register({ displayName, email, password, program, acceptTerms: acceptedTerms })
       }
       finishAuth()
     } catch (submitError) {
@@ -62,14 +64,18 @@ function AuthPage({ mode }) {
 
   const microsoftSignIn = async () => {
     setLocalError('')
-    if (!acceptedTerms) {
-      setLocalError('Para continuar con Microsoft, confirma que aceptas los Términos de Uso y las Normas de la Comunidad.')
+    if (!isLogin && !program) {
+      setLocalError('Selecciona tu tecnólogo antes de continuar con Microsoft.')
+      return
+    }
+    if (!isLogin && !acceptedTerms) {
+      setLocalError('Para registrarte con Microsoft, confirma que aceptas los Términos de Uso y las Normas de la Comunidad.')
       return
     }
 
     setSubmitting(true)
     try {
-      await loginMicrosoft({ acceptTerms: true })
+      await loginMicrosoft({ acceptTerms: !isLogin, program: isLogin ? '' : program })
       finishAuth()
     } catch (submitError) {
       setLocalError(submitError.message)
@@ -98,10 +104,23 @@ function AuthPage({ mode }) {
 
         <form onSubmit={submit}>
           {!isLogin && (
-            <label>
-              Nombre visible
-              <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Tu nombre" autoComplete="name" required minLength="2" />
-            </label>
+            <>
+              <label>
+                Nombre visible
+                <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Tu nombre" autoComplete="name" required minLength="2" />
+              </label>
+              <label>
+                Tecnólogo
+                <select value={program} onChange={(event) => setProgram(event.target.value)} required>
+                  <option value="">Selecciona tu carrera</option>
+                  {ITLA_PROGRAMS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                </select>
+              </label>
+              {program && (() => {
+                const selectedProgram = getProgram(program)
+                return <div className="program-preview program-badge" style={{ '--program-color': selectedProgram?.color }}>{selectedProgram?.label}</div>
+              })()}
+            </>
           )}
           <label>
             Correo electrónico
@@ -125,14 +144,7 @@ function AuthPage({ mode }) {
 
         <div className="auth-divider">o continúa con</div>
 
-        {isLogin && (
-          <label className="terms-check">
-            <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} />
-            <span>Al usar Microsoft confirmo que acepto los <Link to="/terminos">Términos</Link>, la <Link to="/privacidad">Privacidad</Link> y las <Link to="/normas">Normas</Link>.</span>
-          </label>
-        )}
-
-        <button type="button" className="button microsoft-button" onClick={microsoftSignIn} disabled={submitting || !isConfigured || !acceptedTerms}>
+        <button type="button" className="button microsoft-button" onClick={microsoftSignIn} disabled={submitting || !isConfigured || (!isLogin && (!acceptedTerms || !program))}>
           <MicrosoftMark /> Continuar con Microsoft
         </button>
 
@@ -210,6 +222,7 @@ function ProfilePage() {
   }
 
   const name = profile?.displayName || user?.displayName || 'Estudiante ITLA'
+  const programInfo = getProgram(profile?.program)
 
   return (
     <div className="auth-page page-shell">
@@ -219,6 +232,7 @@ function ProfilePage() {
         <p className="auth-kicker">Tu espacio en ITLA Crush</p>
         <h1>{name}</h1>
         <p>{profile?.email || user?.email}</p>
+        {programInfo && <div className="program-badge profile-program" style={{ '--program-color': programInfo.color }}>{programInfo.label}</div>}
         <div className="profile-meta">
           <span><strong>Rol</strong>{profile?.role || 'student'}</span>
           <span><strong>Estado</strong>{profile?.status || 'active'}</span>
@@ -244,7 +258,7 @@ export default function IdentityShell() {
   if (location.pathname === '/legal') return <LegalPage />
   if (location.pathname === '/perfil') return <ProtectedRoute><ProfilePage /></ProtectedRoute>
 
-  if (location.pathname === '/app' || location.pathname === '/crear') {
+  if (location.pathname === '/app' || location.pathname === '/crear' || location.pathname === '/mis-confesiones') {
     return <ProtectedRoute><App /></ProtectedRoute>
   }
 
