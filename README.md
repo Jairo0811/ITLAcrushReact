@@ -21,7 +21,7 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   </a>
 </p>
 
-> Estado actual: **Fases 1–4 completadas y Fase 5 en progreso**. La Fase 5A incorporó administración y monitoreo; la Fase 5B completa el núcleo social con reacciones persistentes, comentarios, favoritos, guardados, compartir y notificaciones derivadas de la actividad real. La siguiente etapa es QA, accesibilidad verificable, rendimiento y preparación para producción.
+> Estado actual: **Fases 1–4 completadas y Fase 5 en progreso**. Las fases 5A (administración) y 5B (Social Core) están completadas. La Fase 5D deja preparado el despliegue en Firebase Hosting, la configuración SPA, cabeceras de seguridad, scripts de release y documentación de producción. La Fase 5C continúa pendiente como hardening posterior de QA, accesibilidad verificable y rendimiento.
 
 </div>
 
@@ -145,7 +145,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | CI | ✅ `npm ci`, lint y build en GitHub Actions |
 | Pruebas automatizadas de comportamiento | 🚧 Pendientes |
 | Optimización de bundle / code splitting | 🚧 Pendiente |
-| Preparación para producción | 🚧 Fase 5 |
+| Preparación para producción | 🚧 Fase 5D preparada; pendiente despliegue y smoke test |
 
 La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se concentran en **hardening**, pruebas, accesibilidad verificable, optimización del bundle y preparación para despliegue/portafolio.
 
@@ -159,8 +159,8 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 | 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
 | 5A | Administración, monitoreo y auditoría | ✅ Completada |
 | 5B | Social Core: reacciones, comentarios, favoritos, guardados, compartir y notificaciones | ✅ Completada |
-| 5C | QA, accesibilidad verificable y rendimiento | ⏭️ Siguiente |
-| 5D | Deploy, documentación final y cierre | ⏳ Pendiente |
+| 5C | QA, accesibilidad verificable y rendimiento | ⏳ Pendiente |
+| 5D | Firebase Hosting, configuración de producción, release runbook y cierre | 🚧 Preparada para despliegue |
 
 ---
 
@@ -438,6 +438,33 @@ http://192.168.1.50:5173
 ```
 
 Si Windows solicita acceso de firewall para Node.js, permite únicamente redes privadas.
+
+---
+
+## 🌐 Despliegue de producción
+
+La Fase 5D incorpora configuración de **Firebase Hosting** para servir el build de Vite como SPA, incluyendo reescritura de rutas internas hacia `/index.html`, cache de assets versionados y cabeceras HTTP básicas de seguridad.
+
+Scripts disponibles:
+
+```bash
+npm run deploy:firestore
+npm run deploy:hosting
+npm run deploy:prod
+```
+
+El release completo valida lint + build antes de desplegar reglas/índices de Firestore y Hosting.
+
+La guía detallada de configuración, dominios autorizados, Microsoft Entra, smoke tests y rollback se encuentra en [`docs/PRODUCTION_DEPLOYMENT.md`](docs/PRODUCTION_DEPLOYMENT.md).
+
+URLs previstas para Firebase Hosting:
+
+```text
+https://itla-crush-cb9bd.web.app
+https://itla-crush-cb9bd.firebaseapp.com
+```
+
+> La existencia de estas URLs en la documentación no sustituye la verificación de un despliegue exitoso. El release debe probarse después de ejecutar Firebase CLI.
 
 ---
 
