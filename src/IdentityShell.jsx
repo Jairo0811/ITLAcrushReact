@@ -9,9 +9,12 @@ import './App.css'
 
 function BrandLogo() {
   return (
-    <div className="brand-logo" aria-label="ITLA Crush">
-      <span className="brand-logo__itla">ITLA</span>
-      <span className="brand-logo__crush">CRUSH <span aria-hidden="true">♥</span></span>
+    <div className="brand-logo">
+      <img
+        className="brand-logo__image"
+        src="/itla-crush-logo.webp"
+        alt="ITLA Crush"
+      />
       <small>CONFIESA. CONECTA. COMPARTE.</small>
     </div>
   )
