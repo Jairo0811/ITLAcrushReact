@@ -146,7 +146,7 @@ function LandingPage() {
   return (
     <div className="landing-page page-shell">
       <header className="landing-nav content-width">
-        <Link to="/" className="brand-link"><BrandLogo compact /></Link>
+        <Link to="/home" className="brand-link"><BrandLogo compact /></Link>
         <nav className="desktop-nav" aria-label="Navegación principal">
           <a href="#inicio">Inicio</a>
           <a href="#confesiones">Confesiones</a>
@@ -567,7 +567,7 @@ function AuthPage({ mode }) {
       <div className="auth-ambient auth-ambient--one" />
       <div className="auth-ambient auth-ambient--two" />
       <section className="auth-card glass-card">
-        <Link to="/"><BrandLogo /></Link>
+        <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Las historias también viven aquí. ♡</p>
         <h1>{isLogin ? 'Vuelve a conectar' : 'Crea tu espacio'}</h1>
         <p>{isLogin ? 'Entra a tu comunidad y continúa descubriendo historias.' : 'Únete para confesar, conectar y compartir con control sobre tu identidad.'}</p>
@@ -585,13 +585,13 @@ function AuthPage({ mode }) {
 }
 
 function NotFound() {
-  return <div className="not-found page-shell"><BrandLogo/><h1>404</h1><p>Esta historia todavía no existe.</p><Link className="button button--primary" to="/">Volver al inicio</Link></div>
+  return <div className="not-found page-shell"><BrandLogo/><h1>404</h1><p>Esta historia todavía no existe.</p><Link className="button button--primary" to="/home">Volver al inicio</Link></div>
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/home" element={<LandingPage />} />
       <Route path="/app" element={<FeedPage />} />
       <Route path="/crear" element={<CreateConfessionPage />} />
       <Route path="/mis-confesiones" element={<MyConfessionsPage />} />
