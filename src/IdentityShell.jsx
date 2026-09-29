@@ -12,7 +12,7 @@ function BrandLogo() {
     <div className="brand-logo">
       <img
         className="brand-logo__image"
-        src="/itla-crush-logo.webp"
+        src="/itla-crush-logo.png"
         alt="ITLA Crush"
       />
       <small>CONFIESA. CONECTA. COMPARTE.</small>
