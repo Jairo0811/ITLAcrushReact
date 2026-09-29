@@ -44,10 +44,12 @@ async function writeProfile(user, { displayName, program, authProvider, acceptTe
   const name = (displayName || user.displayName || user.email?.split('@')[0] || 'Estudiante').trim()
 
   if (existing) {
-    await setDoc(reference, {
+    const profileUpdate = {
       displayName: existing.displayName || name,
       updatedAt: serverTimestamp(),
-    }, { merge: true })
+    }
+    if (!existing.program && ITLA_PROGRAM_VALUES.includes(program)) profileUpdate.program = program
+    await setDoc(reference, profileUpdate, { merge: true })
     return
   }
 
