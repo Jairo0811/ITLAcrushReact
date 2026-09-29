@@ -276,3 +276,114 @@ button { color: inherit; }
   .create-heading h1 { font-size: 1.6rem; }
   .choice-card { grid-template-columns: 1fr auto; }
 }
+
+
+.safety-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  display: grid;
+  gap: 10px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,90,170,.2);
+}
+
+.safety-panel select,
+.safety-panel textarea,
+.moderation-card textarea {
+  width: 100%;
+  border-radius: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(14,7,24,.78);
+  color: white;
+  outline: 0;
+}
+
+.safety-panel textarea,
+.moderation-card textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.safety-panel__actions,
+.moderation-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.safety-message {
+  margin-top: 10px;
+  color: #f5cfe4;
+  font-size: .8rem;
+}
+
+.moderation-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.moderation-card {
+  border-radius: 20px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.moderation-card__header {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.moderation-card > small {
+  color: var(--muted);
+}
+
+.moderation-content {
+  border-radius: 14px;
+  padding: 13px;
+  background: rgba(255,255,255,.04);
+  border-left: 3px solid var(--pink);
+}
+
+.moderation-content span {
+  color: #ff82c4;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.moderation-content p {
+  margin: 7px 0 0;
+  line-height: 1.55;
+}
+
+.moderation-status {
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: .68rem;
+  font-weight: 900;
+  background: rgba(255,255,255,.08);
+}
+
+.moderation-status--open { color: #ffcc6a; }
+.moderation-status--reviewing { color: #72d8ff; }
+.moderation-status--resolved { color: #6ee7a8; }
+.moderation-status--dismissed { color: #b8a9c1; }
+
+@media (max-width: 620px) {
+  .safety-panel__actions,
+  .moderation-actions {
+    flex-direction: column;
+  }
+
+  .safety-panel__actions .button,
+  .moderation-actions .button {
+    width: 100%;
+  }
+}
