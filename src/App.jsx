@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
 import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
+import { isFirebaseConfigured } from './services/firebase.js'
 import './App.css'
 
 const trends = [
@@ -32,7 +33,15 @@ function usePublicConfessions() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const unsubscribe = subscribePublicConfessions(
+    if (!isFirebaseConfigured) {
+      setLoading(false)
+      setError('Firebase no está configurado en este equipo. Revisa tu archivo .env.')
+      return undefined
+    }
+
+    let unsubscribe
+    try {
+      unsubscribe = subscribePublicConfessions(
       (nextItems) => {
         setItems(nextItems)
         setLoading(false)
@@ -44,6 +53,12 @@ function usePublicConfessions() {
         setLoading(false)
       },
     )
+    } catch (subscriptionError) {
+      console.error('No se pudo iniciar la conexión con Firestore.', subscriptionError)
+      setError('No pudimos conectar con Firebase. Revisa la configuración local.')
+      setLoading(false)
+      return undefined
+    }
 
     return unsubscribe
   }, [])
