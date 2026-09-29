@@ -118,7 +118,7 @@ function AuthPage({ mode }) {
               </label>
               {program && (() => {
                 const selectedProgram = getProgram(program)
-                return <div className={`program-preview program-badge program-badge--${selectedProgram?.tone || 'blue'}`}>{selectedProgram?.label}</div>
+                return <div className="program-preview program-badge" style={{ '--program-color': selectedProgram?.color }}>{selectedProgram?.label}</div>
               })()}
             </>
           )}
@@ -232,7 +232,7 @@ function ProfilePage() {
         <p className="auth-kicker">Tu espacio en ITLA Crush</p>
         <h1>{name}</h1>
         <p>{profile?.email || user?.email}</p>
-        {programInfo && <div className={`program-badge profile-program program-badge--${programInfo.tone}`}>{programInfo.label}</div>}
+        {programInfo && <div className="program-badge profile-program" style={{ '--program-color': programInfo.color }}>{programInfo.label}</div>}
         <div className="profile-meta">
           <span><strong>Rol</strong>{profile?.role || 'student'}</span>
           <span><strong>Estado</strong>{profile?.status || 'active'}</span>
