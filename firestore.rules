@@ -251,6 +251,144 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    match /socialActivity/{activityId} {
+      allow create: if isActiveUser()
+        && request.resource.data.confessionId is string
+        && request.resource.data.kind in ['reaction', 'comment']
+        && request.resource.data.actorDisplayName == userDoc().data.displayName
+        && request.resource.data.actorProgram == userDoc().data.program
+        && request.resource.data.status == 'active'
+        && request.resource.data.createdAt != null
+        && request.resource.data.updatedAt != null
+        && exists(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId))
+        && get(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.visibility == 'public'
+        && get(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.status == 'active'
+        && get(/databases/$(database)/documents/confessionAuthors/$(request.resource.data.confessionId)).data.authorUid != request.auth.uid
+        && (
+          (
+            request.resource.data.kind == 'reaction'
+            && request.resource.data.keys().hasOnly([
+              'confessionId', 'kind', 'actorDisplayName', 'actorProgram',
+              'status', 'createdAt', 'updatedAt'
+            ])
+            && activityId == request.resource.data.confessionId + '_' + request.auth.uid
+            && existsAfter(/databases/$(database)/documents/reactionOwners/$(activityId))
+            && getAfter(/databases/$(database)/documents/reactionOwners/$(activityId)).data.activityId == activityId
+          )
+          || (
+            request.resource.data.kind == 'comment'
+            && request.resource.data.keys().hasOnly([
+              'confessionId', 'kind', 'actorDisplayName', 'actorProgram', 'text',
+              'status', 'createdAt', 'updatedAt'
+            ])
+            && request.resource.data.text is string
+            && request.resource.data.text.size() > 0
+            && request.resource.data.text.size() <= 280
+            && existsAfter(/databases/$(database)/documents/commentAuthors/$(activityId))
+            && getAfter(/databases/$(database)/documents/commentAuthors/$(activityId)).data.authorUid == request.auth.uid
+          )
+        );
+
+      allow read: if (
+          exists(/databases/$(database)/documents/confessions/$(resource.data.confessionId))
+          && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.visibility == 'public'
+          && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.status == 'active'
+        )
+        || ownsConfession(resource.data.confessionId)
+        || isModerator();
+
+      allow update: if (
+          resource.data.kind == 'comment'
+          && isActiveUser()
+          && get(/databases/$(database)/documents/commentAuthors/$(activityId)).data.authorUid == request.auth.uid
+          && request.resource.data.status == 'deleted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'updatedAt'
+          ])
+        )
+        || (
+          resource.data.kind == 'comment'
+          && isModerator()
+          && request.resource.data.status in ['active', 'removed']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'updatedAt'
+          ])
+        );
+
+      allow delete: if resource.data.kind == 'reaction'
+        && isActiveUser()
+        && activityId == resource.data.confessionId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/reactionOwners/$(activityId))
+        && get(/databases/$(database)/documents/reactionOwners/$(activityId)).data.ownerUid == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/reactionOwners/$(activityId));
+    }
+
+    match /reactionOwners/{ownerId} {
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'confessionId', 'activityId', 'createdAt'
+        ])
+        && request.resource.data.ownerUid == request.auth.uid
+        && ownerId == request.resource.data.confessionId + '_' + request.auth.uid
+        && request.resource.data.activityId == ownerId
+        && existsAfter(/databases/$(database)/documents/socialActivity/$(ownerId))
+        && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.kind == 'reaction'
+        && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.confessionId == request.resource.data.confessionId;
+
+      allow read: if isActiveUser()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow delete: if isActiveUser()
+        && resource.data.ownerUid == request.auth.uid
+        && !existsAfter(/databases/$(database)/documents/socialActivity/$(resource.data.activityId));
+
+      allow update: if false;
+    }
+
+    match /commentAuthors/{commentId} {
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasOnly([
+          'authorUid', 'confessionId', 'createdAt'
+        ])
+        && request.resource.data.authorUid == request.auth.uid
+        && existsAfter(/databases/$(database)/documents/socialActivity/$(commentId))
+        && getAfter(/databases/$(database)/documents/socialActivity/$(commentId)).data.kind == 'comment'
+        && getAfter(/databases/$(database)/documents/socialActivity/$(commentId)).data.confessionId == request.resource.data.confessionId;
+
+      allow read: if (
+          isActiveUser()
+          && resource.data.authorUid == request.auth.uid
+        )
+        || isModerator();
+
+      allow update, delete: if false;
+    }
+
+    match /savedConfessions/{savedId} {
+      allow create: if isActiveUser()
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'confessionId', 'createdAt'
+        ])
+        && request.resource.data.ownerUid == request.auth.uid
+        && savedId == request.auth.uid + '_' + request.resource.data.confessionId
+        && exists(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId))
+        && (
+          (
+            get(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.visibility == 'public'
+            && get(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.status == 'active'
+          )
+          || ownsConfession(request.resource.data.confessionId)
+        );
+
+      allow read: if isActiveUser()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow delete: if isActiveUser()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow update: if false;
+    }
+
     match /adminAuditLogs/{auditId} {
       allow create: if isAdmin()
         && request.resource.data.keys().hasOnly([
