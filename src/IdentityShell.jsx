@@ -92,7 +92,7 @@ function AuthPage({ mode }) {
       <div className="auth-ambient auth-ambient--one" />
       <div className="auth-ambient auth-ambient--two" />
       <section className="auth-card glass-card">
-        <Link to="/"><BrandLogo /></Link>
+        <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Las historias también viven aquí. ♡</p>
         <h1>{isLogin ? 'Vuelve a conectar' : 'Crea tu espacio'}</h1>
         <p>{isLogin ? 'Entra a tu comunidad y continúa descubriendo historias.' : 'Únete para confesar, conectar y compartir con control sobre tu identidad.'}</p>
@@ -193,7 +193,7 @@ function PasswordResetPage() {
   return (
     <div className="auth-page page-shell">
       <section className="auth-card glass-card">
-        <Link to="/"><BrandLogo /></Link>
+        <Link to="/home"><BrandLogo /></Link>
         <p className="auth-kicker">Recupera tu conexión. ♡</p>
         <h1>Restablecer contraseña</h1>
         <p>Escribe el correo asociado a tu cuenta y recibirás un enlace para crear una contraseña nueva.</p>
@@ -218,7 +218,7 @@ function ProfilePage() {
     setSigningOut(true)
     try {
       await logout()
-      navigate('/', { replace: true })
+      navigate('/home', { replace: true })
     } finally {
       setSigningOut(false)
     }
@@ -257,8 +257,8 @@ export default function IdentityShell() {
     return <div className="auth-loading">Restaurando tu sesión en ITLA Crush…</div>
   }
 
-  if (location.pathname === '/' && user) {
-    return <Navigate to="/app" replace />
+  if (location.pathname === '/') {
+    return <Navigate to={user ? '/app' : '/home'} replace />
   }
 
   if (location.pathname === '/login') return <AuthPage mode="login" />
