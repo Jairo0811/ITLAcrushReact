@@ -137,6 +137,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Historial de mis confesiones | ✅ Implementado |
 | Reglas e índices de Firestore | ✅ Definidos y desplegados |
 | Dashboard y perfil | ✅ Implementados |
+| Centro de administración | 🚧 Monitoreo global implementado en `/admin`; gestión avanzada pendiente |
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
 | Demo separada de la aplicación real | ✅ `/demo` vs `/app` |
 | Accesibilidad / NORTIC B2 | 🚧 Alineación voluntaria A + AA en progreso |
@@ -155,7 +156,7 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 | 2 | Identidad y Firebase Authentication | ✅ Completada |
 | 3 | Crush Core y Cloud Firestore | ✅ Completada |
 | 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
-| 5 | Portfolio hardening, pruebas, rendimiento y preparación para producción | ⏭️ Siguiente |
+| 5 | Portfolio hardening, administración, pruebas, rendimiento y preparación para producción | 🚧 En progreso |
 
 ---
 
@@ -194,6 +195,19 @@ Las cuentas con rol `moderator` o `admin` pueden:
 - Cambiar el estado de una confesión entre `active`, `under_review` y `removed`.
 - Registrar notas internas y trazabilidad de las acciones de moderación.
 - Trabajar sin revelar públicamente la identidad de autores anónimos.
+
+### 🧭 Administración y monitoreo
+
+Las cuentas con rol `admin` disponen de un Centro de Administración separado en `/admin` con:
+
+- Métricas agregadas de usuarios, confesiones, reportes y casos de moderación.
+- Estado de cuentas activas/restringidas y composición del equipo interno.
+- Monitoreo de confesiones públicas, privadas, anónimas, en revisión y retiradas.
+- Actividad reciente de usuarios, contenido y reportes.
+- Enlace directo a la cola operativa de `/moderacion`.
+- Separación estricta entre monitoreo administrativo y experiencia normal de usuario.
+
+La primera versión del panel es de monitoreo. La asignación de roles administrativos sigue fuera del frontend y debe realizarse mediante una operación confiable. Más detalles en [`docs/ADMIN_MONITORING.md`](docs/ADMIN_MONITORING.md).
 
 ### 🧪 Demo vs aplicación real
 
