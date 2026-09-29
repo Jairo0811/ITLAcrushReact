@@ -131,7 +131,16 @@ service cloud.firestore {
             'status', 'updatedAt'
           ])
         )
-        || isModerator();
+        || (
+          isModerator()
+          && request.resource.data.status in ['active', 'under_review', 'removed']
+          && request.resource.data.moderatedBy == request.auth.uid
+          && request.resource.data.moderationNote is string
+          && request.resource.data.moderationNote.size() <= 500
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'moderationNote', 'moderatedBy', 'moderatedAt', 'updatedAt'
+          ])
+        );
 
       allow delete: if false;
     }
@@ -149,6 +158,56 @@ service cloud.firestore {
         || isModerator();
 
       allow update, delete: if false;
+    }
+
+    match /reports/{reportId} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'confessionId', 'reporterUid', 'reason', 'details',
+          'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.reporterUid == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.reason in [
+          'harassment', 'hate', 'sexual', 'violence', 'privacy', 'spam', 'other'
+        ]
+        && request.resource.data.details is string
+        && request.resource.data.details.size() <= 500
+        && exists(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId))
+        && get(/databases/$(database)/documents/confessionAuthors/$(request.resource.data.confessionId)).data.authorUid != request.auth.uid;
+
+      allow read: if (
+          isSignedIn()
+          && resource.data.reporterUid == request.auth.uid
+        )
+        || isModerator();
+
+      allow update: if isModerator()
+        && request.resource.data.confessionId == resource.data.confessionId
+        && request.resource.data.reporterUid == resource.data.reporterUid
+        && request.resource.data.reason == resource.data.reason
+        && request.resource.data.details == resource.data.details
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status in ['open', 'reviewing', 'resolved', 'dismissed']
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'updatedAt'
+        ]);
+
+      allow delete: if false;
+    }
+
+    match /hiddenConfessions/{hiddenId} {
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly([
+          'ownerUid', 'confessionId', 'createdAt'
+        ])
+        && request.resource.data.ownerUid == request.auth.uid
+        && exists(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId));
+
+      allow read, delete: if isSignedIn()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow update: if false;
     }
 
     match /{document=**} {
