@@ -667,8 +667,27 @@ function AdminPage() {
   }, [])
 
   useEffect(() => {
-    refreshMetrics()
-  }, [refreshMetrics])
+    let active = true
+
+    loadAdminMetrics()
+      .then((nextMetrics) => {
+        if (!active) return
+        setMetrics(nextMetrics)
+        setError('')
+      })
+      .catch((adminError) => {
+        console.error('No se pudieron cargar las métricas administrativas.', adminError)
+        if (!active) return
+        setError('No pudimos cargar las métricas administrativas. Verifica que las reglas de Firestore para administradores estén desplegadas.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     const subscriptions = [
