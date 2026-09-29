@@ -122,7 +122,7 @@ function SkipLink() {
   return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
 
-function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
+function PublicConfessionCard({ item, onDelete, onHide, onReport, isDemo = false }) {
   const author = item.isAnonymous ? 'Anónimo' : (item.authorDisplayName || 'Estudiante')
   const tags = item.tags ?? []
   const programInfo = item.isAnonymous ? null : getProgram(item.authorProgram)
@@ -163,9 +163,9 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
       <p>{item.text}</p>
       {tags.length > 0 && <div className="tag-row">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
       <div className="card-actions">
-        <button title="Las reacciones persistentes llegan en una fase posterior"><Icon name="heart" regular /> {item.likeCount ?? 0}</button>
-        <button title="Los comentarios persistentes llegan en una fase posterior"><Icon name="comment" regular /> {item.commentCount ?? 0}</button>
-        <button><Icon name="share-nodes" /> Compartir</button>
+        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Las reacciones persistentes llegan en una fase posterior'}><Icon name="heart" regular /> {item.likeCount ?? 0}</button>
+        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Los comentarios persistentes llegan en una fase posterior'}><Icon name="comment" regular /> {item.commentCount ?? 0}</button>
+        <button disabled={isDemo} aria-disabled={isDemo} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}><Icon name="share-nodes" /> Compartir</button>
         {onDelete && <button className="bookmark" onClick={() => onDelete(item.id)}><Icon name="trash-can" /> Eliminar</button>}
         {onHide && !onDelete && <button className="bookmark" onClick={() => onHide(item.id)}><Icon name="eye-slash" /> Ocultar</button>}
       </div>
@@ -427,7 +427,12 @@ function DemoPage() {
 
             <div className="feed-list">
               {visibleDemoConfessions.length === 0 && <div className="glass-card empty-state">No hay ejemplos que coincidan con esa búsqueda.</div>}
-              {visibleDemoConfessions.map((item) => <PublicConfessionCard item={item} key={item.id} />)}
+              {visibleDemoConfessions.map((item) => (
+                <div className="demo-card-wrap" key={item.id}>
+                  <span className="demo-card-label"><Icon name="flask" /> Ejemplo ficticio</span>
+                  <PublicConfessionCard item={item} isDemo />
+                </div>
+              ))}
             </div>
           </div>
 
