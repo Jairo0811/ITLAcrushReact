@@ -10,7 +10,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
 import { ITLA_PROGRAM_VALUES } from '../data/itlaPrograms.js'
 import { requireFirebase } from './firebase'
 
@@ -142,4 +142,14 @@ export async function getUserProfile(uid) {
   const { db } = requireFirebase()
   const snapshot = await getDoc(doc(db, 'users', uid))
   return snapshot.exists() ? snapshot.data() : null
+}
+
+
+export function observeUserProfile(uid, callback, onError) {
+  const { db } = requireFirebase()
+  return onSnapshot(
+    doc(db, 'users', uid),
+    (snapshot) => callback(snapshot.exists() ? snapshot.data() : null),
+    onError,
+  )
 }
