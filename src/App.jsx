@@ -383,18 +383,14 @@ function MyConfessionsPage() {
 
 function ModerationPage() {
   const { user, profile } = useAuth()
+  const canModerate = profile?.role === 'moderator' || profile?.role === 'admin'
   const [reports, setReports] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(canModerate)
   const [error, setError] = useState('')
   const [actionNote, setActionNote] = useState({})
 
-  const canModerate = profile?.role === 'moderator' || profile?.role === 'admin'
-
   useEffect(() => {
-    if (!canModerate) {
-      setLoading(false)
-      return undefined
-    }
+    if (!canModerate) return undefined
 
     return subscribeModerationReports(
       (nextReports) => {
