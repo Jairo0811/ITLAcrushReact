@@ -69,8 +69,8 @@ function BrandLogo({ compact = false }) {
   )
 }
 
-function Icon({ children }) {
-  return <span className="icon" aria-hidden="true">{children}</span>
+function Icon({ name, regular = false, className = '' }) {
+  return <i className={`${regular ? 'fa-regular' : 'fa-solid'} fa-${name} icon ${className}`.trim()} aria-hidden="true" />
 }
 
 function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
@@ -108,17 +108,17 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
           <strong>{author}</strong>
           <div className="muted-row">{programInfo ? <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
-        {onReport ? <button className="icon-button" aria-label="Opciones de seguridad" onClick={() => setReportOpen((value) => !value)}>•••</button> : <span />}
+        {onReport ? <button className="icon-button" aria-label="Opciones de seguridad" onClick={() => setReportOpen((value) => !value)}><Icon name="ellipsis" /></button> : <span />}
       </div>
       {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
       <p>{item.text}</p>
       {tags.length > 0 && <div className="tag-row">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>}
       <div className="card-actions">
-        <button title="Las reacciones persistentes llegan en una fase posterior">♥ {item.likeCount ?? 0}</button>
-        <button title="Los comentarios persistentes llegan en una fase posterior">◌ {item.commentCount ?? 0}</button>
-        <button>↗ Compartir</button>
-        {onDelete && <button className="bookmark" onClick={() => onDelete(item.id)}>Eliminar</button>}
-        {onHide && !onDelete && <button className="bookmark" onClick={() => onHide(item.id)}>Ocultar</button>}
+        <button title="Las reacciones persistentes llegan en una fase posterior"><Icon name="heart" regular /> {item.likeCount ?? 0}</button>
+        <button title="Los comentarios persistentes llegan en una fase posterior"><Icon name="comment" regular /> {item.commentCount ?? 0}</button>
+        <button><Icon name="share-nodes" /> Compartir</button>
+        {onDelete && <button className="bookmark" onClick={() => onDelete(item.id)}><Icon name="trash-can" /> Eliminar</button>}
+        {onHide && !onDelete && <button className="bookmark" onClick={() => onHide(item.id)}><Icon name="eye-slash" /> Ocultar</button>}
       </div>
       {reportOpen && onReport && (
         <form className="safety-panel" onSubmit={submitReport}>
@@ -140,6 +140,8 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
 
 function LandingPage() {
   const { items: publicConfessions, loading, error } = usePublicConfessions()
+  const { user, profile } = useAuth()
+  const displayName = profile?.displayName || user?.displayName || 'Mi cuenta'
 
   return (
     <div className="landing-page page-shell">
@@ -152,8 +154,17 @@ function LandingPage() {
           <a href="#comunidad">Comunidad</a>
         </nav>
         <div className="nav-actions">
-          <Link className="button button--ghost" to="/login">Iniciar sesión</Link>
-          <Link className="button button--primary" to="/registro">Regístrate</Link>
+          {user ? (
+            <>
+              <Link className="button button--ghost session-profile-link" to="/perfil" title={displayName}><Icon name="circle-user" /> Mi perfil</Link>
+              <Link className="button button--primary" to="/app"><Icon name="arrow-right" /> Ir al feed</Link>
+            </>
+          ) : (
+            <>
+              <Link className="button button--ghost" to="/login"><Icon name="right-to-bracket" /> Iniciar sesión</Link>
+              <Link className="button button--primary" to="/registro"><Icon name="user-plus" /> Regístrate</Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -164,14 +175,23 @@ function LandingPage() {
             <h1>Las confesiones también crean <span>conexiones</span></h1>
             <p className="hero-description">Un espacio moderno para decir lo que sientes, descubrir historias de tu comunidad y conectar sin perder el control de tu privacidad.</p>
             <div className="hero-actions">
-              <Link className="button button--primary button--large" to="/registro">Únete ahora <span>→</span></Link>
-              <Link className="button button--soft button--large" to="/app">Ver demo</Link>
+              {user ? (
+                <>
+                  <Link className="button button--primary button--large" to="/app"><Icon name="arrow-right" /> Ir a mi feed</Link>
+                  <Link className="button button--soft button--large" to="/perfil"><Icon name="user" /> Mi perfil</Link>
+                </>
+              ) : (
+                <>
+                  <Link className="button button--primary button--large" to="/registro">Únete ahora <Icon name="arrow-right" /></Link>
+                  <Link className="button button--soft button--large" to="/app"><Icon name="eye" /> Ver demo</Link>
+                </>
+              )}
             </div>
             <div className="benefit-row">
-              <span><Icon>◉</Icon>Anónimo</span>
-              <span><Icon>♥</Icon>Real</span>
-              <span><Icon>◇</Icon>Con control</span>
-              <span><Icon>◌</Icon>Comunidad</span>
+              <span><Icon name="user-secret" />Anónimo</span>
+              <span><Icon name="heart" />Real</span>
+              <span><Icon name="shield-halved" />Con control</span>
+              <span><Icon name="users" />Comunidad</span>
             </div>
           </div>
           <div className="hero-visual" aria-label="Vista conceptual de ITLA Crush">
@@ -226,15 +246,15 @@ function LandingPage() {
 function AppSidebar() {
   const { profile } = useAuth()
   const items = [
-    ['/', '⌂', 'Inicio'],
-    ['/app', '⌕', 'Explorar'],
-    ['/mis-confesiones', '◌', 'Mis Confesiones'],
-    ['/app', '↗', 'Mensajes'],
-    ['/app', '♢', 'Notificaciones'],
-    ['/app', '♡', 'Guardados'],
-    ['/app', '♥', 'Favoritos'],
-    ['/perfil', '◯', 'Mi Perfil'],
-    ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', '⚑', 'Moderación']] : []),
+    ['/', 'house', 'Inicio'],
+    ['/app', 'magnifying-glass', 'Explorar'],
+    ['/mis-confesiones', 'clock-rotate-left', 'Mis Confesiones'],
+    ['/app', 'paper-plane', 'Mensajes'],
+    ['/app', 'bell', 'Notificaciones'],
+    ['/app', 'bookmark', 'Guardados'],
+    ['/app', 'heart', 'Favoritos'],
+    ['/perfil', 'circle-user', 'Mi Perfil'],
+    ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', 'flag', 'Moderación']] : []),
   ]
   return (
     <aside className="app-sidebar">
@@ -242,11 +262,11 @@ function AppSidebar() {
       <nav>
         {items.map(([to, icon, label], index) => (
           <NavLink key={`${label}-${index}`} to={to} className={({ isActive }) => (index === 1 && isActive ? 'sidebar-link sidebar-link--active' : 'sidebar-link')}>
-            <span>{icon}</span>{label}{label === 'Mensajes' && <b>3</b>}{label === 'Notificaciones' && <b>12</b>}
+            <span><Icon name={icon} /></span>{label}{label === 'Mensajes' && <b>3</b>}{label === 'Notificaciones' && <b>12</b>}
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar-quote glass-card">♡<p>Buenas ideas también conectan corazones.</p></div>
+      <div className="sidebar-quote glass-card"><Icon name="heart" regular /><p>Buenas ideas también conectan corazones.</p></div>
     </aside>
   )
 }
@@ -299,8 +319,8 @@ function FeedPage() {
       <AppSidebar />
       <main className="app-main">
         <header className="app-topbar glass-card">
-          <label className="app-search"><span>⌕</span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
-          <div className="topbar-actions"><button>♢</button><button>☼</button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
+          <label className="app-search"><span><Icon name="magnifying-glass" /></span><input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" /></label>
+          <div className="topbar-actions"><button aria-label="Notificaciones"><Icon name="bell" regular /></button><button aria-label="Tema"><Icon name="sun" regular /></button><Link to="/perfil" className="mini-profile"><div className="avatar">{initial}</div><span><strong>{name}</strong><small>Cuenta autenticada ♥</small></span></Link></div>
         </header>
 
         <section className="dashboard-grid">
@@ -326,11 +346,11 @@ function FeedPage() {
 
           <aside className="right-rail">
             <section className="glass-card rail-card"><div className="rail-title"><h3>🔥 Temas de la comunidad</h3></div>{trends.map(([tag, description], index) => <div className="trend-row" key={tag}><b>{index + 1}</b><span><strong>{tag}</strong><small>{description}</small></span></div>)}</section>
-            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear">♥<span>Nueva confesión</span></Link><Link to="/perfil">◯<span>Mi perfil</span></Link><Link to="/normas">⚑<span>Normas</span></Link><Link to="/crear">◉<span>Modo anónimo</span></Link></div></section>
+            <section className="glass-card rail-card"><div className="rail-title"><h3>Acciones rápidas</h3></div><div className="quick-grid"><Link to="/crear"><Icon name="heart" /><span>Nueva confesión</span></Link><Link to="/perfil"><Icon name="circle-user" regular /><span>Mi perfil</span></Link><Link to="/normas"><Icon name="flag" /><span>Normas</span></Link><Link to="/crear"><Icon name="user-secret" /><span>Modo anónimo</span></Link></div></section>
           </aside>
         </section>
       </main>
-      <nav className="mobile-bottom-nav"><Link to="/app">⌂<small>Inicio</small></Link><Link to="/app">⌕<small>Explorar</small></Link><Link className="mobile-create" to="/crear">＋<small>Crear</small></Link><Link to="/normas">⚑<small>Normas</small></Link><Link to="/perfil">◯<small>Perfil</small></Link></nav>
+      <nav className="mobile-bottom-nav"><Link to="/app"><Icon name="house" /><small>Inicio</small></Link><Link to="/app"><Icon name="magnifying-glass" /><small>Explorar</small></Link><Link className="mobile-create" to="/crear"><Icon name="plus" /><small>Crear</small></Link><Link to="/normas"><Icon name="flag" /><small>Normas</small></Link><Link to="/perfil"><Icon name="circle-user" regular /><small>Perfil</small></Link></nav>
     </div>
   )
 }
@@ -516,7 +536,7 @@ function CreateConfessionPage() {
       <div className="create-card glass-card">
         <button className="back-button" onClick={() => navigate('/app')}>← Volver</button>
         <BrandLogo compact />
-        <div className="create-heading"><div className="send-icon">↗</div><h1>Tu historia también cuenta</h1><p>Confiesa. Conecta. Comparte.</p></div>
+        <div className="create-heading"><div className="send-icon"><Icon name="paper-plane" /></div><h1>Tu historia también cuenta</h1><p>Confiesa. Conecta. Comparte.</p></div>
         {published ? (
           <div className="success-panel"><span>♡</span><h2>Confesión publicada</h2><p>{isPublic ? 'Ya forma parte del feed público de ITLA Crush.' : 'Se guardó como privada y solo tu cuenta puede leerla en esta fase.'}</p><button className="button button--primary" onClick={() => navigate('/app')}>Volver al feed</button></div>
         ) : (
