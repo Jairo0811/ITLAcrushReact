@@ -446,19 +446,16 @@ function LandingPage() {
               <span><Icon name="users" />Comunidad</span>
             </div>
           </div>
-          <div className="hero-visual" role="img" aria-label="Vista conceptual de la interfaz de ITLA Crush en un teléfono">
-            <div className="neon-orb neon-orb--one" aria-hidden="true" />
-            <div className="neon-orb neon-orb--two" aria-hidden="true" />
-            <div className="hero-phone glass-card">
-              <div className="phone-status"><span>9:41</span><span>● ● ●</span></div>
-              <BrandLogo />
-              <div className="phone-search">⌕ Buscar confesiones…</div>
-              <div className="phone-card"><strong>#Amor</strong><p>Me encanta verte en clase, aunque nunca hablamos… algún día tal vez. 👀💕</p><small>♥ 324 &nbsp; ◌ 67</small></div>
-              <div className="phone-card"><strong>#ITLA</strong><p>ITLA no solo forma profesionales, también junta historias increíbles. ✨</p><small>♥ 198 &nbsp; ◌ 41</small></div>
-              <div className="phone-bottom">⌂ &nbsp; ⌕ &nbsp; <b>＋</b> &nbsp; ♡ &nbsp; ◯</div>
-            </div>
-            <div className="hero-message hero-message--left"><span>SOF-011</span><br/>WEB SOCIAL</div>
-            <div className="hero-message hero-message--right">PRIVACIDAD.<br/>COMUNIDAD.<br/>CONEXIÓN.</div>
+          <div className="hero-visual hero-visual--asset">
+            <img
+              src="/itla-crush-hero-phone.png"
+              alt="Vista previa de la interfaz de ITLA Crush en un teléfono, con confesiones y referencias al proyecto SOF-011"
+              className="hero-phone-image"
+              width="1254"
+              height="1254"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
         </section>
 
