@@ -69,7 +69,7 @@ function BrandLogo({ compact = false }) {
     <div className={`brand-logo ${compact ? 'brand-logo--compact' : ''}`}>
       <img
         className="brand-logo__image"
-        src="/itla-crush-logo.webp"
+        src="/itla-crush-logo.png"
         alt="ITLA Crush"
       />
       {!compact && <small>CONFIESA. CONECTA. COMPARTE.</small>}
