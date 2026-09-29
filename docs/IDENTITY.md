@@ -25,6 +25,7 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
+VITE_MICROSOFT_TENANT=itla.edu.do
 ```
 
 La aplicación detecta si Firebase no está configurado y evita inicializar el SDK con valores vacíos.
@@ -45,6 +46,21 @@ Con Firebase CLI instalado y autenticado:
 ```bash
 firebase deploy --only firestore:rules
 ```
+
+## Microsoft institucional
+
+El proveedor Microsoft se trata como **acceso institucional ITLA**, no como acceso Microsoft genérico.
+
+Controles aplicados:
+
+- El flujo OAuth se dirige al tenant configurado en `VITE_MICROSOFT_TENANT`, cuyo valor por defecto es `itla.edu.do`.
+- Después de la autenticación, el cliente valida que el correo termine exactamente en `@itla.edu.do`.
+- Una cuenta Microsoft fuera de ese dominio se cierra inmediatamente y no obtiene perfil Firestore.
+- Las sesiones Microsoft persistidas también se revalidan cuando Firebase restaura la sesión.
+- Firestore rechaza la creación de perfiles `authProvider: "microsoft.com"` si el token no proviene del proveedor Microsoft o si el correo no pertenece a `@itla.edu.do`.
+- Las operaciones normales de la aplicación consideran inválido un perfil Microsoft fuera del dominio institucional.
+
+Esta restricción **no elimina** las políticas del tenant de Microsoft Entra del ITLA. Si el administrador del ITLA exige consentimiento administrativo, la cuenta institucional seguirá viendo la pantalla de aprobación hasta que la aplicación sea autorizada en ese tenant.
 
 ## Modelo de perfil
 
