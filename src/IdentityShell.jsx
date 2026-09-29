@@ -251,6 +251,15 @@ function ProfilePage() {
 
 export default function IdentityShell() {
   const location = useLocation()
+  const { user, loading } = useAuth()
+
+  if (loading && location.pathname === '/') {
+    return <div className="auth-loading">Restaurando tu sesión en ITLA Crush…</div>
+  }
+
+  if (location.pathname === '/' && user) {
+    return <Navigate to="/app" replace />
+  }
 
   if (location.pathname === '/login') return <AuthPage mode="login" />
   if (location.pathname === '/registro') return <AuthPage mode="register" />
