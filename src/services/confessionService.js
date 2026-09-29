@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   limit,
   onSnapshot,
   orderBy,
@@ -43,6 +44,36 @@ export function subscribePublicConfessions(callback, onError) {
   return onSnapshot(
     feedQuery,
     (snapshot) => callback(snapshot.docs.map(mapConfession)),
+    onError,
+  )
+}
+
+export function subscribeMyConfessions(uid, callback, onError) {
+  const { db } = requireFirebase()
+  const ownershipQuery = query(
+    collection(db, 'confessionAuthors'),
+    where('authorUid', '==', uid),
+    orderBy('createdAt', 'desc'),
+    limit(50),
+  )
+
+  return onSnapshot(
+    ownershipQuery,
+    async (snapshot) => {
+      try {
+        const confessionSnapshots = await Promise.all(
+          snapshot.docs.map((ownership) => getDoc(doc(db, 'confessions', ownership.id))),
+        )
+        callback(
+          confessionSnapshots
+            .filter((confession) => confession.exists())
+            .map(mapConfession)
+            .filter((confession) => confession.status !== 'deleted'),
+        )
+      } catch (readError) {
+        onError?.(readError)
+      }
+    },
     onError,
   )
 }
