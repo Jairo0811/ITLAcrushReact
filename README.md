@@ -21,7 +21,7 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   </a>
 </p>
 
-> Estado actual: **Fases 1–4 implementadas**. ITLA Crush ya dispone de identidad visual, autenticación con Firebase, confesiones reales en Firestore, separación entre anonimato público y trazabilidad interna, Trust & Safety, demo aislada de la aplicación real, diseño responsive y una base voluntaria de accesibilidad alineada con NORTIC B2. La siguiente etapa es el hardening de portafolio/producción.
+> Estado actual: **Fases 1–4 completadas y Fase 5 en progreso**. La Fase 5A incorporó administración y monitoreo; la Fase 5B completa el núcleo social con reacciones persistentes, comentarios, favoritos, guardados, compartir y notificaciones derivadas de la actividad real. La siguiente etapa es QA, accesibilidad verificable, rendimiento y preparación para producción.
 
 </div>
 
@@ -139,6 +139,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Dashboard y perfil | ✅ Implementados |
 | Centro de administración | ✅ Monitoreo, gestión de cuentas, roles, estados y auditoría implementados en `/admin` |
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
+| Social Core | ✅ Reacciones, comentarios, favoritos, guardados, compartir y notificaciones |
 | Demo separada de la aplicación real | ✅ `/demo` vs `/app` |
 | Accesibilidad / NORTIC B2 | 🚧 Alineación voluntaria A + AA en progreso |
 | CI | ✅ `npm ci`, lint y build en GitHub Actions |
@@ -156,7 +157,10 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 | 2 | Identidad y Firebase Authentication | ✅ Completada |
 | 3 | Crush Core y Cloud Firestore | ✅ Completada |
 | 4 | Trust & Safety, accesibilidad base y separación demo/real | ✅ Completada |
-| 5 | Portfolio hardening, administración, pruebas, rendimiento y preparación para producción | 🚧 En progreso |
+| 5A | Administración, monitoreo y auditoría | ✅ Completada |
+| 5B | Social Core: reacciones, comentarios, favoritos, guardados, compartir y notificaciones | ✅ Completada |
+| 5C | QA, accesibilidad verificable y rendimiento | ⏭️ Siguiente |
+| 5D | Deploy, documentación final y cierre | ⏳ Pendiente |
 
 ---
 
@@ -185,6 +189,22 @@ La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se 
 - Ocultar publicaciones de su propio feed.
 - Reportar publicaciones por motivos estructurados.
 - Consultar y cerrar su sesión desde el perfil.
+
+### 💗 Social Core
+
+Las cuentas autenticadas cuentan con interacciones sociales persistentes respaldadas por Cloud Firestore:
+
+- Reacciones tipo corazón sobre confesiones públicas.
+- Comentarios persistentes con nombre visible y tecnólogo del autor.
+- Favoritos derivados de las reacciones propias.
+- Guardados privados por usuario.
+- Compartir mediante Web Share API cuando está disponible o copia de enlace como fallback.
+- Enlaces profundos al feed mediante `/app?confession={id}`.
+- Notificaciones de reacciones y comentarios recibidos en confesiones propias.
+- Rutas protegidas `/favoritos`, `/guardados` y `/notificaciones`.
+- Separación de metadatos internos de autoría para comentarios y reacciones cuando aplica.
+
+La interfaz ya no presenta contadores ficticios de mensajes/notificaciones ni accesos a mensajería privada sin implementar. La mensajería directa queda fuera del alcance obligatorio de esta restauración académica.
 
 ### 🛡️ Moderación
 
@@ -316,6 +336,10 @@ Relación privada entre la confesión y el `authorUid`. Permite trazabilidad y a
 - `reports/{confessionId}_{reporterUid}`: reportes únicos por usuario y confesión.
 - `hiddenConfessions/{ownerUid}_{confessionId}`: contenido oculto solo para una cuenta.
 - `moderationCases/{confessionId}`: metadatos internos de moderación separados del contenido público.
+- `socialActivity/{activityId}`: reacciones y comentarios visibles asociados a confesiones públicas.
+- `reactionOwners/{confessionId_uid}`: relación privada para garantizar una reacción por usuario y confesión.
+- `commentAuthors/{commentId}`: trazabilidad privada de autoría de comentarios.
+- `savedConfessions/{uid_confessionId}`: guardados privados por usuario.
 - `adminAuditLogs/{auditId}`: bitácora inmutable de cambios administrativos sobre roles y estados de cuenta.
 
 El modelo aplica el principio de que **anónimo para la comunidad no significa anónimo para el sistema**.
