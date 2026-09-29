@@ -140,7 +140,7 @@ function PublicConfessionCard({ item, onDelete, onHide, onReport }) {
 
 function LandingPage() {
   const { items: publicConfessions, loading, error } = usePublicConfessions()
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const displayName = profile?.displayName || user?.displayName || 'Mi cuenta'
 
   return (
@@ -154,7 +154,9 @@ function LandingPage() {
           <a href="#comunidad">Comunidad</a>
         </nav>
         <div className="nav-actions">
-          {user ? (
+          {authLoading ? (
+            <div className="session-actions-loading" aria-label="Comprobando sesión" />
+          ) : user ? (
             <>
               <Link className="button button--ghost session-profile-link" to="/perfil" title={displayName}><Icon name="circle-user" /> Mi perfil</Link>
               <Link className="button button--primary" to="/app"><Icon name="arrow-right" /> Ir al feed</Link>
@@ -175,7 +177,9 @@ function LandingPage() {
             <h1>Las confesiones también crean <span>conexiones</span></h1>
             <p className="hero-description">Un espacio moderno para decir lo que sientes, descubrir historias de tu comunidad y conectar sin perder el control de tu privacidad.</p>
             <div className="hero-actions">
-              {user ? (
+              {authLoading ? (
+                <div className="session-hero-loading" aria-label="Comprobando sesión" />
+              ) : user ? (
                 <>
                   <Link className="button button--primary button--large" to="/app"><Icon name="arrow-right" /> Ir a mi feed</Link>
                   <Link className="button button--soft button--large" to="/perfil"><Icon name="user" /> Mi perfil</Link>
