@@ -637,3 +637,70 @@ button { color: inherit; }
     gap: 10px;
   }
 }
+
+
+/* Accessibility baseline — voluntary NORTIC B2 alignment */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 9999;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2a0b2a;
+  font-weight: 800;
+  transform: translateY(-180%);
+  transition: transform .15s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+:where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 3px solid #ffd1ea;
+  outline-offset: 3px;
+}
+
+.quick-compose:focus-visible,
+.icon-button:focus-visible,
+.toggle:focus-visible {
+  box-shadow: 0 0 0 4px rgba(255, 90, 176, .28);
+}
+
+.safety-panel label {
+  display: grid;
+  gap: 7px;
+  color: #f4eaf7;
+  font-size: .84rem;
+  font-weight: 700;
+}
+
+[aria-disabled="true"],
+button:disabled {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
