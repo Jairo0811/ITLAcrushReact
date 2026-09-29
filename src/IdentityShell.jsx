@@ -82,7 +82,11 @@ function AuthPage({ mode }) {
 
     setSubmitting(true)
     try {
-      await loginMicrosoft({ acceptTerms: !isLogin, program: isLogin ? '' : program })
+      await loginMicrosoft({
+        acceptTerms: !isLogin,
+        program: isLogin ? '' : program,
+        loginHint: email,
+      })
       finishAuth()
     } catch (submitError) {
       setLocalError(submitError.message)
@@ -155,6 +159,9 @@ function AuthPage({ mode }) {
         <button type="button" className="button microsoft-button" onClick={microsoftSignIn} disabled={submitting || !isConfigured || (!isLogin && (!acceptedTerms || !program))}>
           <MicrosoftMark /> Continuar con Microsoft
         </button>
+        <p className="microsoft-access-note">
+          Acceso institucional: solo cuentas <strong>@itla.edu.do</strong>. La autorización final depende de las políticas de Microsoft Entra del ITLA.
+        </p>
 
         <div className="auth-switch">
           {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}

@@ -42,6 +42,23 @@ test('catálogo sugerido de temas no contiene duplicados', () => {
   assert.ok(COMMUNITY_TOPICS.every((topic) => topic.tag.startsWith('#')))
 })
 
+test('Microsoft se restringe a cuentas institucionales @itla.edu.do', () => {
+  const authService = read('src/services/authService.js')
+  const rules = read('firestore.rules')
+  const identity = read('src/IdentityShell.jsx')
+  const envExample = read('.env.example')
+
+  assert.ok(authService.includes("export const ITLA_EMAIL_DOMAIN = 'itla.edu.do'"))
+  assert.ok(authService.includes("tenant: MICROSOFT_TENANT"))
+  assert.ok(authService.includes("'auth/non-itla-microsoft-account'"))
+  assert.ok(authService.includes('assertAllowedMicrosoftUser(credential.user)'))
+  assert.ok(authService.includes("provider.providerId === 'microsoft.com'"))
+  assert.ok(rules.includes("email.matches('.*@itla[.]edu[.]do')"))
+  assert.ok(rules.includes("request.auth.token.firebase.sign_in_provider == 'microsoft.com'"))
+  assert.ok(identity.includes('solo cuentas <strong>@itla.edu.do</strong>'))
+  assert.ok(envExample.includes('VITE_MICROSOFT_TENANT=itla.edu.do'))
+})
+
 test('rutas sensibles permanecen protegidas por rol o autenticación', () => {
   const shell = read('src/IdentityShell.jsx')
 
