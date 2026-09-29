@@ -24,14 +24,38 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
     }
 
+    function isValidProgram(value) {
+      return value in [
+        'analitica-datos',
+        'animacion-digital',
+        'ciberseguridad',
+        'desarrollo-software',
+        'simulaciones-videojuegos',
+        'diseno-industrial',
+        'energias-renovables',
+        'informatica-forense',
+        'inteligencia-artificial',
+        'manufactura-automatizada',
+        'manufactura-dispositivos-medicos',
+        'mecatronica',
+        'multimedia',
+        'redes-informacion',
+        'seguridad-informatica',
+        'semiconductores-microelectronica',
+        'sonido',
+        'telecomunicaciones'
+      ];
+    }
+
     match /users/{uid} {
       allow create: if isOwner(uid)
         && request.resource.data.keys().hasOnly([
-          'uid', 'displayName', 'email', 'role', 'status', 'authProvider',
+          'uid', 'displayName', 'email', 'program', 'role', 'status', 'authProvider',
           'termsVersion', 'termsAcceptedAt', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.uid == uid
         && request.resource.data.email == request.auth.token.email
+        && isValidProgram(request.resource.data.program)
         && request.resource.data.role == 'student'
         && request.resource.data.status == 'active'
         && request.resource.data.authProvider in ['password', 'microsoft.com']
@@ -49,8 +73,9 @@ service cloud.firestore {
         && request.resource.data.authProvider == resource.data.authProvider
         && request.resource.data.termsVersion == resource.data.termsVersion
         && request.resource.data.termsAcceptedAt == resource.data.termsAcceptedAt
+        && (!request.resource.data.keys().hasAny(['program']) || isValidProgram(request.resource.data.program))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'displayName', 'updatedAt'
+          'displayName', 'program', 'updatedAt'
         ]);
 
       allow delete: if false;
@@ -60,7 +85,7 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.keys().hasOnly([
           'recipientText', 'text', 'visibility', 'isAnonymous',
-          'authorDisplayName', 'authorBadge', 'tags', 'status',
+          'authorDisplayName', 'authorProgram', 'tags', 'status',
           'likeCount', 'commentCount', 'createdAt', 'updatedAt'
         ])
         && request.resource.data.text is string
@@ -70,17 +95,23 @@ service cloud.firestore {
         && request.resource.data.recipientText.size() <= 80
         && request.resource.data.visibility in ['public', 'private']
         && request.resource.data.isAnonymous is bool
-        && request.resource.data.authorBadge == 'Estudiante'
+        && request.resource.data.authorProgram is string
         && request.resource.data.tags is list
         && request.resource.data.tags.size() <= 6
         && request.resource.data.status == 'active'
         && request.resource.data.likeCount == 0
         && request.resource.data.commentCount == 0
         && (
-          (request.resource.data.isAnonymous == true && request.resource.data.authorDisplayName == '')
+          (
+            request.resource.data.isAnonymous == true
+            && request.resource.data.authorDisplayName == ''
+            && request.resource.data.authorProgram == ''
+          )
           || (
             request.resource.data.isAnonymous == false
             && request.resource.data.authorDisplayName == userDoc().data.displayName
+            && request.resource.data.authorProgram == userDoc().data.program
+            && isValidProgram(request.resource.data.authorProgram)
           )
         )
         && getAfter(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
