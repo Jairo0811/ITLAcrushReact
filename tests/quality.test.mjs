@@ -122,3 +122,26 @@ test('el proyecto conserva el disclaimer académico no oficial', () => {
   assert.match(readme, /No es una aplicación oficial del ITLA/i)
   assert.match(index, /proyecto académico no oficial/i)
 })
+
+test('el feed público se pagina en el servidor y no escucha actividad por tarjeta', () => {
+  const confessions = read('src/services/confessionService.js')
+  const social = read('src/services/socialService.js')
+  const app = read('src/App.jsx')
+  const indexes = JSON.parse(read('firestore.indexes.json'))
+
+  const feed = confessions.slice(confessions.indexOf('export function subscribePublicConfessions'))
+  assert.ok(feed.includes("orderBy('createdAt', 'desc')"))
+  assert.ok(feed.includes('limit('))
+
+  // La consulta paginada necesita el índice compuesto (visibility, status, createdAt desc).
+  const hasFeedIndex = indexes.indexes.some((index) => index.collectionGroup === 'confessions'
+    && index.fields.map((field) => `${field.fieldPath}:${field.order}`).join('|')
+      === 'visibility:ASCENDING|status:ASCENDING|createdAt:DESCENDING')
+  assert.ok(hasFeedIndex)
+
+  // Ninguna tarjeta mantiene un listener permanente de toda la actividad social.
+  assert.ok(!social.includes('subscribeConfessionSocial'))
+  assert.ok(!app.includes('subscribeConfessionSocial'))
+  assert.ok(social.includes('getCountFromServer'))
+  assert.ok(app.includes('IntersectionObserver'))
+})

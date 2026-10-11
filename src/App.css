@@ -3772,3 +3772,6 @@ button:disabled {
   .auth-page.page-shell { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   .app-layout .app-main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 }
+
+.feed-load-more { justify-self: center; align-self: center; margin: 6px auto 4px; min-width: 220px; }
+.feed-load-more:disabled { opacity: .6; cursor: progress; }

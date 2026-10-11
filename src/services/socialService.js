@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
   onSnapshot,
   query,
@@ -45,25 +46,48 @@ function savedId(uid, confessionId) {
   return `${uid}_${confessionId}`
 }
 
-export function subscribeConfessionSocial(confessionId, callback, onError) {
+/**
+ * Contadores de una publicación mediante consultas count() (1 lectura facturable por cada
+ * 1000 entradas de índice), en lugar de descargar y escuchar todos los documentos de actividad.
+ * Solo usa filtros de igualdad, que Firestore resuelve con los índices de campo único.
+ */
+export async function getConfessionSocialCounts(confessionId) {
   const { db } = requireFirebase()
-  const activityQuery = query(
+  const activity = collection(db, 'socialActivity')
+  const [reactions, comments] = await Promise.all([
+    getCountFromServer(query(
+      activity,
+      where('confessionId', '==', confessionId),
+      where('kind', '==', 'reaction'),
+    )),
+    getCountFromServer(query(
+      activity,
+      where('confessionId', '==', confessionId),
+      where('kind', '==', 'comment'),
+      where('status', '==', 'active'),
+    )),
+  ])
+
+  return {
+    likeCount: reactions.data().count,
+    commentCount: comments.data().count,
+  }
+}
+
+/** Escucha solo los comentarios de una publicación; se usa únicamente con el panel abierto. */
+export function subscribeConfessionComments(confessionId, callback, onError) {
+  const { db } = requireFirebase()
+  const commentsQuery = query(
     collection(db, 'socialActivity'),
     where('confessionId', '==', confessionId),
+    where('kind', '==', 'comment'),
   )
 
   return onSnapshot(
-    activityQuery,
-    (snapshot) => {
-      const activities = snapshot.docs
-        .map(mapActivity)
-        .filter((item) => item.status === 'active')
-
-      callback({
-        likeCount: activities.filter((item) => item.kind === 'reaction').length,
-        comments: sortByCreatedDesc(activities.filter((item) => item.kind === 'comment')),
-      })
-    },
+    commentsQuery,
+    (snapshot) => callback(
+      sortByCreatedDesc(snapshot.docs.map(mapActivity).filter((item) => item.status === 'active')),
+    ),
     onError,
   )
 }

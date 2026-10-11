@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import { getProgram } from './data/itlaPrograms.js'
 import { COMMUNITY_TOPICS, buildCommunityTopics } from './data/communityTopics.js'
-import { createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
+import { FEED_MAX_ITEMS, FEED_PAGE_SIZE, createConfession, deleteOwnConfession, subscribeMyConfessions, subscribePublicConfessions } from './services/confessionService.js'
 import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, subscribeHiddenConfessionIds, subscribeModerationReports, updateReportStatus } from './services/trustSafetyService.js'
 import { ACCOUNT_STATUSES, ADMIN_ROLES, loadAdminMetrics, subscribeAdminAuditLogs, subscribeAdminUsers, subscribeRecentConfessions, subscribeRecentReports, updateUserAccess } from './services/adminService.js'
-import { addComment, subscribeConfessionSocial, subscribeFavoriteConfessions, subscribeMyReactionIds, subscribeSavedConfessionIds, subscribeSavedConfessions, subscribeSocialNotifications, toggleReaction, toggleSaved } from './services/socialService.js'
+import { addComment, getConfessionSocialCounts, subscribeConfessionComments, subscribeFavoriteConfessions, subscribeMyReactionIds, subscribeSavedConfessionIds, subscribeSavedConfessions, subscribeSocialNotifications, toggleReaction, toggleSaved } from './services/socialService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
 import AppMobileNav from './components/AppMobileNav.jsx'
 import { BrandLogo, Icon, SkipLink } from './components/ui.jsx'
@@ -69,7 +69,9 @@ function formatRelativeTime(date) {
   return `hace ${days} d`
 }
 
-function usePublicConfessions() {
+function usePublicConfessions({ pageSize = FEED_PAGE_SIZE } = {}) {
+  const [limitCount, setLimitCount] = useState(pageSize)
+  const [loadedLimit, setLoadedLimit] = useState(0)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(isFirebaseConfigured)
   const [error, setError] = useState(
@@ -82,6 +84,7 @@ function usePublicConfessions() {
     const unsubscribe = subscribePublicConfessions(
       (nextItems) => {
         setItems(nextItems)
+        setLoadedLimit(limitCount)
         setLoading(false)
         setError('')
       },
@@ -90,12 +93,26 @@ function usePublicConfessions() {
         setError('No pudimos cargar las confesiones en este momento.')
         setLoading(false)
       },
+      limitCount,
     )
 
     return unsubscribe
-  }, [])
+  }, [limitCount])
 
-  return { items, loading, error }
+  const loadMore = useCallback(
+    () => setLimitCount((current) => Math.min(current + pageSize, FEED_MAX_ITEMS)),
+    [pageSize],
+  )
+
+  return {
+    items,
+    loading,
+    error,
+    // Si la última carga llenó la página completa, es posible que existan más publicaciones.
+    hasMore: !loading && loadedLimit > 0 && items.length >= loadedLimit && loadedLimit < FEED_MAX_ITEMS,
+    loadingMore: !loading && loadedLimit !== limitCount,
+    loadMore,
+  }
 }
 
 function PublicConfessionCard({
@@ -125,20 +142,59 @@ function PublicConfessionCard({
   const [sendingComment, setSendingComment] = useState(false)
   const [safetyMessage, setSafetyMessage] = useState('')
   const [socialMessage, setSocialMessage] = useState('')
-  const [social, setSocial] = useState({
+  const cardRef = useRef(null)
+  // Los contadores solo se consultan cuando la tarjeta está cerca de la pantalla.
+  const [isNear, setIsNear] = useState(() => isDemo || typeof IntersectionObserver === 'undefined')
+  const [counts, setCounts] = useState({
     likeCount: item.likeCount ?? 0,
-    comments: [],
+    commentCount: item.commentCount ?? 0,
   })
+  const [comments, setComments] = useState([])
+  const [commentsReady, setCommentsReady] = useState(false)
   const isOwnerView = Boolean(onDelete)
 
   useEffect(() => {
-    if (isDemo) return undefined
-    return subscribeConfessionSocial(
-      item.id,
-      setSocial,
-      (socialError) => console.error('No se pudieron sincronizar las interacciones.', socialError),
-    )
+    if (isNear || !cardRef.current) return undefined
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setIsNear(true)
+        observer.disconnect()
+      }
+    }, { rootMargin: '400px 0px' })
+    observer.observe(cardRef.current)
+    return () => observer.disconnect()
+  }, [isNear])
+
+  const refreshCounts = useCallback(() => {
+    if (isDemo) return Promise.resolve()
+    return getConfessionSocialCounts(item.id)
+      .then(setCounts)
+      .catch((countError) => console.error('No se pudieron cargar los contadores.', countError))
   }, [isDemo, item.id])
+
+  useEffect(() => {
+    if (isDemo || !isNear) return undefined
+    let active = true
+    getConfessionSocialCounts(item.id)
+      .then((next) => { if (active) setCounts(next) })
+      .catch((countError) => console.error('No se pudieron cargar los contadores.', countError))
+    return () => { active = false }
+  }, [isDemo, isNear, item.id])
+
+  // Los comentarios solo se escuchan mientras el panel está abierto.
+  useEffect(() => {
+    if (isDemo || !commentsOpen) return undefined
+    return subscribeConfessionComments(
+      item.id,
+      (nextComments) => {
+        setComments(nextComments)
+        setCommentsReady(true)
+      },
+      (commentsError) => console.error('No se pudieron cargar los comentarios.', commentsError),
+    )
+  }, [isDemo, commentsOpen, item.id])
+
+  const commentTotal = commentsOpen && commentsReady ? comments.length : counts.commentCount
 
   const submitReport = async (event) => {
     event.preventDefault()
@@ -183,6 +239,7 @@ function PublicConfessionCard({
       })
       setCommentText('')
       setSocialMessage('Comentario publicado.')
+      refreshCounts()
     } catch (commentError) {
       setSocialMessage(commentError.message || 'No pudimos publicar el comentario.')
     } finally {
@@ -195,6 +252,7 @@ function PublicConfessionCard({
     setSocialMessage('')
     try {
       await onToggleLike(item.id)
+      refreshCounts()
     } catch (reactionError) {
       setSocialMessage(reactionError.message || 'No pudimos actualizar tu reacción.')
     }
@@ -236,7 +294,7 @@ function PublicConfessionCard({
   }
 
   return (
-    <article id={`confession-${item.id}`} className="confession-card glass-card">
+    <article ref={cardRef} id={`confession-${item.id}`} className="confession-card glass-card">
       <div className="confession-card__header">
         <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`} aria-hidden="true">{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
@@ -265,7 +323,7 @@ function PublicConfessionCard({
           title={isOwnerView ? 'No puedes reaccionar a tu propia confesión' : isDemo ? 'Acción deshabilitada en la demo' : 'Reaccionar'}
           onClick={handleLike}
         >
-          <Icon name="heart" regular={!isLiked} /> {social.likeCount}
+          <Icon name="heart" regular={!isLiked} /> {counts.likeCount}
         </button>
         <button
           disabled={isDemo}
@@ -280,7 +338,7 @@ function PublicConfessionCard({
             setCommentsOpen((value) => !value)
           }}
         >
-          <Icon name="comment" regular /> {social.comments.length}
+          <Icon name="comment" regular /> {commentTotal}
         </button>
         <button disabled={isDemo} onClick={handleShare} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}>
           <Icon name="share-nodes" /> Compartir
@@ -298,10 +356,11 @@ function PublicConfessionCard({
         <section id={`comments-${item.id}`} className="comments-panel" aria-label="Comentarios">
           <div className="comments-panel__header">
             <strong>Comentarios</strong>
-            <span>{social.comments.length}</span>
+            <span>{commentTotal}</span>
           </div>
-          {social.comments.length === 0 && <p className="comments-empty">Todavía no hay comentarios.</p>}
-          {social.comments.slice(0, 8).map((comment) => {
+          {!commentsReady && <p className="comments-empty" role="status">Cargando comentarios…</p>}
+          {commentsReady && comments.length === 0 && <p className="comments-empty">Todavía no hay comentarios.</p>}
+          {comments.slice(0, 8).map((comment) => {
             const commenterProgram = getProgram(comment.actorProgram)
             return (
               <article className="comment-row" key={comment.id}>
@@ -361,7 +420,7 @@ function PublicConfessionCard({
 }
 
 function LandingPage() {
-  const { items: publicConfessions, loading, error } = usePublicConfessions()
+  const { items: publicConfessions, loading, error } = usePublicConfessions({ pageSize: 3 })
   const { user, profile, loading: authLoading } = useAuth()
   const displayName = profile?.displayName || user?.displayName || 'Mi cuenta'
 
@@ -684,7 +743,7 @@ function FeedPage() {
   const [selectedTopic, setSelectedTopic] = useState('')
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
   const [safetyError, setSafetyError] = useState('')
-  const { items: publicConfessions, loading, error } = usePublicConfessions()
+  const { items: publicConfessions, loading, error, hasMore, loadingMore, loadMore } = usePublicConfessions()
   const { user, profile } = useAuth()
   const { likedIds, savedIds } = useSocialPreferences(user?.uid)
   const location = useLocation()
@@ -853,6 +912,11 @@ function FeedPage() {
                   onSelectTag={setSelectedTopic}
                 />
               ))}
+              {hasMore && (
+                <button type="button" className="button button--soft feed-load-more" onClick={loadMore} disabled={loadingMore}>
+                  {loadingMore ? 'Cargando…' : 'Cargar más confesiones'}
+                </button>
+              )}
             </div>
           </div>
 
