@@ -15,7 +15,7 @@
     "check:a11y": "node scripts/check-accessibility.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "quality": "npm run lint && npm test && npm run check:a11y && npm run build && npm run check:bundle",
-    "audit:prod": "npm audit --omit=dev --audit-level=high"
+    "audit:prod": "node scripts/audit-production.mjs"
   },
   "dependencies": {
     "firebase": "^12.18.0",

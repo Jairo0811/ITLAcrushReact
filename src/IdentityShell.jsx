@@ -5,27 +5,12 @@ import LegalPage from './LegalPage.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { getProgram, ITLA_PROGRAMS } from './data/itlaPrograms.js'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
+import AppMobileNav from './components/AppMobileNav.jsx'
+import { BrandLogo, SkipLink } from './components/ui.jsx'
 import './App.css'
-
-function BrandLogo() {
-  return (
-    <div className="brand-logo">
-      <img
-        className="brand-logo__image"
-        src="/itla-crush-logo.png"
-        alt="ITLA Crush"
-      />
-      <small>CONFIESA. CONECTA. COMPARTE.</small>
-    </div>
-  )
-}
 
 function MicrosoftMark() {
   return <span aria-hidden="true"><i /><i /><i /><i /></span>
-}
-
-function SkipLink() {
-  return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
 
 function AuthPage({ mode }) {
@@ -256,9 +241,13 @@ function ProfilePage() {
         </div>
         <div className="profile-actions">
           <Link className="button button--soft" to="/app">Volver al feed</Link>
+          <Link className="button button--soft" to="/mis-confesiones">Mis confesiones</Link>
+          <Link className="button button--soft" to="/guardados">Guardados</Link>
+          <Link className="button button--soft" to="/favoritos">Favoritos</Link>
           <button className="button button--primary" onClick={handleLogout} disabled={signingOut}>{signingOut ? 'Cerrando…' : 'Cerrar sesión'}</button>
         </div>
       </section>
+      <AppMobileNav />
     </main>
   )
 }

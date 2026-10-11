@@ -8,6 +8,8 @@ import { REPORT_REASONS, hideConfession, moderateConfession, reportConfession, s
 import { ACCOUNT_STATUSES, ADMIN_ROLES, loadAdminMetrics, subscribeAdminAuditLogs, subscribeAdminUsers, subscribeRecentConfessions, subscribeRecentReports, updateUserAccess } from './services/adminService.js'
 import { addComment, subscribeConfessionSocial, subscribeFavoriteConfessions, subscribeMyReactionIds, subscribeSavedConfessionIds, subscribeSavedConfessions, subscribeSocialNotifications, toggleReaction, toggleSaved } from './services/socialService.js'
 import { isFirebaseConfigured } from './services/firebase.js'
+import AppMobileNav from './components/AppMobileNav.jsx'
+import { BrandLogo, Icon, SkipLink } from './components/ui.jsx'
 import './App.css'
 
 const demoConfessions = [
@@ -94,27 +96,6 @@ function usePublicConfessions() {
   }, [])
 
   return { items, loading, error }
-}
-
-function BrandLogo({ compact = false }) {
-  return (
-    <div className={`brand-logo ${compact ? 'brand-logo--compact' : ''}`}>
-      <img
-        className="brand-logo__image"
-        src="/itla-crush-logo.png"
-        alt="ITLA Crush"
-      />
-      {!compact && <small>CONFIESA. CONECTA. COMPARTE.</small>}
-    </div>
-  )
-}
-
-function Icon({ name, regular = false, className = '' }) {
-  return <i className={`${regular ? 'fa-regular' : 'fa-solid'} fa-${name} icon ${className}`.trim()} aria-hidden="true" />
-}
-
-function SkipLink() {
-  return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
 
 function PublicConfessionCard({
@@ -448,7 +429,7 @@ function LandingPage() {
           </div>
           <div className="hero-visual hero-visual--asset">
             <img
-              src="/itla-crush-hero-phone.png"
+              src="/itla-crush-hero-phone.webp"
               alt="Vista previa de la interfaz de ITLA Crush en un teléfono, con confesiones y referencias al proyecto SOF-011"
               className="hero-phone-image"
               width="1254"
@@ -633,11 +614,7 @@ function DemoPage() {
               <Link className="button button--primary" to={user ? '/crear' : '/registro'}>{user ? 'Publicar en la app real' : 'Regístrate para publicar'}</Link>
             </section>
 
-            <div className="feed-tabs" role="tablist" aria-label="Filtros de demostración">
-              <button className="active" role="tab" aria-selected="true">Ejemplos</button>
-              <button role="tab" aria-selected="false" disabled>Para ti</button>
-              <button role="tab" aria-selected="false" disabled>Tendencias</button>
-            </div>
+            <div className="feed-tabs"><h2 className="feed-tabs__label">Ejemplos</h2></div>
 
             <div className="feed-list">
               {visibleDemoConfessions.length === 0 && <div className="glass-card empty-state">No hay ejemplos que coincidan con esa búsqueda.</div>}
@@ -671,7 +648,7 @@ function DemoPage() {
         <Link to="/demo"><Icon name="flask" /><small>Demo</small></Link>
         <Link className="mobile-create" to={user ? '/app' : '/registro'}><Icon name="arrow-right" /><small>App real</small></Link>
         <Link to="/normas"><Icon name="flag" /><small>Normas</small></Link>
-        <Link to="/home"><Icon name="house" /><small>Portada</small></Link>
+        <Link to="/privacidad"><Icon name="shield-halved" /><small>Privacidad</small></Link>
       </nav>
     </div>
   )
@@ -710,7 +687,6 @@ function FeedPage() {
   const { items: publicConfessions, loading, error } = usePublicConfessions()
   const { user, profile } = useAuth()
   const { likedIds, savedIds } = useSocialPreferences(user?.uid)
-  const navigate = useNavigate()
   const location = useLocation()
   const name = profile?.displayName || user?.displayName || 'Estudiante'
   const initial = name.charAt(0).toUpperCase()
@@ -794,6 +770,7 @@ function FeedPage() {
       <SkipLink />
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
+        <h1 className="sr-only">Feed de confesiones</h1>
         <header className="app-topbar glass-card">
           <label className="app-search">
             <span><Icon name="magnifying-glass" /></span>
@@ -831,23 +808,13 @@ function FeedPage() {
               </div>
             </section>
 
-            <section
-              className="quick-compose glass-card"
-              onClick={() => navigate('/crear')}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  navigate('/crear')
-                }
-              }}
-              role="button"
-              tabIndex="0"
-              aria-label="Crear una nueva confesión"
-            >
-              <div className="avatar">{initial}</div><span>¿Qué quieres confesar hoy?</span><button className="button button--primary">Publicar</button>
-            </section>
+            <Link className="quick-compose glass-card" to="/crear">
+              <div className="avatar" aria-hidden="true">{initial}</div>
+              <span>¿Qué quieres confesar hoy?</span>
+              <span className="button button--primary">Publicar</span>
+            </Link>
 
-            <div className="feed-tabs" role="tablist" aria-label="Filtros del feed"><button className="active" role="tab" aria-selected="true">Más recientes</button><button role="tab" aria-selected="false" disabled>Para ti</button><button role="tab" aria-selected="false" disabled>Tendencias</button></div>
+            <div className="feed-tabs"><h2 className="feed-tabs__label">Más recientes</h2></div>
             {selectedTopic && (
               <div className="active-topic-filter" role="status">
                 <span>Mostrando tema <strong>{selectedTopic}</strong></span>
@@ -922,7 +889,7 @@ function FeedPage() {
           </aside>
         </section>
       </main>
-      <nav className="mobile-bottom-nav"><Link to="/app"><Icon name="house" /><small>Inicio</small></Link><Link to="/notificaciones"><Icon name="bell" regular /><small>Alertas</small></Link><Link className="mobile-create" to="/crear"><Icon name="plus" /><small>Crear</small></Link><Link to="/guardados"><Icon name="bookmark" regular /><small>Guardados</small></Link><Link to="/perfil"><Icon name="circle-user" regular /><small>Perfil</small></Link></nav>
+      <AppMobileNav />
     </div>
   )
 }
@@ -967,6 +934,7 @@ function MyConfessionsPage() {
       <SkipLink />
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
+        <h1 className="sr-only">Mis confesiones</h1>
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">TU HISTORIAL</p><h2>Mis <span>confesiones ♡</span></h2></div>
           <button className="button button--primary" onClick={() => navigate('/crear')}>Nueva confesión</button>
@@ -978,6 +946,7 @@ function MyConfessionsPage() {
           {items.map((item) => <PublicConfessionCard key={item.id} item={item} onDelete={remove} />)}
         </div>
       </main>
+      <AppMobileNav />
     </div>
   )
 }
@@ -1024,6 +993,7 @@ function SocialCollectionPage({ mode }) {
       <SkipLink />
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
+        <h1 className="sr-only">Confesiones guardadas y favoritas</h1>
         <section className="dashboard-hero glass-card">
           <div>
             <p className="eyebrow">{isFavorites ? 'TUS REACCIONES' : 'TU COLECCIÓN'}</p>
@@ -1050,6 +1020,7 @@ function SocialCollectionPage({ mode }) {
           ))}
         </div>
       </main>
+      <AppMobileNav />
     </div>
   )
 }
@@ -1082,6 +1053,7 @@ function NotificationsPage() {
       <SkipLink />
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
+        <h1 className="sr-only">Notificaciones</h1>
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">ACTIVIDAD SOCIAL</p><h2>Tus <span>notificaciones ♡</span></h2><p>Reacciones y comentarios recibidos en tus confesiones públicas.</p></div>
           <div className="dashboard-hero__note">ACTIVIDAD<br/>RECIENTE</div>
@@ -1104,6 +1076,7 @@ function NotificationsPage() {
           ))}
         </section>
       </main>
+      <AppMobileNav />
     </div>
   )
 }
@@ -1413,6 +1386,7 @@ function AdminPage() {
           </article>
         </section>
       </main>
+      <AppMobileNav />
     </div>
   )
 }
@@ -1466,6 +1440,7 @@ function ModerationPage() {
       <SkipLink />
       <AppSidebar />
       <main id="main-content" className="app-main" tabIndex="-1">
+        <h1 className="sr-only">Cola de moderación</h1>
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">TRUST & SAFETY</p><h2>Cola de <span>moderación ⚑</span></h2><p>Revisa reportes sin exponer la identidad pública de autores anónimos.</p></div>
         </section>
@@ -1501,6 +1476,7 @@ function ModerationPage() {
           ))}
         </div>
       </main>
+      <AppMobileNav />
     </div>
   )
 }
@@ -1587,31 +1563,6 @@ function CreateConfessionPage() {
   )
 }
 
-function AuthPage({ mode }) {
-  const isLogin = mode === 'login'
-  const location = useLocation()
-  return (
-    <div className="auth-page page-shell">
-      <div className="auth-ambient auth-ambient--one" />
-      <div className="auth-ambient auth-ambient--two" />
-      <section className="auth-card glass-card">
-        <Link to="/home"><BrandLogo /></Link>
-        <p className="auth-kicker">Las historias también viven aquí. ♡</p>
-        <h1>{isLogin ? 'Vuelve a conectar' : 'Crea tu espacio'}</h1>
-        <p>{isLogin ? 'Entra a tu comunidad y continúa descubriendo historias.' : 'Únete para confesar, conectar y compartir con control sobre tu identidad.'}</p>
-        <form onSubmit={(event) => event.preventDefault()}>
-          {!isLogin && <label>Nombre visible<input placeholder="Tu nombre" /></label>}
-          <label>Correo electrónico<input type="email" placeholder="nombre@correo.com" /></label>
-          <label>Contraseña<input type="password" placeholder="••••••••" /></label>
-          <Link className="button button--primary auth-submit" to="/app">{isLogin ? 'Iniciar sesión' : 'Crear cuenta'} →</Link>
-        </form>
-        <div className="auth-switch">{isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'} <Link to={isLogin ? '/registro' : '/login'} state={{ from: location.pathname }}>{isLogin ? 'Regístrate' : 'Inicia sesión'}</Link></div>
-        <small className="auth-note">Demo visual. Firebase Authentication se conectará en la siguiente fase.</small>
-      </section>
-    </div>
-  )
-}
-
 function NotFound() {
   return <div className="not-found page-shell"><BrandLogo/><h1>404</h1><p>Esta historia todavía no existe.</p><Link className="button button--primary" to="/home">Volver al inicio</Link></div>
 }
@@ -1629,8 +1580,6 @@ export default function App() {
       <Route path="/favoritos" element={<SocialCollectionPage mode="favorites" />} />
       <Route path="/moderacion" element={<ModerationPage />} />
       <Route path="/admin" element={<AdminPage />} />
-      <Route path="/login" element={<AuthPage mode="login" />} />
-      <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

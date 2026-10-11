@@ -10,6 +10,7 @@ function read(relativePath) {
 const indexHtml = read('index.html')
 const app = read('src/App.jsx')
 const identity = read('src/IdentityShell.jsx')
+const ui = read('src/components/ui.jsx')
 const appCss = read('src/App.css')
 const identityCss = read('src/identity.css')
 const legal = read('src/LegalPage.jsx')
@@ -18,7 +19,7 @@ const checks = [
   ['html lang="es"', /<html[^>]*lang=["']es["']/i.test(indexHtml)],
   ['meta viewport', /<meta[^>]*name=["']viewport["']/i.test(indexHtml)],
   ['descripción de página', /<meta[^>]*name=["']description["']/i.test(indexHtml)],
-  ['skip link disponible', /function\s+SkipLink\s*\(/.test(app) || /function\s+SkipLink\s*\(/.test(identity)],
+  ['skip link disponible', /function\s+SkipLink\s*\(/.test(app + identity + ui)],
   ['destino main-content en App', /id=["']main-content["']/.test(app)],
   ['destino main-content en identidad/legal', /id=["']main-content["']/.test(identity) && /id=["']main-content["']/.test(legal)],
   ['foco visible', /:focus-visible/.test(appCss + identityCss)],
