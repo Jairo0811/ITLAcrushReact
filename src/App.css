@@ -3747,3 +3747,28 @@ button:disabled {
     grid-row: auto;
   }
 }
+
+
+/* =========================================================
+   Mejoras: navegación móvil compartida, pestañas y compose
+   ========================================================= */
+.quick-compose { text-decoration: none; color: inherit; }
+.quick-compose > span.button { color: #fff; }
+
+.feed-tabs__label {
+  margin: 0;
+  padding: 7px 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  border-bottom: 2px solid var(--pink);
+}
+
+.mobile-bottom-nav a[aria-current="page"] { color: #fff; }
+.mobile-bottom-nav a.mobile-create[aria-current="page"] { outline: 2px solid #fff; outline-offset: 2px; }
+
+@media (max-width: 820px) {
+  /* Evita que la barra fija tape el final del contenido, incluso con notch/home indicator */
+  .auth-page.page-shell { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .app-layout .app-main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}
