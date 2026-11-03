@@ -43,8 +43,8 @@ export default function DemoPage() {
             <span><strong>Modo demo</strong><small>Entorno aislado de la aplicación real</small></span>
           </div>
           <div className="demo-banner__facts" aria-label="Características del entorno demo">
-            <span>Datos locales</span>
-            <span>Firebase sin escrituras</span>
+            <span>Contenido de ejemplo</span>
+            <span>No se guarda nada</span>
           </div>
           <Link className="button button--primary" to={user ? '/app' : '/registro'}>
             <Icon name={user ? 'arrow-right' : 'user-plus'} /> {user ? 'Ir a la app real' : 'Entrar a la app real'}
@@ -66,7 +66,7 @@ export default function DemoPage() {
               <div className="dashboard-hero__copy">
                 <p className="eyebrow">ENTORNO DE DEMOSTRACIÓN</p>
                 <h2>Explora la experiencia <span>sin tocar datos reales.</span></h2>
-                <p>Prueba navegación, búsqueda y responsive con contenido local de ejemplo. Esta vista no crea, modifica ni elimina información en Firebase.</p>
+                <p>Prueba navegación, búsqueda y responsive con contenido local de ejemplo. Nada de lo que hagas aquí se guarda.</p>
                 <div className="demo-hero__meta">
                   <span><Icon name="database" /> Datos locales</span>
                   <span><Icon name="shield-halved" /> Entorno separado</span>
@@ -81,7 +81,7 @@ export default function DemoPage() {
 
             <section className="quick-compose glass-card demo-disabled-control" aria-disabled="true">
               <div className="avatar" aria-hidden="true">D</div>
-              <span><strong>Publicación deshabilitada</strong><small>La demo nunca escribe contenido en Firebase.</small></span>
+              <span><strong>Publicación deshabilitada</strong><small>En la demo no se guarda nada.</small></span>
               <Link className="button button--primary" to={user ? '/crear' : '/registro'}>{user ? 'Publicar en la app real' : 'Regístrate para publicar'}</Link>
             </section>
 
@@ -107,7 +107,7 @@ export default function DemoPage() {
               <div className="rail-title"><h3><Icon name="shield-halved" /> Separación de entornos</h3></div>
               <div className="demo-environment-list">
                 <span><b>/demo</b><small>Contenido ficticio, solo interfaz.</small></span>
-                <span><b>/app</b><small>Aplicación real protegida y conectada a Firebase.</small></span>
+                <span><b>/app</b><small>Tu feed y tu cuenta, con acceso protegido.</small></span>
               </div>
             </section>
           </aside>

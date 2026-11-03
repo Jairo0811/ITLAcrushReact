@@ -115,10 +115,16 @@ test('dashboard y demo no dependen de controles decorativos', () => {
   const app = readSrc()
 
   assert.equal(app.includes('aria-label="Tema"'), false)
-  assert.ok(app.includes('className="topbar-live"'))
   assert.ok(app.includes('empty-state empty-state--actionable'))
   assert.ok(app.includes('demo-banner__facts'))
-  assert.ok(app.includes('Firebase sin escrituras'))
+  assert.ok(app.includes('No se guarda nada'))
+})
+
+test('la interfaz no expone jerga técnica a los estudiantes', () => {
+  const app = readSrc()
+  for (const technical of ['SOF-011', 'React + Firebase', 'Feed real', 'Feed conectado', 'Sincronizando con Firestore', 'datos reales publicados en Firestore']) {
+    assert.equal(app.includes(technical), false, `Texto técnico visible: ${technical}`)
+  }
 })
 
 test('la interfaz no anuncia funcionalidades sociales ficticias', () => {

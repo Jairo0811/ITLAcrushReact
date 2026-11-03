@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    include: ['tests/ui/**/*.test.jsx'],
+    include: ['tests/ui/**/*.test.{js,jsx}'],
     clearMocks: true,
   },
   server: {

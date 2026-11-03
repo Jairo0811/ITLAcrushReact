@@ -41,11 +41,6 @@ export default function LandingPage() {
         <div id="inicio" />
         <section className="hero-section">
           <div className="hero-copy">
-            <div className="tech-status" aria-label="Información técnica del proyecto">
-              <span>SOF-011</span>
-              <span>React + Firebase</span>
-              <span>Proyecto académico</span>
-            </div>
             <p className="eyebrow">CONFIESA. CONECTA. <span>COMPARTE.</span></p>
             <h1>Las confesiones también crean <span>conexiones</span></h1>
             <p className="hero-description">Un espacio moderno para decir lo que sientes, descubrir historias de tu comunidad y conectar sin perder el control de tu privacidad.</p>
@@ -74,7 +69,7 @@ export default function LandingPage() {
           <div className="hero-visual hero-visual--asset">
             <img
               src="/itla-crush-hero-phone.webp"
-              alt="Vista previa de la interfaz de ITLA Crush en un teléfono, con confesiones y referencias al proyecto SOF-011"
+              alt="Vista previa de ITLA Crush en un teléfono, con confesiones y temas de la comunidad"
               className="hero-phone-image"
               width="1254"
               height="1254"
@@ -85,16 +80,16 @@ export default function LandingPage() {
         </section>
 
         <section className="stats-panel glass-card" id="comunidad">
-          <div><strong>Proyecto académico</strong><span>Reconstrucción independiente y no oficial</span></div>
-          <div><strong>Demo separada</strong><span>Datos ficticios que no escriben en Firebase</span></div>
-          <div><strong>App real</strong><span>Autenticación y datos reales en rutas protegidas</span></div>
-          <div className="stats-panel__highlight"><strong>Privacidad + accesibilidad ♡</strong></div>
+          <div><strong>Anónimo ante la comunidad</strong><span>Tu identidad no se muestra a otros estudiantes</span></div>
+          <div><strong>Tú decides</strong><span>Público o privado, anónimo o con tu nombre</span></div>
+          <div><strong>Con respeto</strong><span>Reporta lo que no esté bien y la moderación lo revisa</span></div>
+          <div className="stats-panel__highlight"><strong>Hecho para estudiantes ♡</strong></div>
         </section>
 
         <section id="confesiones" className="landing-feed">
           <div className="section-heading">
-            <div><p className="eyebrow">FEED PÚBLICO REAL</p><h2>Confesiones públicas</h2><p>Esta sección usa datos reales publicados en Firestore. La demo visual está separada y usa contenido ficticio.</p></div>
-            <Link to={user ? '/app' : '/demo'}>{user ? 'Abrir feed real →' : 'Explorar demo →'}</Link>
+            <div><p className="eyebrow">EN LA COMUNIDAD</p><h2>Confesiones públicas</h2><p>Las últimas historias que comparte la comunidad ITLA.</p></div>
+            <Link to={user ? '/app' : '/demo'}>{user ? 'Abrir mi feed →' : 'Probar la demo →'}</Link>
           </div>
           <div className="landing-card-grid">
             {loading && <div className="glass-card empty-state">Cargando confesiones…</div>}

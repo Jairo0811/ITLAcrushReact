@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getProgram, ITLA_PROGRAMS } from '../data/itlaPrograms.js'
-import { BrandLogo, SkipLink } from '../components/ui.jsx'
+import { BrandLogo, Icon, SkipLink } from '../components/ui.jsx'
 
 function MicrosoftMark() {
   return <span aria-hidden="true"><i /><i /><i /><i /></span>
@@ -17,6 +17,7 @@ export default function AuthPage({ mode }) {
   const [email, setEmail] = useState('')
   const [program, setProgram] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [localError, setLocalError] = useState('')
@@ -116,11 +117,16 @@ export default function AuthPage({ mode }) {
           )}
           <label>
             Correo electrónico
-            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="nombre@correo.com" autoComplete="email" required />
+            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder={isLogin ? 'tu.correo@itla.edu.do' : 'tu.nombre@itla.edu.do'} autoComplete="email" required />
           </label>
           <label>
             Contraseña
-            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" placeholder="••••••••" autoComplete={isLogin ? 'current-password' : 'new-password'} required minLength="8" />
+            <span className="password-field">
+              <input value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? 'text' : 'password'} placeholder="••••••••" autoComplete={isLogin ? 'current-password' : 'new-password'} required minLength="8" />
+              <button type="button" className="password-field__toggle" onClick={() => setShowPassword((value) => !value)} aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                <Icon name={showPassword ? 'eye-slash' : 'eye'} />
+              </button>
+            </span>
           </label>
           {isLogin && <Link className="auth-forgot" to="/recuperar">¿Olvidaste tu contraseña?</Link>}
           {!isLogin && (

@@ -6,6 +6,7 @@ import { REPORT_REASONS } from '../services/trustSafetyService.js'
 import { addComment, getConfessionSocialCounts, subscribeConfessionComments } from '../services/socialService.js'
 import { Icon } from '../components/ui.jsx'
 import { formatRelativeTime } from '../utils/formatRelativeTime.js'
+import { stripTrailingTags } from '../utils/stripTrailingTags.js'
 
 export function PublicConfessionCard({
   item,
@@ -42,6 +43,7 @@ export function PublicConfessionCard({
     likeCount: item.likeCount ?? 0,
     commentCount: item.commentCount ?? 0,
   })
+  const [countsReady, setCountsReady] = useState(isDemo)
   const [comments, setComments] = useState([])
   const [commentsReady, setCommentsReady] = useState(false)
   const isOwnerView = Boolean(onDelete)
@@ -61,7 +63,7 @@ export function PublicConfessionCard({
   const refreshCounts = useCallback(() => {
     if (isDemo) return Promise.resolve()
     return getConfessionSocialCounts(item.id)
-      .then(setCounts)
+      .then((next) => { setCounts(next); setCountsReady(true) })
       .catch((countError) => console.error('No se pudieron cargar los contadores.', countError))
   }, [isDemo, item.id])
 
@@ -69,7 +71,11 @@ export function PublicConfessionCard({
     if (isDemo || !isNear) return undefined
     let active = true
     getConfessionSocialCounts(item.id)
-      .then((next) => { if (active) setCounts(next) })
+      .then((next) => {
+        if (!active) return
+        setCounts(next)
+        setCountsReady(true)
+      })
       .catch((countError) => console.error('No se pudieron cargar los contadores.', countError))
     return () => { active = false }
   }, [isDemo, isNear, item.id])
@@ -88,6 +94,9 @@ export function PublicConfessionCard({
   }, [isDemo, commentsOpen, item.id])
 
   const commentTotal = commentsOpen && commentsReady ? comments.length : counts.commentCount
+  const likeLabel = countsReady ? counts.likeCount : '–'
+  const commentLabel = countsReady || (commentsOpen && commentsReady) ? commentTotal : '–'
+  const displayText = stripTrailingTags(item.text, tags)
 
   const submitReport = async (event) => {
     event.preventDefault()
@@ -199,12 +208,12 @@ export function PublicConfessionCard({
         <div className={`avatar ${item.isAnonymous ? 'avatar--anonymous' : ''}`} aria-hidden="true">{item.isAnonymous ? '◉' : author.charAt(0).toUpperCase()}</div>
         <div>
           <strong>{author}</strong>
-          <div className="muted-row">{programInfo ? <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span> : <span className="tiny-badge">Estudiante</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
+          <div className="muted-row">{programInfo && <span className="tiny-badge program-badge" style={{ '--program-color': programInfo.color }}>{programInfo.label}</span>}<span>{formatRelativeTime(item.createdAt)}</span></div>
         </div>
         {onReport ? <button className="icon-button" aria-label="Opciones de seguridad" aria-expanded={reportOpen} onClick={() => setReportOpen((value) => !value)}><Icon name="ellipsis" /></button> : <span />}
       </div>
       {item.recipientText && <small className="confession-recipient">Para: {item.recipientText}</small>}
-      <p>{item.text}</p>
+      <p>{displayText}</p>
       {tags.length > 0 && (
         <div className="tag-row">
           {tags.map((tag) => (
@@ -216,40 +225,46 @@ export function PublicConfessionCard({
       )}
 
       <div className="card-actions">
-        <button
-          className={isLiked ? 'social-action social-action--active' : 'social-action'}
-          disabled={isDemo || isOwnerView}
-          aria-pressed={isLiked}
-          title={isOwnerView ? 'No puedes reaccionar a tu propia confesión' : isDemo ? 'Acción deshabilitada en la demo' : 'Reaccionar'}
-          onClick={handleLike}
-        >
-          <Icon name="heart" regular={!isLiked} /> {counts.likeCount}
-        </button>
-        <button
-          disabled={isDemo}
-          aria-expanded={commentsOpen}
-          aria-controls={`comments-${item.id}`}
-          onClick={() => {
-            if (isDemo) return
-            if (!user || !socialEnabled) {
-              requestAppAccess()
-              return
-            }
-            setCommentsOpen((value) => !value)
-          }}
-        >
-          <Icon name="comment" regular /> {commentTotal}
-        </button>
-        <button disabled={isDemo} onClick={handleShare} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}>
-          <Icon name="share-nodes" /> Compartir
-        </button>
-        {socialEnabled && !isOwnerView && (
-          <button className={isSaved ? 'bookmark social-action--active' : 'bookmark'} aria-pressed={isSaved} onClick={handleSave}>
-            <Icon name="bookmark" regular={!isSaved} /> {isSaved ? 'Guardado' : 'Guardar'}
+        <div className="card-actions__group">
+          <button
+            className={isLiked ? 'social-action social-action--active' : 'social-action'}
+            disabled={isDemo || isOwnerView}
+            aria-pressed={isLiked}
+            aria-label={`${isLiked ? 'Quitar reacción' : 'Reaccionar'}, ${likeLabel} reacciones`}
+            title={isOwnerView ? 'No puedes reaccionar a tu propia confesión' : isDemo ? 'Acción deshabilitada en la demo' : 'Reaccionar'}
+            onClick={handleLike}
+          >
+            <Icon name="heart" regular={!isLiked} /> <span>{likeLabel}</span>
           </button>
-        )}
-        {onDelete && <button className="bookmark" onClick={() => setPendingAction('delete')}><Icon name="trash-can" /> Eliminar</button>}
-        {onHide && !onDelete && <button className="bookmark" onClick={() => setPendingAction('hide')}><Icon name="eye-slash" /> Ocultar</button>}
+          <button
+            disabled={isDemo}
+            aria-expanded={commentsOpen}
+            aria-controls={`comments-${item.id}`}
+            aria-label={`Comentarios, ${commentLabel}`}
+            onClick={() => {
+              if (isDemo) return
+              if (!user || !socialEnabled) {
+                requestAppAccess()
+                return
+              }
+              setCommentsOpen((value) => !value)
+            }}
+          >
+            <Icon name="comment" regular /> <span>{commentLabel}</span>
+          </button>
+          <button disabled={isDemo} onClick={handleShare} title={isDemo ? 'Acción deshabilitada en la demo' : 'Compartir'}>
+            <Icon name="share-nodes" /> <span className="action-label">Compartir</span>
+          </button>
+        </div>
+        <div className="card-actions__group card-actions__group--end">
+          {socialEnabled && !isOwnerView && (
+            <button className={isSaved ? 'bookmark social-action--active' : 'bookmark'} aria-pressed={isSaved} onClick={handleSave}>
+              <Icon name="bookmark" regular={!isSaved} /> <span className="action-label">{isSaved ? 'Guardado' : 'Guardar'}</span>
+            </button>
+          )}
+          {onDelete && <button className="bookmark" onClick={() => setPendingAction('delete')}><Icon name="trash-can" /> <span className="action-label">Eliminar</span></button>}
+          {onHide && !onDelete && <button className="bookmark" onClick={() => setPendingAction('hide')}><Icon name="eye-slash" /> <span className="action-label">Ocultar</span></button>}
+        </div>
       </div>
 
       {pendingAction && (

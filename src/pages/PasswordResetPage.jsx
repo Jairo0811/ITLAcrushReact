@@ -18,7 +18,7 @@ export default function PasswordResetPage() {
 
     try {
       await sendPasswordReset(email)
-      setMessage('Si existe una cuenta con ese correo, Firebase enviará las instrucciones de recuperación.')
+      setMessage('Si existe una cuenta con ese correo, recibirás las instrucciones de recuperación.')
     } catch (resetError) {
       setError(resetError.message)
     } finally {
@@ -37,7 +37,7 @@ export default function PasswordResetPage() {
         {message && <div className="auth-message auth-message--success" role="status">{message}</div>}
         {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
         <form onSubmit={submit}>
-          <label>Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required placeholder="nombre@correo.com" /></label>
+          <label>Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required placeholder="tu.correo@itla.edu.do" /></label>
           <button className="button button--primary auth-submit" disabled={!isConfigured || submitting}>{submitting ? 'Enviando…' : 'Enviar enlace →'}</button>
         </form>
         <div className="auth-switch"><Link to="/login">← Volver a iniciar sesión</Link></div>

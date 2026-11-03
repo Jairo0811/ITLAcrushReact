@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => {
     confession: {
       id: 'c1',
       recipientText: 'Biblioteca',
-      text: 'Una confesión de prueba #Demo',
+      text: 'Una confesión de prueba',
       visibility: 'public',
       status: 'active',
       isAnonymous: true,
@@ -129,6 +129,7 @@ const renderAt = (path) => render(
 )
 
 beforeEach(() => {
+  window.localStorage.clear()
   signedOut()
   vi.stubGlobal('scrollTo', () => {})
 })
@@ -245,7 +246,7 @@ describe('feed', () => {
 
     signedIn()
     renderAt('/app')
-    await screen.findAllByText('Una confesión de prueba #Demo')
+    await screen.findAllByText('Una confesión de prueba')
     expect(observed.length).toBeGreaterThan(0)
     expect(socialService.getConfessionSocialCounts).not.toHaveBeenCalled()
 
@@ -257,7 +258,7 @@ describe('feed', () => {
   it('los comentarios solo se escuchan al abrir el panel', async () => {
     signedIn()
     const { container } = renderAt('/app')
-    await screen.findAllByText('Una confesión de prueba #Demo')
+    await screen.findAllByText('Una confesión de prueba')
     expect(socialService.subscribeConfessionComments).not.toHaveBeenCalled()
 
     fireEvent.click(container.querySelector('button[aria-controls="comments-c1"]'))
@@ -363,5 +364,66 @@ describe('acciones destructivas y formulario de crear', () => {
       expect.objectContaining({ message: 'Hola ITLA', visibility: 'private', isAnonymous: false }),
     ))
     expect(await screen.findByText('Confesión publicada')).toBeTruthy()
+  })
+})
+
+describe('fase 1: interfaz de red social', () => {
+  it('la bienvenida se puede cerrar y no vuelve a aparecer', async () => {
+    signedIn()
+    renderAt('/app')
+    fireEvent.click(await screen.findByRole('button', { name: 'Cerrar bienvenida' }))
+    expect(screen.queryByRole('region', { name: 'Bienvenida' })).toBeNull()
+    expect(window.localStorage.getItem('itla-crush:welcome-dismissed')).toBe('1')
+
+    cleanup()
+    renderAt('/app')
+    await screen.findAllByText('Una confesión de prueba')
+    expect(screen.queryByRole('button', { name: 'Cerrar bienvenida' })).toBeNull()
+  })
+
+  it('el feed no muestra texto técnico ni la etiqueta "Estudiante" en anónimas', async () => {
+    signedIn()
+    renderAt('/app')
+    await screen.findAllByText('Una confesión de prueba')
+    for (const technical of [/SOF-011/, /Firestore/, /Feed real/, /Feed conectado/]) {
+      expect(screen.queryByText(technical)).toBeNull()
+    }
+    expect(screen.queryByText('Estudiante')).toBeNull()
+  })
+
+  it('el hashtag final no se repite en el texto y queda como etiqueta', async () => {
+    signedIn()
+    renderAt('/app')
+    const [text] = await screen.findAllByText('Una confesión de prueba')
+    expect(text.textContent).not.toContain('#Demo')
+    expect(screen.getAllByRole('button', { name: '#Demo' }).length).toBeGreaterThan(0)
+  })
+
+  it('los contadores muestran un guion hasta conocerse y las acciones tienen nombre accesible', async () => {
+    const observed = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback) { this.callback = callback }
+      observe(node) { observed.push({ node, callback: this.callback }) }
+      disconnect() {}
+    })
+
+    signedIn()
+    renderAt('/app')
+    expect((await screen.findAllByRole('button', { name: 'Reaccionar, – reacciones' })).length).toBeGreaterThan(0)
+
+    observed[0].callback([{ isIntersecting: true }])
+    expect(await screen.findByRole('button', { name: 'Reaccionar, 3 reacciones' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Comentarios, 2' })).toBeTruthy()
+  })
+
+  it('el acceso sugiere el correo institucional y permite mostrar la contraseña', async () => {
+    renderAt('/login')
+    const password = await screen.findByPlaceholderText('••••••••')
+    expect(password.type).toBe('password')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mostrar contraseña' }))
+    expect(password.type).toBe('text')
+    expect(screen.getByRole('button', { name: 'Ocultar contraseña' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByPlaceholderText('tu.correo@itla.edu.do')).toBeTruthy()
   })
 })

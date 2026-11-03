@@ -9,6 +9,7 @@ import AppMobileNav from '../components/AppMobileNav.jsx'
 import AppSidebar from '../components/AppSidebar.jsx'
 import { PublicConfessionCard } from '../components/ConfessionCard.jsx'
 import { Icon, SkipLink } from '../components/ui.jsx'
+import { useDismissibleFlag } from '../hooks/useDismissibleFlag.js'
 import { usePublicConfessions } from '../hooks/usePublicConfessions.js'
 import { useSocialPreferences } from '../hooks/useSocialPreferences.js'
 
@@ -25,11 +26,7 @@ export default function FeedPage() {
   const initial = name.charAt(0).toUpperCase()
   const programInfo = getProgram(profile?.program)
   const hasFeedFilters = Boolean(searchText.trim() || selectedTopic)
-  const feedState = loading
-    ? { label: 'Sincronizando', detail: 'Firestore', tone: 'loading' }
-    : error
-      ? { label: 'Conexión pendiente', detail: 'Revisa Firebase', tone: 'error' }
-      : { label: 'Feed conectado', detail: 'Firestore', tone: 'online' }
+  const [welcomeDismissed, dismissWelcome] = useDismissibleFlag('itla-crush:welcome-dismissed')
 
   useEffect(() => {
     if (!user) return undefined
@@ -111,7 +108,6 @@ export default function FeedPage() {
             <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" />
           </label>
           <div className="topbar-actions">
-            <span className="topbar-live"><i aria-hidden="true" /> Feed real</span>
             <Link to="/notificaciones" className="topbar-icon-link" aria-label="Notificaciones"><Icon name="bell" regular /></Link>
             <Link to="/perfil" className="mini-profile">
               <div className="avatar">{initial}</div>
@@ -125,21 +121,22 @@ export default function FeedPage() {
 
         <section className="dashboard-grid">
           <div className="feed-column">
-            <section className="dashboard-hero dashboard-hero--feed glass-card">
-              <div className="dashboard-hero__copy">
-                <p className="eyebrow">TU COMUNIDAD ITLA</p>
-                <h2>Confiesa lo que sientes. <span>Conecta con lo real.</span></h2>
-                <p>Publica con tu identidad o en modo anónimo, descubre temas de la comunidad y conserva el control de tu privacidad.</p>
-                <div className="dashboard-hero__meta">
-                  <span><Icon name="user-shield" /> Privacidad por publicación</span>
-                  {programInfo && <span style={{ '--program-color': programInfo.color }}><Icon name="graduation-cap" /> {programInfo.label}</span>}
+            {!welcomeDismissed && (
+              <section className="dashboard-hero dashboard-hero--feed glass-card" aria-label="Bienvenida">
+                <button type="button" className="dashboard-hero__close" onClick={dismissWelcome} aria-label="Cerrar bienvenida">
+                  <Icon name="xmark" />
+                </button>
+                <div className="dashboard-hero__copy">
+                  <p className="eyebrow">TU COMUNIDAD ITLA</p>
+                  <h2>Confiesa lo que sientes. <span>Conecta con lo real.</span></h2>
+                  <p>Publica con tu identidad o en modo anónimo, descubre temas de la comunidad y conserva el control de tu privacidad.</p>
+                  <div className="dashboard-hero__meta">
+                    <span><Icon name="user-shield" /> Privacidad por publicación</span>
+                    {programInfo && <span style={{ '--program-color': programInfo.color }}><Icon name="graduation-cap" /> {programInfo.label}</span>}
+                  </div>
                 </div>
-              </div>
-              <div className={`dashboard-status dashboard-status--${feedState.tone}`} role="status">
-                <i aria-hidden="true" />
-                <span><strong>{feedState.label}</strong><small>{feedState.detail}</small></span>
-              </div>
-            </section>
+              </section>
+            )}
 
             <Link className="quick-compose glass-card" to="/crear">
               <div className="avatar" aria-hidden="true">{initial}</div>
@@ -158,7 +155,7 @@ export default function FeedPage() {
             )}
             <div className="feed-list">
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
-              {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Sincronizando con Firestore…</div>}
+              {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Cargando confesiones…</div>}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
               {!loading && !error && visibleConfessions.length === 0 && (
                 <div className="glass-card empty-state empty-state--actionable">

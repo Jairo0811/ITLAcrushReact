@@ -30,9 +30,8 @@ export default function AppSidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar-quote tech-module">
-        <span className="tech-module__code">SOF-011</span>
-        <p>Proyecto académico no oficial · React + Firebase.</p>
+      <div className="sidebar-quote">
+        <p>ITLA Crush es un proyecto académico no oficial.</p>
       </div>
     </aside>
   )

@@ -60,9 +60,11 @@ export default function NotificationsPage() {
         <h1 className="sr-only">Notificaciones</h1>
         <section className="dashboard-hero glass-card">
           <div><p className="eyebrow">ACTIVIDAD SOCIAL</p><h2>Tus <span>notificaciones ♡</span></h2><p>Reacciones y comentarios recibidos en tus confesiones públicas.</p></div>
-          <button type="button" className="button button--soft" onClick={refresh} disabled={refreshing}>
-            <Icon name="rotate" /> {refreshing ? 'Actualizando…' : 'Actualizar'}
-          </button>
+          <div className="dashboard-hero__actions">
+            <button type="button" className="button button--soft" onClick={refresh} disabled={refreshing}>
+              <Icon name="rotate" /> {refreshing ? 'Actualizando…' : 'Actualizar'}
+            </button>
+          </div>
         </section>
 
         <section className="glass-card notifications-card">
