@@ -18,4 +18,9 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Las pruebas de reglas y los archivos de configuración se ejecutan en Node.
+    files: ['tests/rules/**/*.js', 'vitest.rules.config.js'],
+    languageOptions: { globals: globals.node },
+  },
 ])

@@ -350,6 +350,10 @@ src/
 
 `npm test` ejecuta contratos estáticos (reglas, hosting, rutas); `npm run test:ui` renderiza la aplicación con Vitest y Testing Library (servicios simulados) para validar redirecciones, permisos por rol, navegación móvil, paginación, carga diferida y moderación.
 
+`npm run test:rules` prueba `firestore.rules` contra el **emulador de Firestore** (requiere Java 21+; `firebase-tools` se descarga con `npx`). La suite ejecuta los servicios reales de `src/services/` apuntando al emulador, de modo que un desfase entre lo que escribe la app y lo que permiten las reglas rompe la prueba. Cada caso negativo (escritura directa) tiene un control positivo equivalente. No forma parte de `npm run quality`; en CI corre en el workflow independiente `firestore-rules.yml`.
+
+> El emulador no valida índices compuestos: que `firestore.indexes.json` cubra las consultas lo comprueba `npm test` de forma estática.
+
 ---
 
 ## 🗄️ Modelo de datos actual
