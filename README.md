@@ -314,18 +314,15 @@ La demo incluye avisos persistentes de **MODO DEMO**, etiquetas de contenido fic
 ```text
 src/
 ├── assets/
-├── components/
-│   ├── common/
-│   ├── confession/
-│   └── layout/
-├── context/
-├── hooks/
-├── pages/
-├── routes/
-├── services/
-├── styles/
-├── utils/
-├── App.jsx
+├── components/      ConfessionCard, AppSidebar, AppMobileNav, ui (BrandLogo, Icon, SkipLink)
+├── context/         AuthContext
+├── data/            programas ITLA, temas de comunidad, datos de la demo
+├── hooks/           usePublicConfessions, useSocialPreferences
+├── pages/           una vista por ruta (Feed, Crear, Moderación, Admin, Auth...)
+├── routes/          ProtectedRoute (ruta de layout con control de rol)
+├── services/        Firebase: confesiones, social, moderación, administración
+├── utils/           formatRelativeTime
+├── App.jsx          árbol de rutas único + carga diferida de Admin y Moderación
 └── main.jsx
 ```
 
@@ -333,14 +330,25 @@ src/
 
 | Carpeta | Responsabilidad |
 |---|---|
-| `components/` | Componentes visuales reutilizables. |
+| `components/` | Componentes visuales reutilizables. `AppMobileNav` es la barra inferior compartida por todas las páginas autenticadas. |
 | `context/` | Estado global relacionado con autenticación. |
-| `hooks/` | Lógica reutilizable mediante hooks personalizados. |
-| `pages/` | Vistas asociadas a las rutas. |
-| `routes/` | Configuración y protección de rutas. |
+| `hooks/` | Lógica reutilizable. `usePublicConfessions` pagina el feed en el servidor. |
+| `pages/` | Vistas asociadas a las rutas (una por archivo). |
+| `routes/` | Protección de rutas: `<ProtectedRoute />` exige sesión y `allowedRoles` exige rol. |
 | `services/` | Integración con Firebase y operaciones de datos. |
-| `styles/` | Variables y estilos globales. |
-| `utils/` | Validaciones, formateadores y funciones auxiliares. |
+| `utils/` | Formateadores y funciones auxiliares. |
+
+### Decisiones de rendimiento
+
+- **Feed:** consulta con `orderBy('createdAt','desc')` + `limit(30)` (usa el índice compuesto de `firestore.indexes.json`) y botón «Cargar más» hasta 120 publicaciones. La portada pública solo pide 3.
+- **Contadores:** los campos `likeCount`/`commentCount` del documento no se mantienen (las reglas los fijan en 0). Los números salen de consultas `count()` puntuales, que solo se ejecutan cuando la tarjeta está cerca de la pantalla.
+- **Comentarios:** se escuchan en vivo únicamente mientras el panel de la tarjeta está abierto.
+- **Notificaciones:** carga puntual (al abrir, al volver a la pestaña y con «Actualizar»), sin listeners permanentes.
+- **Moderación:** confesión, caso y reporte se actualizan en un único `writeBatch`.
+
+### Pruebas
+
+`npm test` ejecuta contratos estáticos (reglas, hosting, rutas); `npm run test:ui` renderiza la aplicación con Vitest y Testing Library (servicios simulados) para validar redirecciones, permisos por rol, navegación móvil, paginación, carga diferida y moderación.
 
 ---
 

@@ -3775,3 +3775,32 @@ button:disabled {
 
 .feed-load-more { justify-self: center; align-self: center; margin: 6px auto 4px; min-width: 220px; }
 .feed-load-more:disabled { opacity: .6; cursor: progress; }
+
+/* Confirmación en línea para acciones destructivas */
+.confirm-inline {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin-top: 12px; padding: 12px 14px; border-radius: 14px;
+  background: rgba(255, 255, 255, .06); border: 1px solid var(--line);
+}
+.confirm-inline > span { flex: 1 1 220px; }
+
+/* Opciones del formulario de crear confesión (reemplazan a los interruptores dobles) */
+.choice-group {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin: 0; padding: 12px; border-radius: 18px; min-width: 0;
+}
+.choice-group legend { padding: 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.choice-option {
+  position: relative; display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 12px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .03); transition: .2s ease;
+}
+.choice-option input { position: absolute; opacity: 0; pointer-events: none; }
+.choice-option strong, .choice-option small { display: block; }
+.choice-option small { margin-top: 3px; color: var(--muted); }
+.choice-option--active { border-color: var(--pink); background: rgba(255, 47, 146, .12); }
+.choice-option:focus-within { outline: 2px solid #ff66b7; outline-offset: 2px; }
+@media (max-width: 520px) { .choice-group { grid-template-columns: 1fr; } }
+
+/* Etiquetas de la barra inferior móvil: tamaño legible */
+@media (max-width: 820px) { .mobile-bottom-nav small { font-size: .68rem; } }

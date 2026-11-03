@@ -1,7 +1,11 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function ProtectedRoute({ children, allowedRoles = null }) {
+/**
+ * Se usa como ruta de layout: <Route element={<ProtectedRoute />}> ... </Route>.
+ * También acepta children para usos puntuales.
+ */
+export default function ProtectedRoute({ children = null, allowedRoles = null }) {
   const { user, profile, loading, isConfigured } = useAuth()
   const location = useLocation()
 
@@ -10,7 +14,7 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
   }
 
   if (!isConfigured || !user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
+    return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
   }
 
   if (profile?.status && profile.status !== 'active') {
@@ -31,5 +35,5 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
     )
   }
 
-  return children
+  return children ?? <Outlet />
 }

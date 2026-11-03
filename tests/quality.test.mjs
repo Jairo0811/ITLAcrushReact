@@ -7,6 +7,13 @@ import { COMMUNITY_TOPICS, buildCommunityTopics, getCommunityTopic } from '../sr
 
 const root = process.cwd()
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
+const readSrc = (dir = 'src') => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
+  .flatMap((entry) => {
+    const relative = path.join(dir, entry.name)
+    if (entry.isDirectory()) return [readSrc(relative)]
+    return /\.(jsx?|mjs)$/.test(entry.name) ? [read(relative)] : []
+  })
+  .join('\n')
 
 test('catálogo de tecnólogos mantiene valores únicos y colores hex válidos', () => {
   assert.ok(ITLA_PROGRAMS.length >= 10)
@@ -45,7 +52,7 @@ test('catálogo sugerido de temas no contiene duplicados', () => {
 test('Microsoft se restringe a cuentas institucionales @itla.edu.do', () => {
   const authService = read('src/services/authService.js')
   const rules = read('firestore.rules')
-  const identity = read('src/IdentityShell.jsx')
+  const identity = readSrc()
   const envExample = read('.env.example')
 
   assert.ok(authService.includes("export const ITLA_EMAIL_DOMAIN = 'itla.edu.do'"))
@@ -60,14 +67,22 @@ test('Microsoft se restringe a cuentas institucionales @itla.edu.do', () => {
 })
 
 test('rutas sensibles permanecen protegidas por rol o autenticación', () => {
-  const shell = read('src/IdentityShell.jsx')
+  const router = read('src/App.jsx')
+  const protectedStart = router.indexOf('<Route element={<ProtectedRoute />}>')
+  assert.ok(protectedStart > -1, 'Falta el layout ProtectedRoute')
 
-  assert.match(shell, /allowedRoles=\{\['admin'\]\}/)
-  assert.match(shell, /allowedRoles=\{\['admin', 'moderator'\]\}/)
+  const publicPart = router.slice(0, protectedStart)
+  const protectedPart = router.slice(protectedStart)
 
-  for (const route of ['/app', '/crear', '/mis-confesiones', '/notificaciones', '/guardados', '/favoritos']) {
-    assert.ok(shell.includes(`location.pathname === '${route}'`), `Falta protección explícita para ${route}`)
+  for (const route of ['/app', '/crear', '/mis-confesiones', '/notificaciones', '/guardados', '/favoritos', '/perfil']) {
+    assert.ok(protectedPart.includes(`path="${route}"`), `Falta protección explícita para ${route}`)
+    assert.ok(!publicPart.includes(`path="${route}"`), `${route} no debe declararse como ruta pública`)
   }
+
+  // Moderación y administración exigen rol además de sesión.
+  assert.match(protectedPart, /allowedRoles=\{\['admin', 'moderator'\]\}[\s\S]*path="\/moderacion"/)
+  assert.match(protectedPart, /allowedRoles=\{\['admin'\]\}[\s\S]*path="\/admin"/)
+  assert.ok(!publicPart.includes('path="/admin"') && !publicPart.includes('path="/moderacion"'))
 })
 
 test('Firestore conserva deny-by-default y controles administrativos/sociales', () => {
@@ -97,7 +112,7 @@ test('Firebase Hosting mantiene fallback SPA y cabeceras mínimas', () => {
 })
 
 test('dashboard y demo no dependen de controles decorativos', () => {
-  const app = read('src/App.jsx')
+  const app = readSrc()
 
   assert.equal(app.includes('aria-label="Tema"'), false)
   assert.ok(app.includes('className="topbar-live"'))
@@ -107,7 +122,7 @@ test('dashboard y demo no dependen de controles decorativos', () => {
 })
 
 test('la interfaz no anuncia funcionalidades sociales ficticias', () => {
-  const app = read('src/App.jsx')
+  const app = readSrc()
   assert.equal(app.includes("'Mensajes'"), false)
   assert.equal(app.includes("label === 'Mensajes'"), false)
   assert.equal(app.includes('const trends = ['), false)
@@ -126,7 +141,7 @@ test('el proyecto conserva el disclaimer académico no oficial', () => {
 test('el feed público se pagina en el servidor y no escucha actividad por tarjeta', () => {
   const confessions = read('src/services/confessionService.js')
   const social = read('src/services/socialService.js')
-  const app = read('src/App.jsx')
+  const app = readSrc()
   const indexes = JSON.parse(read('firestore.indexes.json'))
 
   const feed = confessions.slice(confessions.indexOf('export function subscribePublicConfessions'))
@@ -144,4 +159,8 @@ test('el feed público se pagina en el servidor y no escucha actividad por tarje
   assert.ok(!app.includes('subscribeConfessionSocial'))
   assert.ok(social.includes('getCountFromServer'))
   assert.ok(app.includes('IntersectionObserver'))
+
+  // Notificaciones: carga puntual en lugar de hasta 30 listeners permanentes.
+  assert.ok(!app.includes('subscribeSocialNotifications'))
+  assert.ok(social.includes('export async function loadSocialNotifications'))
 })

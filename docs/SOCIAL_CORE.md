@@ -56,7 +56,9 @@ La taxonomía sugerida vive en `src/data/communityTopics.js`, mientras que la ac
 
 La ruta `/notificaciones` deriva actividad real de reacciones y comentarios recibidos en las confesiones propias.
 
-La implementación no requiere exponer el UID del autor de la confesión pública. Las notificaciones se construyen a partir de las confesiones que ya pertenecen a la cuenta autenticada.
+La implementación no requiere exponer el UID del autor de la confesión pública. Las notificaciones se construyen a partir de las 30 confesiones más recientes que ya pertenecen a la cuenta autenticada.
+
+La carga es puntual (al abrir la página, al volver a la pestaña y con el botón «Actualizar»); no se mantienen listeners permanentes por confesión.
 
 ## Colecciones
 

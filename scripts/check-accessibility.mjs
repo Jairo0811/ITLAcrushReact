@@ -7,9 +7,20 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8')
 }
 
+// Concatena todo el código fuente de la interfaz (App, páginas, componentes...).
+function readSrc(dir = 'src') {
+  return fs.readdirSync(path.join(root, dir), { withFileTypes: true })
+    .flatMap((entry) => {
+      const relative = path.join(dir, entry.name)
+      if (entry.isDirectory()) return [readSrc(relative)]
+      return /\.jsx$/.test(entry.name) ? [read(relative)] : []
+    })
+    .join('\n')
+}
+
 const indexHtml = read('index.html')
-const app = read('src/App.jsx')
-const identity = read('src/IdentityShell.jsx')
+const app = readSrc()
+const identity = ['AuthPage', 'PasswordResetPage', 'ProfilePage'].map((page) => read(`src/pages/${page}.jsx`)).join('\n')
 const ui = read('src/components/ui.jsx')
 const appCss = read('src/App.css')
 const identityCss = read('src/identity.css')
