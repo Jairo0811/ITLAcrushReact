@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
+import { NotificationsProvider } from './context/NotificationsContext.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import LegalPage from './LegalPage.jsx'
 import AuthPage from './pages/AuthPage.jsx'
@@ -63,6 +64,7 @@ export default function App() {
   usePageTitle()
 
   return (
+    <NotificationsProvider>
     <Suspense fallback={<PageFallback />}>
       <Routes>
         <Route path="/" element={<RootRedirect />} />
@@ -97,5 +99,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+    </NotificationsProvider>
   )
 }

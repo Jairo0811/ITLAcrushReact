@@ -55,27 +55,37 @@ export default function CreateConfessionPage() {
         ) : (
           <form onSubmit={submit} className="confession-form">
             {error && <div className="auth-message auth-message--error" role="alert">{error}</div>}
-            <label><span>Para…</span><input value={recipient} maxLength="80" onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
-            <fieldset className="topic-selector">
+            <label className="message-field">
+              <span>Tu confesión…</span>
+              <textarea
+                value={message}
+                maxLength="500"
+                rows="6"
+                autoFocus
+                aria-describedby="message-counter"
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="Escribe aquí tu mensaje…"
+              />
+              <small id="message-counter" className={message.length >= 450 ? 'char-counter char-counter--warn' : 'char-counter'}>{message.length}/500</small>
+            </label>
+            <fieldset className="topic-selector topic-selector--chips">
               <legend>Tema <small>(opcional)</small></legend>
-              <p>El tema ayuda a que tu confesión aparezca en las conversaciones de la comunidad.</p>
-              <div className="topic-selector__grid">
+              <div className="topic-chips">
                 {COMMUNITY_TOPICS.map((topic) => (
                   <button
                     type="button"
                     key={topic.tag}
-                    className={selectedTopic === topic.tag ? 'topic-choice topic-choice--active' : 'topic-choice'}
+                    className={selectedTopic === topic.tag ? 'topic-chip topic-chip--active' : 'topic-chip'}
                     aria-pressed={selectedTopic === topic.tag}
+                    title={topic.label}
                     onClick={() => setSelectedTopic((current) => current === topic.tag ? '' : topic.tag)}
                   >
-                    <strong>{topic.tag}</strong>
-                    <small>{topic.label}</small>
+                    {topic.tag}
                   </button>
                 ))}
               </div>
-              {selectedTopic && <small className="topic-selector__selected">Tema seleccionado: {selectedTopic}</small>}
             </fieldset>
-            <label><span>Tu confesión…</span><textarea value={message} maxLength="500" onChange={(event) => setMessage(event.target.value)} placeholder="Escribe aquí tu mensaje…"/><small>{message.length}/500</small></label>
+            <label><span>Para… <small>(opcional)</small></span><input value={recipient} maxLength="80" onChange={(event) => setRecipient(event.target.value)} placeholder="@usuario, carrera, grupo o alguien en ITLA" /></label>
             <fieldset className="choice-group glass-card">
               <legend>Visibilidad</legend>
               <label className={isPublic ? 'choice-option choice-option--active' : 'choice-option'}>

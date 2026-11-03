@@ -84,6 +84,11 @@ vi.mock('../../src/services/trustSafetyService.js', () => ({
   }),
 }))
 
+vi.mock('../../src/services/authService.js', async (importOriginal) => ({
+  ...(await importOriginal()),
+  updateOwnProfile: vi.fn(() => Promise.resolve()),
+}))
+
 vi.mock('../../src/services/adminService.js', () => ({
   ACCOUNT_STATUSES: ['active', 'suspended', 'blocked'],
   ADMIN_ROLES: ['student', 'moderator', 'admin'],
@@ -104,6 +109,7 @@ const { default: App } = await import('../../src/App.jsx')
 const confessionService = await import('../../src/services/confessionService.js')
 const socialService = await import('../../src/services/socialService.js')
 const trustSafety = await import('../../src/services/trustSafetyService.js')
+const authService = await import('../../src/services/authService.js')
 
 function signedOut() {
   mocks.auth = {
@@ -130,6 +136,7 @@ const renderAt = (path) => render(
 
 beforeEach(() => {
   window.localStorage.clear()
+  socialService.loadSocialNotifications.mockImplementation(() => Promise.resolve([]))
   signedOut()
   vi.stubGlobal('scrollTo', () => {})
 })
@@ -425,5 +432,132 @@ describe('fase 1: interfaz de red social', () => {
     expect(password.type).toBe('text')
     expect(screen.getByRole('button', { name: 'Ocultar contraseña' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByPlaceholderText('tu.correo@itla.edu.do')).toBeTruthy()
+  })
+})
+
+describe('fase 2: notificaciones nuevas', () => {
+  const minutesAgo = (minutes) => new Date(Date.now() - minutes * 60 * 1000)
+  const sample = () => [
+    { id: 'n1', confessionId: 'c1', kind: 'comment', actorDisplayName: 'Valeria', text: 'Qué bonito', confessionLabel: 'Biblioteca', createdAt: minutesAgo(1) },
+    { id: 'n2', confessionId: 'c1', kind: 'reaction', actorDisplayName: 'Luis', confessionLabel: 'Biblioteca', createdAt: minutesAgo(2) },
+  ]
+
+  it('la campana cuenta lo nuevo, la página lo resalta y luego se marca como visto', async () => {
+    socialService.loadSocialNotifications.mockImplementation(() => Promise.resolve(sample()))
+    signedIn()
+    renderAt('/app')
+
+    const bells = await screen.findAllByRole('link', { name: /Notificaciones, 2 nuevas/ })
+    fireEvent.click(bells[0])
+
+    expect(await screen.findByText('Hoy')).toBeTruthy()
+    expect(await screen.findAllByText('Nueva')).toHaveLength(2)
+
+    await waitFor(() => expect(screen.queryByText(/2 nuevas/)).toBeNull(), { timeout: 4000 })
+    // Lo que era nuevo sigue resaltado durante esta visita, y queda registrado como visto.
+    expect(screen.getAllByText('Nueva')).toHaveLength(2)
+    expect(window.localStorage.getItem('itla-crush:notifications-seen:u1')).not.toBeNull()
+  })
+
+  it('sin novedades no se muestra ningún contador', async () => {
+    signedIn()
+    renderAt('/app')
+    await screen.findAllByText('Una confesión de prueba')
+    expect(screen.queryByText(/\d nuevas?/)).toBeNull()
+  })
+
+  it('lo ya visto no vuelve a contarse', async () => {
+    window.localStorage.setItem('itla-crush:notifications-seen:u1', String(Date.now()))
+    socialService.loadSocialNotifications.mockImplementation(() => Promise.resolve(sample()))
+    signedIn()
+    renderAt('/app')
+    await waitFor(() => expect(socialService.loadSocialNotifications).toHaveBeenCalled())
+    await screen.findAllByText('Una confesión de prueba')
+    expect(screen.queryByText(/\d nuevas?/)).toBeNull()
+  })
+})
+
+describe('fase 2: perfil', () => {
+  it('muestra estadísticas y oculta datos administrativos a un estudiante', async () => {
+    confessionService.subscribeMyConfessions.mockImplementationOnce((_uid, callback) => {
+      callback([{ ...mocks.confession, id: 'a' }, { ...mocks.confession, id: 'b' }])
+      return mocks.noop
+    })
+    signedIn()
+    renderAt('/perfil')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Yo' })).toBeTruthy()
+    expect(await screen.findByRole('link', { name: '2 Confesiones' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: '0 Guardados' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: '0 Favoritos' })).toBeTruthy()
+    expect(screen.getByText('yo@itla.edu.do')).toBeTruthy()
+    expect(screen.queryByText('Rol')).toBeNull()
+    expect(screen.queryByRole('link', { name: /Cola de moderación/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /Cerrar sesión/ })).toBeTruthy()
+  })
+
+  it('el personal ve su rol y sus herramientas', async () => {
+    signedIn('admin')
+    renderAt('/perfil')
+    expect(await screen.findByText('Administrador')).toBeTruthy()
+    const main = within(screen.getByRole('main'))
+    expect(main.getByRole('link', { name: /Cola de moderación/ })).toBeTruthy()
+    expect(main.getByRole('link', { name: /Administración/ })).toBeTruthy()
+  })
+
+  it('edita el nombre y el tecnólogo y confirma el cambio', async () => {
+    signedIn()
+    renderAt('/perfil')
+    fireEvent.click(await screen.findByRole('button', { name: /Editar perfil/ }))
+
+    fireEvent.change(screen.getByLabelText('Nombre visible'), { target: { value: 'Jairo M.' } })
+    fireEvent.change(screen.getByLabelText('Tecnólogo'), { target: { value: 'multimedia' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    await waitFor(() => expect(authService.updateOwnProfile).toHaveBeenCalledWith('u1', { displayName: 'Jairo M.', program: 'multimedia' }))
+    expect(await screen.findByText('Perfil actualizado.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Guardar cambios' })).toBeNull()
+  })
+
+  it('muestra el error si no se puede guardar y permite cancelar', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    authService.updateOwnProfile.mockRejectedValueOnce(new Error('El nombre debe tener al menos 2 caracteres.'))
+    signedIn()
+    renderAt('/perfil')
+    fireEvent.click(await screen.findByRole('button', { name: /Editar perfil/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain('al menos 2 caracteres')
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('button', { name: 'Guardar cambios' })).toBeNull()
+    consoleError.mockRestore()
+  })
+})
+
+describe('fase 2: crear confesión', () => {
+  it('el mensaje va primero, con foco, y el tema se elige con chips', async () => {
+    signedIn()
+    renderAt('/crear')
+
+    const message = await screen.findByPlaceholderText('Escribe aquí tu mensaje…')
+    const recipient = screen.getByPlaceholderText('@usuario, carrera, grupo o alguien en ITLA')
+    expect(message.compareDocumentPosition(recipient) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(document.activeElement).toBe(message)
+
+    fireEvent.change(message, { target: { value: 'Hola ITLA' } })
+    const chip = screen.getByRole('button', { name: '#Biblioteca' })
+    fireEvent.click(chip)
+    expect(chip.getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: /Publicar Confesión/ }))
+
+    await waitFor(() => expect(confessionService.createConfession)
+      .toHaveBeenCalledWith(expect.objectContaining({ message: 'Hola ITLA', topicTag: '#Biblioteca' })))
+  })
+
+  it('avisa cuando el mensaje se acerca al límite', async () => {
+    signedIn()
+    renderAt('/crear')
+    fireEvent.change(await screen.findByPlaceholderText('Escribe aquí tu mensaje…'), { target: { value: 'a'.repeat(460) } })
+    expect(screen.getByText('460/500').className).toContain('char-counter--warn')
   })
 })

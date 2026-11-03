@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useNotifications } from '../context/NotificationsContext.jsx'
 import { getProgram } from '../data/itlaPrograms.js'
 import { buildCommunityTopics } from '../data/communityTopics.js'
 import { hideConfession, reportConfession, subscribeHiddenConfessionIds } from '../services/trustSafetyService.js'
@@ -8,7 +9,7 @@ import { toggleReaction, toggleSaved } from '../services/socialService.js'
 import AppMobileNav from '../components/AppMobileNav.jsx'
 import AppSidebar from '../components/AppSidebar.jsx'
 import { PublicConfessionCard } from '../components/ConfessionCard.jsx'
-import { Icon, SkipLink } from '../components/ui.jsx'
+import { Icon, NotificationBadge, SkipLink } from '../components/ui.jsx'
 import { useDismissibleFlag } from '../hooks/useDismissibleFlag.js'
 import { usePublicConfessions } from '../hooks/usePublicConfessions.js'
 import { useSocialPreferences } from '../hooks/useSocialPreferences.js'
@@ -20,6 +21,7 @@ export default function FeedPage() {
   const [safetyError, setSafetyError] = useState('')
   const { items: publicConfessions, loading, error, hasMore, loadingMore, loadMore } = usePublicConfessions()
   const { user, profile } = useAuth()
+  const { unreadCount } = useNotifications()
   const { likedIds, savedIds } = useSocialPreferences(user?.uid)
   const location = useLocation()
   const name = profile?.displayName || user?.displayName || 'Estudiante'
@@ -108,7 +110,7 @@ export default function FeedPage() {
             <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar confesiones o #hashtags…" />
           </label>
           <div className="topbar-actions">
-            <Link to="/notificaciones" className="topbar-icon-link" aria-label="Notificaciones"><Icon name="bell" regular /></Link>
+            <Link to="/notificaciones" className="topbar-icon-link"><Icon name="bell" regular /><span className="sr-only">Notificaciones</span><NotificationBadge count={unreadCount} /></Link>
             <Link to="/perfil" className="mini-profile">
               <div className="avatar">{initial}</div>
               <span>

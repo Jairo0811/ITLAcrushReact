@@ -1,9 +1,11 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import { BrandLogo, Icon } from '../components/ui.jsx'
+import { useNotifications } from '../context/NotificationsContext.jsx'
+import { BrandLogo, Icon, NotificationBadge } from '../components/ui.jsx'
 
 export default function AppSidebar() {
   const { profile } = useAuth()
+  const { unreadCount } = useNotifications()
   const items = [
     ['/app', 'house', 'Inicio'],
     ['/mis-confesiones', 'clock-rotate-left', 'Mis Confesiones'],
@@ -27,6 +29,7 @@ export default function AppSidebar() {
             className={({ isActive }) => (isActive ? 'sidebar-link sidebar-link--active' : 'sidebar-link')}
           >
             <span><Icon name={icon} /></span>{label}
+            {to === '/notificaciones' && <NotificationBadge count={unreadCount} />}
           </NavLink>
         ))}
       </nav>

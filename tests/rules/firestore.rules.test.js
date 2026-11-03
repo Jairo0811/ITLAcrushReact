@@ -56,6 +56,7 @@ const {
   updateReportStatus,
 } = await import('../../src/services/trustSafetyService.js')
 const { updateUserAccess } = await import('../../src/services/adminService.js')
+const { updateOwnProfile } = await import('../../src/services/authService.js')
 
 const PROJECT_ID = 'demo-itla-crush'
 let testEnv
@@ -320,6 +321,18 @@ describe('users', () => {
       ['cambiar el correo', { email: 'otro@itla.edu.do' }],
     ])('un estudiante no puede %s', async (_label, changes) => {
       await assertFails(updateDoc(doc(as('alice'), 'users', 'alice'), { ...changes, updatedAt: serverTimestamp() }))
+    })
+
+    it('editar el perfil con el servicio real normaliza el nombre y guarda el tecnólogo', async () => {
+      as('alice')
+      await assertSucceeds(updateOwnProfile('alice', { displayName: '  Alicia   P. ', program: 'multimedia' }))
+      const saved = await seed((db) => getDoc(doc(db, 'users', 'alice')))
+      expect(saved.data()).toMatchObject({ displayName: 'Alicia P.', program: 'multimedia', role: 'student', status: 'active' })
+    })
+
+    it('el servicio no permite editar el perfil de otra persona', async () => {
+      as('bob')
+      await assertFails(updateOwnProfile('alice', { displayName: 'Intruso', program: 'multimedia' }))
     })
 
     it('una cuenta suspendida no puede editar su perfil', async () => {

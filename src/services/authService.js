@@ -10,8 +10,9 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth'
-import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { ITLA_PROGRAM_VALUES } from '../data/itlaPrograms.js'
+import { DISPLAY_NAME_MAX, DISPLAY_NAME_MIN } from '../data/profileRules.js'
 import { requireFirebase } from './firebase'
 
 const TERMS_VERSION = '2026-09-23'
@@ -120,6 +121,32 @@ export async function registerUser({ displayName, email, password, program, acce
   await writeProfile(credential.user, { displayName: name, program, authProvider: 'password', acceptTerms: true })
 
   return credential.user
+}
+
+/**
+ * Actualiza nombre visible y tecnólogo del propio perfil.
+ * Las reglas de Firestore solo permiten cambiar displayName, program y updatedAt, pero no validan
+ * la longitud del nombre, así que se comprueba aquí.
+ */
+export async function updateOwnProfile(uid, { displayName, program }) {
+  const name = String(displayName ?? '').trim().replace(/\s+/g, ' ')
+  if (name.length < DISPLAY_NAME_MIN) throw new Error(`El nombre debe tener al menos ${DISPLAY_NAME_MIN} caracteres.`)
+  if (name.length > DISPLAY_NAME_MAX) throw new Error(`El nombre no puede superar los ${DISPLAY_NAME_MAX} caracteres.`)
+  if (!ITLA_PROGRAM_VALUES.includes(program)) throw new Error('Selecciona tu tecnólogo.')
+
+  const { auth, db } = requireFirebase()
+  await updateDoc(doc(db, 'users', uid), { displayName: name, program, updatedAt: serverTimestamp() })
+
+  // Mantiene sincronizado el nombre de Firebase Authentication; si falla, el perfil ya quedó guardado.
+  if (auth?.currentUser?.uid === uid) {
+    try {
+      await updateProfile(auth.currentUser, { displayName: name })
+    } catch (authError) {
+      console.error('No se pudo actualizar el nombre en Authentication.', authError)
+    }
+  }
+
+  return { displayName: name, program }
 }
 
 export async function loginUser({ email, password }) {
