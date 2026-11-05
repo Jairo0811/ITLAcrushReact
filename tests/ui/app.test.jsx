@@ -561,3 +561,59 @@ describe('fase 2: crear confesión', () => {
     expect(screen.getByText('460/500').className).toContain('char-counter--warn')
   })
 })
+
+describe('fase 3: filtros, tendencias y primeros pasos', () => {
+  const feedItems = () => ([
+    { ...mocks.confession, id: 'p1', text: 'Texto de ciber', isAnonymous: false, authorDisplayName: 'Ana', authorProgram: 'ciberseguridad', tags: ['#Biblioteca'] },
+    { ...mocks.confession, id: 'p2', text: 'Texto de sonido', isAnonymous: false, authorDisplayName: 'Beto', authorProgram: 'sonido', tags: ['#VidaITLA'] },
+    { ...mocks.confession, id: 'p3', text: 'Texto anónimo', tags: ['#Biblioteca'] },
+  ])
+  const withFeed = () => confessionService.subscribePublicConfessions
+    .mockImplementationOnce((callback) => { callback(feedItems()); return mocks.noop })
+
+  it('filtra por tecnólogo y se puede quitar el filtro', async () => {
+    signedIn()
+    withFeed()
+    renderAt('/app')
+    await screen.findByText('Texto de ciber')
+
+    const group = screen.getByRole('group', { name: 'Filtrar por tecnólogo' })
+    fireEvent.click(within(group).getByRole('button', { name: /Sonido/ }))
+    expect(screen.queryByText('Texto de ciber')).toBeNull()
+    expect(screen.getByText('Texto de sonido')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar filtros' }))
+    expect(await screen.findByText('Texto de ciber')).toBeTruthy()
+  })
+
+  it('Tendencias lista los temas y al elegir uno vuelve al feed filtrado', async () => {
+    signedIn()
+    withFeed()
+    renderAt('/app')
+    await screen.findByText('Texto de ciber')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tendencias' }))
+    const panel = screen.getByRole('region', { name: 'Tendencias' })
+    fireEvent.click(within(panel).getByRole('button', { name: /#Biblioteca/ }))
+
+    expect(screen.queryByRole('region', { name: 'Tendencias' })).toBeNull()
+    expect(screen.getByText('Texto de ciber')).toBeTruthy()
+    expect(screen.queryByText('Texto de sonido')).toBeNull()
+  })
+
+  it('los primeros pasos piden el tecnólogo cuando falta y lo marcan hecho cuando existe', async () => {
+    signedIn()
+    mocks.auth.profile = { ...mocks.auth.profile, program: '' }
+    renderAt('/app')
+    let region = await screen.findByRole('region', { name: 'Bienvenida' })
+    expect(within(region).getByRole('link', { name: 'Elige tu tecnólogo en tu perfil' })).toBeTruthy()
+    expect(within(region).getByRole('link', { name: /Lee las normas/ })).toBeTruthy()
+
+    cleanup()
+    signedIn()
+    renderAt('/app')
+    region = await screen.findByRole('region', { name: 'Bienvenida' })
+    expect(within(region).queryByRole('link', { name: 'Elige tu tecnólogo en tu perfil' })).toBeNull()
+    expect(within(region).getByText(/Tecnólogo elegido: Desarrollo de Software/)).toBeTruthy()
+  })
+})

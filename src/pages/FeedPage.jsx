@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useNotifications } from '../context/NotificationsContext.jsx'
 import { getProgram } from '../data/itlaPrograms.js'
+import { buildProgramFilters, buildTrendingTopics, filterConfessions, TRENDING_WINDOW_DAYS } from '../utils/feedFilters.js'
 import { buildCommunityTopics } from '../data/communityTopics.js'
 import { hideConfession, reportConfession, subscribeHiddenConfessionIds } from '../services/trustSafetyService.js'
 import { toggleReaction, toggleSaved } from '../services/socialService.js'
@@ -17,6 +18,8 @@ import { useSocialPreferences } from '../hooks/useSocialPreferences.js'
 export default function FeedPage() {
   const [searchText, setSearchText] = useState('')
   const [selectedTopic, setSelectedTopic] = useState('')
+  const [selectedProgram, setSelectedProgram] = useState('')
+  const [tab, setTab] = useState('recent')
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
   const [safetyError, setSafetyError] = useState('')
   const { items: publicConfessions, loading, error, hasMore, loadingMore, loadMore } = usePublicConfessions()
@@ -27,7 +30,7 @@ export default function FeedPage() {
   const name = profile?.displayName || user?.displayName || 'Estudiante'
   const initial = name.charAt(0).toUpperCase()
   const programInfo = getProgram(profile?.program)
-  const hasFeedFilters = Boolean(searchText.trim() || selectedTopic)
+  const hasFeedFilters = Boolean(searchText.trim() || selectedTopic || selectedProgram)
   const [welcomeDismissed, dismissWelcome] = useDismissibleFlag('itla-crush:welcome-dismissed')
 
   useEffect(() => {
@@ -44,23 +47,25 @@ export default function FeedPage() {
     [publicConfessions],
   )
 
-  const visibleConfessions = useMemo(() => {
-    const normalized = searchText.trim().toLocaleLowerCase('es')
-    const normalizedTopic = selectedTopic.toLocaleLowerCase('es')
-    const available = publicConfessions.filter((item) => !hiddenIds.has(item.id))
+  const programFilters = useMemo(() => buildProgramFilters(publicConfessions), [publicConfessions])
+  const trending = useMemo(() => buildTrendingTopics(publicConfessions), [publicConfessions])
+  const selectedProgramInfo = getProgram(selectedProgram)
 
-    return available.filter((item) => {
-      const matchesTopic = !normalizedTopic
-        || (item.tags ?? []).some((tag) => tag.toLocaleLowerCase('es') === normalizedTopic)
+  const visibleConfessions = useMemo(
+    () => filterConfessions(publicConfessions, { hiddenIds, searchText, topic: selectedTopic, program: selectedProgram }),
+    [hiddenIds, publicConfessions, searchText, selectedTopic, selectedProgram],
+  )
 
-      if (!matchesTopic) return false
-      if (!normalized) return true
+  const chooseTopic = (topic) => {
+    setSelectedTopic(topic)
+    setTab('recent')
+  }
 
-      return `${item.text} ${item.recipientText || ''} ${(item.tags ?? []).join(' ')}`
-        .toLocaleLowerCase('es')
-        .includes(normalized)
-    })
-  }, [hiddenIds, publicConfessions, searchText, selectedTopic])
+  const clearFilters = () => {
+    setSearchText('')
+    setSelectedTopic('')
+    setSelectedProgram('')
+  }
 
   useEffect(() => {
     const confessionId = new URLSearchParams(location.search).get('confession')
@@ -136,6 +141,14 @@ export default function FeedPage() {
                     <span><Icon name="user-shield" /> Privacidad por publicación</span>
                     {programInfo && <span style={{ '--program-color': programInfo.color }}><Icon name="graduation-cap" /> {programInfo.label}</span>}
                   </div>
+                  <ol className="onboarding-steps" aria-label="Primeros pasos">
+                    <li className={programInfo ? 'onboarding-steps__item onboarding-steps__item--done' : 'onboarding-steps__item'}>
+                      <Icon name={programInfo ? 'circle-check' : 'graduation-cap'} />
+                      {programInfo ? <span>Tecnólogo elegido: {programInfo.label}</span> : <Link to="/perfil">Elige tu tecnólogo en tu perfil</Link>}
+                    </li>
+                    <li className="onboarding-steps__item"><Icon name="user-shield" /><Link to="/normas">Lee las normas de la comunidad</Link></li>
+                    <li className="onboarding-steps__item"><Icon name="heart" /><Link to="/crear">Publica tu primera confesión</Link></li>
+                  </ol>
                 </div>
               </section>
             )}
@@ -146,16 +159,67 @@ export default function FeedPage() {
               <span className="button button--primary">Publicar</span>
             </Link>
 
-            <div className="feed-tabs"><h2 className="feed-tabs__label">Más recientes</h2></div>
-            {selectedTopic && (
+            <div className="feed-tabs" role="group" aria-label="Orden del feed">
+              <button type="button" className={tab === 'recent' ? 'active' : ''} aria-pressed={tab === 'recent'} onClick={() => setTab('recent')}>Más recientes</button>
+              <button type="button" className={tab === 'trending' ? 'active' : ''} aria-pressed={tab === 'trending'} onClick={() => setTab('trending')}>Tendencias</button>
+            </div>
+            {tab === 'recent' && programFilters.length > 0 && (
+              <div className="program-filter" role="group" aria-label="Filtrar por tecnólogo">
+                <button type="button" className={!selectedProgram ? 'program-chip program-chip--active' : 'program-chip'} aria-pressed={!selectedProgram} onClick={() => setSelectedProgram('')}>Todos</button>
+                {programFilters.map((entry) => (
+                  <button
+                    type="button"
+                    key={entry.value}
+                    className={selectedProgram === entry.value ? 'program-chip program-chip--active' : 'program-chip'}
+                    style={{ '--program-color': entry.color }}
+                    aria-pressed={selectedProgram === entry.value}
+                    onClick={() => setSelectedProgram(selectedProgram === entry.value ? '' : entry.value)}
+                  >
+                    {entry.label} <small>{entry.count}</small>
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === 'recent' && (selectedTopic || selectedProgram) && (
               <div className="active-topic-filter" role="status">
-                <span>Mostrando tema <strong>{selectedTopic}</strong></span>
-                <button type="button" onClick={() => setSelectedTopic('')} aria-label={`Quitar filtro ${selectedTopic}`}>
+                <span>
+                  Mostrando
+                  {selectedTopic && <> tema <strong>{selectedTopic}</strong></>}
+                  {selectedTopic && selectedProgram && ' en'}
+                  {selectedProgramInfo && <> <strong>{selectedProgramInfo.label}</strong></>}
+                </span>
+                <button type="button" onClick={() => { setSelectedTopic(''); setSelectedProgram('') }} aria-label="Quitar filtros">
                   <Icon name="xmark" /> Quitar filtro
                 </button>
               </div>
             )}
-            <div className="feed-list">
+            {tab === 'trending' && (
+              <section className="glass-card trending-panel" aria-label="Tendencias">
+                <h2>Temas del momento</h2>
+                <p>{trending.usedWindow ? `Hashtags más usados en los últimos ${TRENDING_WINDOW_DAYS} días.` : 'Todavía hay pocas publicaciones recientes; mostramos los hashtags más usados.'}</p>
+                {trending.topics.length === 0 ? (
+                  <div className="topics-empty">
+                    <Icon name="hashtag" />
+                    <p>Aún no hay temas en tendencia.</p>
+                    <Link to="/crear">Crear una confesión con tema <Icon name="arrow-right" /></Link>
+                  </div>
+                ) : (
+                  <ol className="trending-list">
+                    {trending.topics.map((topic, index) => (
+                      <li key={topic.tag}>
+                        <button type="button" className="trend-row" onClick={() => chooseTopic(topic.tag)}>
+                          <b>{index + 1}</b>
+                          <span><strong>{topic.tag}</strong><small>{topic.description}</small></span>
+                          <em>{topic.count}</em>
+                          <span className="sr-only"> publicaciones. Ver publicaciones de este tema</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            )}
+            <div className="feed-list" hidden={tab === 'trending'}>
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
               {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Cargando confesiones…</div>}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
@@ -164,10 +228,10 @@ export default function FeedPage() {
                   <span className="empty-state__icon"><Icon name={hasFeedFilters ? 'magnifying-glass' : 'comment-dots'} regular /></span>
                   <div>
                     <strong>{hasFeedFilters ? 'No encontramos coincidencias' : 'Todavía no hay confesiones públicas'}</strong>
-                    <p>{selectedTopic ? `No hay publicaciones visibles en ${selectedTopic}.` : searchText.trim() ? 'Prueba con otro texto o hashtag.' : 'La comunidad se verá aquí cuando llegue la primera publicación.'}</p>
+                    <p>{selectedTopic || selectedProgram ? 'No hay publicaciones visibles con esos filtros. Las anónimas no muestran tecnólogo.' : searchText.trim() ? 'Prueba con otro texto o hashtag.' : 'La comunidad se verá aquí cuando llegue la primera publicación.'}</p>
                   </div>
                   {hasFeedFilters
-                    ? <button type="button" className="button button--soft" onClick={() => { setSearchText(''); setSelectedTopic('') }}>Limpiar filtros</button>
+                    ? <button type="button" className="button button--soft" onClick={clearFilters}>Limpiar filtros</button>
                     : <Link className="button button--primary" to="/crear">Publicar la primera</Link>}
                 </div>
               )}
@@ -182,7 +246,7 @@ export default function FeedPage() {
                   onToggleSave={handleToggleSave}
                   onHide={handleHide}
                   onReport={handleReport}
-                  onSelectTag={setSelectedTopic}
+                  onSelectTag={chooseTopic}
                 />
               ))}
               {hasMore && (
@@ -209,7 +273,7 @@ export default function FeedPage() {
                     type="button"
                     className={selectedTopic.toLocaleLowerCase('es') === topic.tag.toLocaleLowerCase('es') ? 'trend-row trend-row--active' : 'trend-row'}
                     key={topic.tag}
-                    onClick={() => setSelectedTopic(topic.tag)}
+                    onClick={() => chooseTopic(topic.tag)}
                     aria-pressed={selectedTopic.toLocaleLowerCase('es') === topic.tag.toLocaleLowerCase('es')}
                   >
                     <b>{index + 1}</b>

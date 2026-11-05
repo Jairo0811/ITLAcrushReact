@@ -4005,3 +4005,31 @@ button:disabled {
 .topic-chip:hover,
 .topic-chip:focus-visible { border-color: #ff2f92; }
 .topic-chip--active { background: rgba(255, 47, 146, .2); border-color: #ff2f92; color: #fff; }
+
+/* Fase 3: filtros, tendencias y primeros pasos */
+.feed-list[hidden] { display: none; }
+.feed-tabs button { min-height: 44px; }
+.program-filter {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 10px;
+  scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+}
+.program-chip {
+  flex: none; min-height: 44px; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--program-color, #8b5cf6) 55%, transparent);
+  background: rgba(255, 255, 255, .04); color: #e9dcf3; font: inherit; font-size: .88rem; white-space: nowrap;
+}
+.program-chip small { opacity: .75; margin-left: 4px; }
+.program-chip--active {
+  background: color-mix(in srgb, var(--program-color, #ff2f92) 35%, #12081a);
+  border-color: var(--program-color, #ff2f92); color: #fff; font-weight: 700;
+}
+.program-chip:focus-visible, .feed-tabs button:focus-visible { outline: 2px solid #ff78bd; outline-offset: 2px; }
+.trending-panel { padding: 20px; display: grid; gap: 10px; }
+.trending-panel h2 { margin: 0; font-size: 1.2rem; }
+.trending-panel > p { margin: 0 0 4px; color: #b9a6c6; }
+.trending-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.trending-list .trend-row { width: 100%; min-height: 56px; }
+.onboarding-steps { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 4px; }
+.onboarding-steps__item { display: flex; align-items: center; gap: 10px; min-height: 44px; color: #e9dcf3; }
+.onboarding-steps__item a { color: #ff78bd; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.onboarding-steps__item--done { color: #7be0a8; }
