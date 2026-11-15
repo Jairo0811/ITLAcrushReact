@@ -59,4 +59,14 @@ La colección privada `postRateLimits/{uid}` registra la última publicación ac
 
 Por defecto se permite una nueva confesión cada **30 segundos por cuenta**. El cliente muestra el tiempo restante cuando conoce la última publicación, pero la decisión definitiva se aplica en Firestore: manipular el navegador no permite saltarla. Esta defensa ayuda contra automatización básica y no sustituye protección por IP, App Check, filtro de contenido ni la revisión manual de reportes. **No elimina las publicaciones anónimas ni revela su identidad.**
 
-La limitación de comentarios, protección por IP y detección de texto abusivo requieren una política de moderación validada y, para controles robustos, un backend de confianza. No se debe confiar en filtros exclusivamente del navegador como protección de producción.
+El control de frecuencia no equivale a un análisis de contenido: protección por IP, App Check, filtros de texto abusivo y la revisión de apelaciones exigen una política definida y, en algunos casos, un backend confiable. No se debe confiar en filtros exclusivamente del navegador como protección de producción.
+
+## Protección contra spam en comentarios (15 segundos)
+
+Cada cuenta puede publicar un comentario cada **15 segundos**. El documento privado `commentRateLimits/{uid}` registra el ID del último comentario y la hora del servidor. El comentario, su registro privado de autoría y el límite se guardan en un único `writeBatch`.
+
+Las reglas exigen que el contador esté vinculado al comentario recién creado, rechazan escrituras consecutivas prematuras, prohíben borrar o manipular el registro y evitan que otros usuarios lo consulten. El servicio muestra el tiempo restante. Esta medida no inspecciona el contenido ni reemplaza revisión humana de reportes.
+
+## Eliminación de comentarios y protección de lectura
+
+Los comentarios `deleted` (retirados por su autor) y `removed` (moderados) no deben ser legibles desde clientes públicos o por el autor de la confesión. Se conservan para trazabilidad interna; únicamente el **autor del comentario** y los roles de moderación pueden leerlos. Las consultas públicas de comentarios, notificaciones y contadores exigen `status == 'active'` desde Firestore, no se limitan a filtrar resultados en el navegador. Incluye índices compuestos para que las consultas funcionen en el servicio real.

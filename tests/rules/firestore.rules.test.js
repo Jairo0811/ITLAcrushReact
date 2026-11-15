@@ -237,6 +237,9 @@ function rawComment(uid, confessionId, { activity = {}, author = {}, skipAuthor 
       authorUid: uid, confessionId, createdAt: serverTimestamp(), ...author,
     })
   }
+  batch.set(doc(db, 'commentRateLimits', uid), {
+    commentId: ref.id, lastCreatedAt: serverTimestamp(),
+  })
   return batch.commit()
 }
 
@@ -689,6 +692,39 @@ describe('comentarios', () => {
     expect(saved.data()).toMatchObject({ kind: 'comment', text: 'Qué bonito', actorDisplayName: 'Usuario bob' })
   })
 
+  it('limita comentarios consecutivos durante 15 segundos desde las reglas', async () => {
+    as('bob')
+    const first = await assertSucceeds(addComment({
+      confessionId: 'pub', ...actor('bob'), text: 'Primer comentario',
+    }))
+    const rate = await seed((db) => getDoc(doc(db, 'commentRateLimits', 'bob')))
+    expect(rate.data().commentId).toBe(first)
+
+    await expect(addComment({
+      confessionId: 'pub', ...actor('bob'), text: 'Comentario inmediato',
+    })).rejects.toThrow(/Espera \d+ segundos/)
+    // También se rechazan escrituras directas que omitan el límite cliente.
+    await assertFails(rawComment('bob', 'pub'))
+
+    await seed((db) => updateDoc(doc(db, 'commentRateLimits', 'bob'), {
+      lastCreatedAt: Timestamp.fromMillis(Date.now() - 16_000),
+    }))
+    await assertSucceeds(addComment({
+      confessionId: 'pub', ...actor('bob'), text: 'Comentario permitido',
+    }))
+  })
+
+  it('impide alterar o borrar el contador y leer el de otra cuenta', async () => {
+    const asBob = as('bob')
+    await assertFails(setDoc(doc(asBob, 'commentRateLimits', 'bob'), {
+      commentId: 'inexistente', lastCreatedAt: serverTimestamp(),
+    }))
+    await assertFails(getDoc(doc(as('carol'), 'commentRateLimits', 'bob')))
+    await assertFails(getDocs(collection(as('carol'), 'commentRateLimits')))
+    await assertSucceeds(rawComment('bob', 'pub'))
+    await assertFails(deleteDoc(doc(as('bob'), 'commentRateLimits', 'bob')))
+  })
+
   it('control positivo: un comentario directo válido se acepta', async () => {
     await assertSucceeds(rawComment('bob', 'pub'))
   })
@@ -755,6 +791,27 @@ describe('contadores, comentarios y notificaciones (consultas del feed)', () => 
     await assertFails(getConfessionSocialCounts('priv'))
     as('alice')
     expect(await assertSucceeds(getConfessionSocialCounts('priv'))).toEqual({ likeCount: 0, commentCount: 1 })
+  })
+
+  it('impide leer comentarios eliminados o moderados a terceros, incluso al dueño de la confesión', async () => {
+    await assertFails(getDoc(doc(as(null), 'socialActivity', 'cm2')))
+    await assertFails(getDoc(doc(as('alice'), 'socialActivity', 'cm2')))
+    await assertFails(getDoc(doc(as('bob'), 'socialActivity', 'cm2')))
+    await assertSucceeds(getDoc(doc(as('carol'), 'socialActivity', 'cm2')))
+    await assertSucceeds(getDoc(doc(as('mod'), 'socialActivity', 'cm2')))
+
+    await seed((db) => updateDoc(doc(db, 'socialActivity', 'cm1'), { status: 'removed' }))
+    await assertFails(getDoc(doc(as(null), 'socialActivity', 'cm1')))
+    await assertFails(getDoc(doc(as('alice'), 'socialActivity', 'cm1')))
+    await assertSucceeds(getDoc(doc(as('bob'), 'socialActivity', 'cm1')))
+  })
+
+  it('prohíbe listas públicas de comentarios sin filtrar estado', async () => {
+    await assertFails(getDocs(query(
+      collection(as(null), 'socialActivity'),
+      where('confessionId', '==', 'pub'),
+      where('kind', '==', 'comment'),
+    )))
   })
 
   it('el panel de comentarios solo recibe los activos', async () => {
