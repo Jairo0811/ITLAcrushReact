@@ -52,3 +52,11 @@ Los roles de moderación no se pueden autoasignar desde el cliente. Deben aprovi
 ## Fuera de alcance
 
 La suspensión administrativa de cuentas, apelaciones, auditoría inmutable y automatización de moderación quedan para una etapa de hardening/backend confiable.
+
+## Protección contra publicaciones automatizadas (30 segundos)
+
+La colección privada `postRateLimits/{uid}` registra la última publicación aceptada. El servicio `createConfession` escribe la confesión, su autoría privada y el límite de frecuencia dentro del mismo `writeBatch`. Las reglas exigen que el registro de frecuencia pertenezca al autor y esté asociado a **la confesión creada en esa misma transacción**, con hora de servidor. No permiten su eliminación, su modificación arbitraria ni la lectura por otros estudiantes.
+
+Por defecto se permite una nueva confesión cada **30 segundos por cuenta**. El cliente muestra el tiempo restante cuando conoce la última publicación, pero la decisión definitiva se aplica en Firestore: manipular el navegador no permite saltarla. Esta defensa ayuda contra automatización básica y no sustituye protección por IP, App Check, filtro de contenido ni la revisión manual de reportes. **No elimina las publicaciones anónimas ni revela su identidad.**
+
+La limitación de comentarios, protección por IP y detección de texto abusivo requieren una política de moderación validada y, para controles robustos, un backend de confianza. No se debe confiar en filtros exclusivamente del navegador como protección de producción.
