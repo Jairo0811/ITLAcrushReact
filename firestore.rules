@@ -302,6 +302,35 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    function validCommentRate(uid, commentId) {
+      return getAfter(/databases/$(database)/documents/commentRateLimits/$(uid)).data.commentId == commentId
+        && getAfter(/databases/$(database)/documents/commentRateLimits/$(uid)).data.lastCreatedAt == request.time;
+    }
+
+    function validCommentRateWrite(uid) {
+      return isActiveUser()
+        && isOwner(uid)
+        && request.resource.data.keys().hasOnly(['commentId', 'lastCreatedAt'])
+        && request.resource.data.keys().hasAll(['commentId', 'lastCreatedAt'])
+        && request.resource.data.commentId is string
+        && request.resource.data.lastCreatedAt == request.time
+        && getAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.commentId)).data.kind == 'comment'
+        && getAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.commentId)).data.status == 'active'
+        && getAfter(/databases/$(database)/documents/socialActivity/$(request.resource.data.commentId)).data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/commentAuthors/$(request.resource.data.commentId)).data.authorUid == uid;
+    }
+
+    match /commentRateLimits/{uid} {
+      // El cliente solo puede leer su propio contador y nunca eliminarlo.
+      allow get: if isActiveUser() && isOwner(uid);
+      allow list: if false;
+      allow create: if validCommentRateWrite(uid);
+      allow update: if validCommentRateWrite(uid)
+        && request.resource.data.commentId != resource.data.commentId
+        && resource.data.lastCreatedAt <= request.time - duration.value(15, 's');
+      allow delete: if false;
+    }
+
     match /socialActivity/{activityId} {
       allow create: if isActiveUser()
         && request.resource.data.confessionId is string
@@ -337,6 +366,7 @@ service cloud.firestore {
             && request.resource.data.text.size() <= 280
             && existsAfter(/databases/$(database)/documents/commentAuthors/$(activityId))
             && getAfter(/databases/$(database)/documents/commentAuthors/$(activityId)).data.authorUid == request.auth.uid
+            && validCommentRate(request.auth.uid, activityId)
           )
         );
 

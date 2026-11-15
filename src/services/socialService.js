@@ -18,6 +18,7 @@ import {
 import { requireFirebase } from './firebase'
 
 export const MAX_COMMENT_LENGTH = 280
+export const COMMENT_COOLDOWN_SECONDS = 15
 
 function mapTimestamp(data, field) {
   return data[field]?.toDate?.() ?? null
@@ -157,6 +158,15 @@ export async function addComment({ confessionId, user, profile, text }) {
   const { db } = requireFirebase()
   const activityRef = doc(collection(db, 'socialActivity'))
   const authorRef = doc(db, 'commentAuthors', activityRef.id)
+  const rateRef = doc(db, 'commentRateLimits', user.uid)
+  const rateSnapshot = await getDoc(rateRef)
+  if (rateSnapshot.exists()) {
+    const lastCreatedAt = rateSnapshot.data().lastCreatedAt?.toMillis?.()
+    if (typeof lastCreatedAt === 'number') {
+      const remaining = COMMENT_COOLDOWN_SECONDS - (Date.now() - lastCreatedAt) / 1000
+      if (remaining > 0) throw new Error(`Espera ${Math.ceil(remaining)} segundos antes de comentar de nuevo.`)
+    }
+  }
   const batch = writeBatch(db)
 
   batch.set(activityRef, {
@@ -173,6 +183,10 @@ export async function addComment({ confessionId, user, profile, text }) {
     authorUid: user.uid,
     confessionId,
     createdAt: serverTimestamp(),
+  })
+  batch.set(rateRef, {
+    commentId: activityRef.id,
+    lastCreatedAt: serverTimestamp(),
   })
 
   await batch.commit()
