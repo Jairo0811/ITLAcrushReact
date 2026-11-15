@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import { Icon } from './ui.jsx'
+import { useNotifications } from '../context/NotificationsContext.jsx'
+import { Icon, NotificationBadge } from './ui.jsx'
 
 /**
  * Barra de navegación inferior para móvil (≤ 820px, el CSS la oculta en escritorio).
@@ -8,6 +9,7 @@ import { Icon } from './ui.jsx'
  */
 export default function AppMobileNav() {
   const { profile } = useAuth()
+  const { unreadCount } = useNotifications()
 
   // Quinto destino contextual: el personal interno ve su panel; el resto, Guardados.
   const contextual = profile?.role === 'admin'
@@ -30,6 +32,7 @@ export default function AppMobileNav() {
         <NavLink key={item.to} to={item.to} end={item.end} className={item.className}>
           <Icon name={item.icon} regular={item.regular} />
           <small>{item.label}</small>
+          {item.to === '/notificaciones' && <NotificationBadge count={unreadCount} />}
         </NavLink>
       ))}
     </nav>

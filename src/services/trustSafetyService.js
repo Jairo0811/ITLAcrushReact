@@ -24,6 +24,13 @@ export const REPORT_REASONS = [
   { value: 'other', label: 'Otro motivo' },
 ]
 
+export const REPORT_STATUS_LABELS = {
+  open: 'Abierto',
+  reviewing: 'En revisión',
+  resolved: 'Resuelto',
+  dismissed: 'Descartado',
+}
+
 const REPORT_REASON_VALUES = REPORT_REASONS.map((reason) => reason.value)
 
 export async function reportConfession({ confessionId, reporterUid, reason, details = '' }) {
@@ -81,21 +88,29 @@ export function subscribeModerationReports(callback, onError) {
     limit(100),
   )
 
+  // Cada cambio de estado de un reporte vuelve a disparar el snapshot; la caché evita releer
+  // las confesiones ya cargadas en esta sesión de moderación.
+  const confessionCache = new Map()
+
   return onSnapshot(
     reportsQuery,
     async (snapshot) => {
       try {
         const reports = await Promise.all(snapshot.docs.map(async (item) => {
           const data = item.data()
-          const confessionSnapshot = await getDoc(doc(db, 'confessions', data.confessionId))
+          if (!confessionCache.has(data.confessionId)) {
+            const confessionSnapshot = await getDoc(doc(db, 'confessions', data.confessionId))
+            confessionCache.set(
+              data.confessionId,
+              confessionSnapshot.exists() ? { id: confessionSnapshot.id, ...confessionSnapshot.data() } : null,
+            )
+          }
           return {
             id: item.id,
             ...data,
             createdAt: data.createdAt?.toDate?.() ?? null,
             updatedAt: data.updatedAt?.toDate?.() ?? null,
-            confession: confessionSnapshot.exists()
-              ? { id: confessionSnapshot.id, ...confessionSnapshot.data() }
-              : null,
+            confession: confessionCache.get(data.confessionId),
           }
         }))
         callback(reports)
@@ -119,9 +134,13 @@ export async function updateReportStatus(reportId, status) {
   })
 }
 
-export async function moderateConfession({ confessionId, moderatorUid, action, note = '' }) {
+export async function moderateConfession({ confessionId, moderatorUid, action, note = '', report = null }) {
   if (!['active', 'under_review', 'removed'].includes(action)) {
     throw new Error('Acción de moderación no válida.')
+  }
+
+  if (report && !['open', 'reviewing', 'resolved', 'dismissed'].includes(report.status)) {
+    throw new Error('Estado de reporte no válido.')
   }
 
   const normalizedNote = note.trim()
@@ -141,5 +160,12 @@ export async function moderateConfession({ confessionId, moderatorUid, action, n
     moderatedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   }, { merge: true })
+  // El reporte se actualiza en el mismo batch para que nunca queden estados inconsistentes.
+  if (report) {
+    batch.update(doc(db, 'reports', report.id), {
+      status: report.status,
+      updatedAt: serverTimestamp(),
+    })
+  }
   await batch.commit()
 }

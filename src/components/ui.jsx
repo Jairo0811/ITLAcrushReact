@@ -21,3 +21,14 @@ export function Icon({ name, regular = false, className = '' }) {
 export function SkipLink() {
   return <a className="skip-link" href="#main-content">Saltar al contenido principal</a>
 }
+
+/** Contador de notificaciones nuevas. No muestra nada cuando es 0. */
+export function NotificationBadge({ count }) {
+  if (!count) return null
+  return (
+    <>
+      <span className="notification-badge" aria-hidden="true">{count > 9 ? '9+' : count}</span>
+      <span className="sr-only">, {count} {count === 1 ? 'nueva' : 'nuevas'}</span>
+    </>
+  )
+}

@@ -2,8 +2,12 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
   getDoc,
+  getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -45,25 +49,48 @@ function savedId(uid, confessionId) {
   return `${uid}_${confessionId}`
 }
 
-export function subscribeConfessionSocial(confessionId, callback, onError) {
+/**
+ * Contadores de una publicación mediante consultas count() (1 lectura facturable por cada
+ * 1000 entradas de índice), en lugar de descargar y escuchar todos los documentos de actividad.
+ * Solo usa filtros de igualdad, que Firestore resuelve con los índices de campo único.
+ */
+export async function getConfessionSocialCounts(confessionId) {
   const { db } = requireFirebase()
-  const activityQuery = query(
+  const activity = collection(db, 'socialActivity')
+  const [reactions, comments] = await Promise.all([
+    getCountFromServer(query(
+      activity,
+      where('confessionId', '==', confessionId),
+      where('kind', '==', 'reaction'),
+    )),
+    getCountFromServer(query(
+      activity,
+      where('confessionId', '==', confessionId),
+      where('kind', '==', 'comment'),
+      where('status', '==', 'active'),
+    )),
+  ])
+
+  return {
+    likeCount: reactions.data().count,
+    commentCount: comments.data().count,
+  }
+}
+
+/** Escucha solo los comentarios de una publicación; se usa únicamente con el panel abierto. */
+export function subscribeConfessionComments(confessionId, callback, onError) {
+  const { db } = requireFirebase()
+  const commentsQuery = query(
     collection(db, 'socialActivity'),
     where('confessionId', '==', confessionId),
+    where('kind', '==', 'comment'),
   )
 
   return onSnapshot(
-    activityQuery,
-    (snapshot) => {
-      const activities = snapshot.docs
-        .map(mapActivity)
-        .filter((item) => item.status === 'active')
-
-      callback({
-        likeCount: activities.filter((item) => item.kind === 'reaction').length,
-        comments: sortByCreatedDesc(activities.filter((item) => item.kind === 'comment')),
-      })
-    },
+    commentsQuery,
+    (snapshot) => callback(
+      sortByCreatedDesc(snapshot.docs.map(mapActivity).filter((item) => item.status === 'active')),
+    ),
     onError,
   )
 }
@@ -194,24 +221,32 @@ export async function toggleSaved({ uid, confessionId }) {
   return true
 }
 
-async function resolveConfessionsFromRefs(refSnapshots, callback, onError) {
+async function resolveConfessionsFromRefs(refSnapshots, cache, callback, onError) {
   try {
     const { db } = requireFirebase()
-    const resolved = await Promise.all(
-      refSnapshots.map(async (reference) => {
-        const data = reference.data()
-        const confessionSnapshot = await getDoc(doc(db, 'confessions', data.confessionId))
-        if (!confessionSnapshot.exists()) return null
-        const confession = confessionSnapshot.data()
-        return {
-          id: confessionSnapshot.id,
-          ...confession,
-          createdAt: mapTimestamp(confession, 'createdAt'),
-          updatedAt: mapTimestamp(confession, 'updatedAt'),
-          socialSavedAt: mapTimestamp(data, 'createdAt'),
-        }
-      }),
+    // Solo se leen las confesiones que esta suscripción todavía no ha resuelto.
+    await Promise.all(
+      refSnapshots
+        .map((reference) => reference.data().confessionId)
+        .filter((confessionId) => !cache.has(confessionId))
+        .map(async (confessionId) => {
+          const confessionSnapshot = await getDoc(doc(db, 'confessions', confessionId))
+          cache.set(confessionId, confessionSnapshot.exists()
+            ? {
+              id: confessionSnapshot.id,
+              ...confessionSnapshot.data(),
+              createdAt: mapTimestamp(confessionSnapshot.data(), 'createdAt'),
+              updatedAt: mapTimestamp(confessionSnapshot.data(), 'updatedAt'),
+            }
+            : null)
+        }),
     )
+
+    const resolved = refSnapshots.map((reference) => {
+      const data = reference.data()
+      const confession = cache.get(data.confessionId)
+      return confession ? { ...confession, socialSavedAt: mapTimestamp(data, 'createdAt') } : null
+    })
 
     callback(
       resolved
@@ -235,9 +270,11 @@ export function subscribeSavedConfessions(uid, callback, onError) {
     where('ownerUid', '==', uid),
   )
 
+  const cache = new Map()
+
   return onSnapshot(
     savedQuery,
-    (snapshot) => resolveConfessionsFromRefs(snapshot.docs, callback, onError),
+    (snapshot) => resolveConfessionsFromRefs(snapshot.docs, cache, callback, onError),
     onError,
   )
 }
@@ -249,91 +286,51 @@ export function subscribeFavoriteConfessions(uid, callback, onError) {
     where('ownerUid', '==', uid),
   )
 
+  const cache = new Map()
+
   return onSnapshot(
     favoritesQuery,
-    (snapshot) => resolveConfessionsFromRefs(snapshot.docs, callback, onError),
+    (snapshot) => resolveConfessionsFromRefs(snapshot.docs, cache, callback, onError),
     onError,
   )
 }
 
-export function subscribeSocialNotifications(uid, callback, onError) {
+const NOTIFICATION_CONFESSION_LIMIT = 30
+const NOTIFICATION_LIMIT = 50
+
+/**
+ * Carga puntual (sin listeners permanentes) de la actividad recibida en tus confesiones más
+ * recientes. La página la vuelve a ejecutar al abrirse, al recuperar el foco y con "Actualizar".
+ */
+export async function loadSocialNotifications(uid) {
   const { db } = requireFirebase()
-  const ownershipQuery = query(
+  const ownership = await getDocs(query(
     collection(db, 'confessionAuthors'),
     where('authorUid', '==', uid),
-  )
+    orderBy('createdAt', 'desc'),
+    limit(NOTIFICATION_CONFESSION_LIMIT),
+  ))
 
-  let interactionUnsubscribers = []
+  const confessionIds = ownership.docs.map((item) => item.id)
+  if (confessionIds.length === 0) return []
 
-  const clearInteractionListeners = () => {
-    interactionUnsubscribers.forEach((unsubscribe) => unsubscribe())
-    interactionUnsubscribers = []
-  }
+  const activitySnapshots = await Promise.all(confessionIds.map((confessionId) => getDocs(query(
+    collection(db, 'socialActivity'),
+    where('confessionId', '==', confessionId),
+    where('status', '==', 'active'),
+  ))))
 
-  const unsubscribeOwnership = onSnapshot(
-    ownershipQuery,
-    async (snapshot) => {
-      clearInteractionListeners()
+  const recent = sortByCreatedDesc(activitySnapshots.flatMap((snapshot) => snapshot.docs.map(mapActivity)))
+    .slice(0, NOTIFICATION_LIMIT)
 
-      const confessionIds = snapshot.docs.map((item) => item.id).slice(0, 30)
-      if (confessionIds.length === 0) {
-        callback([])
-        return
-      }
+  // Solo se leen las confesiones que realmente aparecen en las notificaciones.
+  const labels = new Map()
+  await Promise.all([...new Set(recent.map((item) => item.confessionId))].map(async (confessionId) => {
+    const confessionSnapshot = await getDoc(doc(db, 'confessions', confessionId))
+    if (!confessionSnapshot.exists()) return
+    const data = confessionSnapshot.data()
+    labels.set(confessionId, data.recipientText || data.text?.slice(0, 70) || 'Tu confesión')
+  }))
 
-      const confessionLabels = new Map()
-      await Promise.all(confessionIds.map(async (confessionId) => {
-        const confessionSnapshot = await getDoc(doc(db, 'confessions', confessionId))
-        if (!confessionSnapshot.exists()) return
-        const data = confessionSnapshot.data()
-        confessionLabels.set(
-          confessionId,
-          data.recipientText || data.text?.slice(0, 70) || 'Tu confesión',
-        )
-      }))
-
-      const activityByConfession = new Map()
-
-      const publish = () => {
-        const notifications = []
-        activityByConfession.forEach((items, confessionId) => {
-          items.forEach((item) => {
-            notifications.push({
-              ...item,
-              confessionLabel: confessionLabels.get(confessionId) || 'Tu confesión',
-            })
-          })
-        })
-        callback(sortByCreatedDesc(notifications).slice(0, 50))
-      }
-
-      confessionIds.forEach((confessionId) => {
-        const activityQuery = query(
-          collection(db, 'socialActivity'),
-          where('confessionId', '==', confessionId),
-        )
-
-        const unsubscribe = onSnapshot(
-          activityQuery,
-          (activitySnapshot) => {
-            activityByConfession.set(
-              confessionId,
-              activitySnapshot.docs
-                .map(mapActivity)
-                .filter((item) => item.status === 'active'),
-            )
-            publish()
-          },
-          onError,
-        )
-        interactionUnsubscribers.push(unsubscribe)
-      })
-    },
-    onError,
-  )
-
-  return () => {
-    clearInteractionListeners()
-    unsubscribeOwnership()
-  }
+  return recent.map((item) => ({ ...item, confessionLabel: labels.get(item.confessionId) || 'Tu confesión' }))
 }

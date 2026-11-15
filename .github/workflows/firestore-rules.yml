@@ -1,0 +1,34 @@
+name: Firestore rules
+
+# Workflow independiente: no bloquea el CI principal. Se ejecuta al cambiar las reglas o el
+# código que escribe en Firestore, y también de forma manual.
+on:
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'src/services/**'
+      - 'tests/rules/**'
+  workflow_dispatch:
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # El emulador de Firestore requiere Java 21 o superior.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - run: npm ci
+
+      - name: Firestore rules tests (emulator)
+        run: npm run test:rules

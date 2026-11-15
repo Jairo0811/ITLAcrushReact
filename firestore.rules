@@ -354,7 +354,15 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.kind == 'reaction'
         && getAfter(/databases/$(database)/documents/socialActivity/$(ownerId)).data.confessionId == request.resource.data.confessionId;
 
-      allow read: if isActiveUser()
+      // En el primer "Me gusta" el cliente lee un documento aún inexistente.
+      // Sólo se permite GET de un id que corresponda al UID del solicitante.
+      allow get: if isActiveUser()
+        && (
+          (resource == null && ownerId.matches('.*_' + request.auth.uid))
+          || (resource != null && resource.data.ownerUid == request.auth.uid)
+        );
+
+      allow list: if isActiveUser()
         && resource.data.ownerUid == request.auth.uid;
 
       allow delete: if isActiveUser()
@@ -399,7 +407,14 @@ service cloud.firestore {
           || ownsConfession(request.resource.data.confessionId)
         );
 
-      allow read: if isActiveUser()
+      // El primer guardado consulta un id propio que aún no existe.
+      allow get: if isActiveUser()
+        && (
+          (resource == null && savedId.matches(request.auth.uid + '_.*'))
+          || (resource != null && resource.data.ownerUid == request.auth.uid)
+        );
+
+      allow list: if isActiveUser()
         && resource.data.ownerUid == request.auth.uid;
 
       allow delete: if isActiveUser()

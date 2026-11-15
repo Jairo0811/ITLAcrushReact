@@ -33,6 +33,9 @@ jobs:
       - name: Unit and contract tests
         run: npm test
 
+      - name: UI behaviour tests
+        run: npm run test:ui
+
       - name: Static accessibility gate
         run: npm run check:a11y
 

@@ -40,28 +40,23 @@ function mapConfession(snapshot) {
   }
 }
 
-export function subscribePublicConfessions(callback, onError) {
+export const FEED_PAGE_SIZE = 30
+export const FEED_MAX_ITEMS = 120
+
+// Requiere el índice compuesto (visibility, status, createdAt desc) ya definido en firestore.indexes.json.
+export function subscribePublicConfessions(callback, onError, pageSize = FEED_PAGE_SIZE) {
   const { db } = requireFirebase()
   const feedQuery = query(
     collection(db, 'confessions'),
     where('visibility', '==', 'public'),
     where('status', '==', 'active'),
+    orderBy('createdAt', 'desc'),
+    limit(Math.min(pageSize, FEED_MAX_ITEMS)),
   )
 
   return onSnapshot(
     feedQuery,
-    (snapshot) => {
-      const items = snapshot.docs
-        .map(mapConfession)
-        .sort((left, right) => {
-          const leftTime = left.createdAt?.getTime?.() ?? 0
-          const rightTime = right.createdAt?.getTime?.() ?? 0
-          return rightTime - leftTime
-        })
-        .slice(0, 50)
-
-      callback(items)
-    },
+    (snapshot) => callback(snapshot.docs.map(mapConfession)),
     onError,
   )
 }
