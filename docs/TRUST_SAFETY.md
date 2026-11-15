@@ -66,3 +66,7 @@ El control de frecuencia no equivale a un análisis de contenido: protección po
 Cada cuenta puede publicar un comentario cada **15 segundos**. El documento privado `commentRateLimits/{uid}` registra el ID del último comentario y la hora del servidor. El comentario, su registro privado de autoría y el límite se guardan en un único `writeBatch`.
 
 Las reglas exigen que el contador esté vinculado al comentario recién creado, rechazan escrituras consecutivas prematuras, prohíben borrar o manipular el registro y evitan que otros usuarios lo consulten. El servicio muestra el tiempo restante. Esta medida no inspecciona el contenido ni reemplaza revisión humana de reportes.
+
+## Eliminación de comentarios y protección de lectura
+
+Los comentarios `deleted` (retirados por su autor) y `removed` (moderados) no deben ser legibles desde clientes públicos o por el autor de la confesión. Se conservan para trazabilidad interna; únicamente el **autor del comentario** y los roles de moderación pueden leerlos. Las consultas públicas de comentarios, notificaciones y contadores exigen `status == 'active'` desde Firestore, no se limitan a filtrar resultados en el navegador. Incluye índices compuestos para que las consultas funcionen en el servicio real.

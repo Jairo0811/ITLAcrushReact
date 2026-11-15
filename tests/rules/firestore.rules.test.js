@@ -793,6 +793,27 @@ describe('contadores, comentarios y notificaciones (consultas del feed)', () => 
     expect(await assertSucceeds(getConfessionSocialCounts('priv'))).toEqual({ likeCount: 0, commentCount: 1 })
   })
 
+  it('impide leer comentarios eliminados o moderados a terceros, incluso al dueño de la confesión', async () => {
+    await assertFails(getDoc(doc(as(null), 'socialActivity', 'cm2')))
+    await assertFails(getDoc(doc(as('alice'), 'socialActivity', 'cm2')))
+    await assertFails(getDoc(doc(as('bob'), 'socialActivity', 'cm2')))
+    await assertSucceeds(getDoc(doc(as('carol'), 'socialActivity', 'cm2')))
+    await assertSucceeds(getDoc(doc(as('mod'), 'socialActivity', 'cm2')))
+
+    await seed((db) => updateDoc(doc(db, 'socialActivity', 'cm1'), { status: 'removed' }))
+    await assertFails(getDoc(doc(as(null), 'socialActivity', 'cm1')))
+    await assertFails(getDoc(doc(as('alice'), 'socialActivity', 'cm1')))
+    await assertSucceeds(getDoc(doc(as('bob'), 'socialActivity', 'cm1')))
+  })
+
+  it('prohíbe listas públicas de comentarios sin filtrar estado', async () => {
+    await assertFails(getDocs(query(
+      collection(as(null), 'socialActivity'),
+      where('confessionId', '==', 'pub'),
+      where('kind', '==', 'comment'),
+    )))
+  })
+
   it('el panel de comentarios solo recibe los activos', async () => {
     as(null)
     const comments = await assertSucceeds(once((ok, fail) => subscribeConfessionComments('pub', ok, fail)))

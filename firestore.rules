@@ -370,12 +370,25 @@ service cloud.firestore {
           )
         );
 
+      // Nunca divulgar texto de comentarios borrados/retirados al público
+      // ni a quien recibió el comentario. Sólo autor del comentario o moderación.
+      // Las consultas públicas deben filtrar status == 'active'.
       allow read: if (
-          exists(/databases/$(database)/documents/confessions/$(resource.data.confessionId))
-          && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.visibility == 'public'
-          && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.status == 'active'
+          resource.data.status == 'active'
+          && (
+            (
+              exists(/databases/$(database)/documents/confessions/$(resource.data.confessionId))
+              && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.visibility == 'public'
+              && get(/databases/$(database)/documents/confessions/$(resource.data.confessionId)).data.status == 'active'
+            )
+            || ownsConfession(resource.data.confessionId)
+          )
         )
-        || ownsConfession(resource.data.confessionId)
+        || (
+          resource.data.kind == 'comment'
+          && isActiveUser()
+          && get(/databases/$(database)/documents/commentAuthors/$(activityId)).data.authorUid == request.auth.uid
+        )
         || isModerator();
 
       allow update: if (

@@ -63,6 +63,7 @@ export async function getConfessionSocialCounts(confessionId) {
       activity,
       where('confessionId', '==', confessionId),
       where('kind', '==', 'reaction'),
+      where('status', '==', 'active'),
     )),
     getCountFromServer(query(
       activity,
@@ -85,6 +86,7 @@ export function subscribeConfessionComments(confessionId, callback, onError) {
     collection(db, 'socialActivity'),
     where('confessionId', '==', confessionId),
     where('kind', '==', 'comment'),
+    where('status', '==', 'active'),
   )
 
   return onSnapshot(
