@@ -447,7 +447,7 @@ describe('confessions: creación', () => {
     expect(rate.data().confessionId).toBe(first)
 
     await expect(createConfession({ ...actor('alice'), recipientText: '', message: 'Otra confesión' }))
-      .rejects.toThrow(/Espera \\d+ segundos/)
+      .rejects.toThrow(/Espera \d+ segundos/)
     await assertFails(rawConfession('alice'))
 
     await seed((db) => updateDoc(doc(db, 'postRateLimits', 'alice'), {
