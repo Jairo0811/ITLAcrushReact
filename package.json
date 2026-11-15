@@ -1,23 +1,25 @@
 {
   "name": "itla-crush-react",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0-rc.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:firestore": "npx firebase-tools deploy --only firestore",
-    "deploy:hosting": "npm run build && npx firebase-tools deploy --only hosting",
-    "deploy:prod": "npm run lint && npm run build && npx firebase-tools deploy --only firestore,hosting",
+    "deploy:firestore": "npm run preflight:prod && node scripts/confirm-production.mjs && npx firebase-tools deploy --only firestore --project itla-crush-cb9bd",
+    "deploy:hosting": "npm run preflight:prod && npm run build && node scripts/confirm-production.mjs && npx firebase-tools deploy --only hosting --project itla-crush-cb9bd",
+    "deploy:prod": "npm run preflight:prod && npm run audit:prod && npm run quality && node scripts/confirm-production.mjs && npx firebase-tools deploy --only firestore,hosting --project itla-crush-cb9bd",
     "test": "node --test tests/*.test.mjs",
     "test:ui": "vitest run",
     "test:rules": "npx firebase-tools emulators:exec --only firestore --project demo-itla-crush \"npx vitest run --config vitest.rules.config.js\"",
     "check:a11y": "node scripts/check-accessibility.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "quality": "npm run lint && npm test && npm run test:ui && npm run check:a11y && npm run build && npm run check:bundle",
-    "audit:prod": "node scripts/audit-production.mjs"
+    "audit:prod": "node scripts/audit-production.mjs",
+    "preflight:staging": "node scripts/release-preflight.mjs staging .env.staging",
+    "preflight:prod": "node scripts/release-preflight.mjs production .env.production"
   },
   "dependencies": {
     "firebase": "^12.18.0",
