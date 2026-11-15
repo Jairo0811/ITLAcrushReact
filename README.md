@@ -160,7 +160,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Publicación anónima o identificada | ✅ Implementada |
 | Trazabilidad interna de autor | ✅ Implementada sin exponer el UID en el documento público |
 | Historial de mis confesiones | ✅ Implementado |
-| Reglas e índices de Firestore | ✅ Definidos y desplegados |
+| Reglas e índices de Firestore | ✅ Definidos y probados en emulador; despliegue de staging/producción por verificar |
 | Dashboard y perfil | ✅ Implementados |
 | Centro de administración | ✅ Monitoreo, gestión de cuentas, roles, estados y auditoría implementados en `/admin` |
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
