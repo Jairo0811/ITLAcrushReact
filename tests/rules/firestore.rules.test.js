@@ -108,7 +108,14 @@ const CONFESSION = {
 // ---------------------------------------------------------------------------------------------
 // Utilidades
 // ---------------------------------------------------------------------------------------------
-const seed = (callback) => testEnv.withSecurityRulesDisabled((context) => callback(context.firestore()))
+// La API devuelve Promise<void>; conservamos el resultado de la lectura para las aserciones.
+async function seed(callback) {
+  let value
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    value = await callback(context.firestore())
+  })
+  return value
+}
 
 async function seedUsers() {
   await seed(async (db) => {
@@ -587,6 +594,14 @@ describe('reacciones', () => {
     expect(await assertSucceeds(toggleReaction({ confessionId: 'pub', ...actor('bob') }))).toBe(false)
   })
 
+  it('no permite consultar ids de reacción ajenos, aunque no existan', async () => {
+    const own = await assertSucceeds(getDoc(doc(as('bob'), 'reactionOwners', 'pub_bob')))
+    expect(own.exists()).toBe(false)
+    await assertFails(getDoc(doc(as('carol'), 'reactionOwners', 'pub_bob')))
+    await seedReaction('pub', 'bob')
+    await assertFails(getDoc(doc(as('carol'), 'reactionOwners', 'pub_bob')))
+  })
+
   it('control positivo: una reacción directa válida se acepta', async () => {
     await assertSucceeds(rawReaction('bob', 'pub'))
   })
@@ -742,6 +757,14 @@ describe('guardados', () => {
     as('bob')
     expect(await assertSucceeds(toggleSaved({ uid: 'bob', confessionId: 'pub' }))).toBe(true)
     expect(await assertSucceeds(toggleSaved({ uid: 'bob', confessionId: 'pub' }))).toBe(false)
+  })
+
+  it('no permite consultar ids de guardados ajenos, aunque no existan', async () => {
+    const own = await assertSucceeds(getDoc(doc(as('bob'), 'savedConfessions', 'bob_pub')))
+    expect(own.exists()).toBe(false)
+    await assertFails(getDoc(doc(as('carol'), 'savedConfessions', 'bob_pub')))
+    await seed((db) => setDoc(doc(db, 'savedConfessions', 'bob_pub'), { ownerUid: 'bob', confessionId: 'pub', createdAt: ts() }))
+    await assertFails(getDoc(doc(as('carol'), 'savedConfessions', 'bob_pub')))
   })
 
   it('control positivo: guardado directo válido', async () => {
