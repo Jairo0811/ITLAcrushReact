@@ -3,6 +3,13 @@ name: Firestore rules
 # Workflow independiente: no bloquea el CI principal. Se ejecuta al cambiar las reglas o el
 # código que escribe en Firestore, y también de forma manual.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'src/services/**'
+      - 'tests/rules/**'
   pull_request:
     paths:
       - 'firestore.rules'

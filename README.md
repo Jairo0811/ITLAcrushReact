@@ -9,7 +9,7 @@
 Aplicación web para publicar y consultar confesiones públicas, privadas o anónimas, desarrollada con **React**, **Vite** y **Google Firebase**.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Estado-En%20desarrollo-2563EB?style=for-the-badge" alt="Estado en desarrollo" />
+  <img src="https://img.shields.io/badge/Estado-RC%201.0.0-2563EB?style=for-the-badge" alt="Estado en desarrollo" />
   <img src="https://img.shields.io/github/last-commit/Jairo0811/ITLAcrushReact" alt="Último commit" />
   <img src="https://img.shields.io/github/repo-size/Jairo0811/ITLAcrushReact" alt="Tamaño del repositorio" />
   <img src="https://img.shields.io/github/languages/top/Jairo0811/ITLAcrushReact" alt="Lenguaje principal" />
@@ -21,7 +21,7 @@ Aplicación web para publicar y consultar confesiones públicas, privadas o anó
   </a>
 </p>
 
-> Estado actual: **Fases 1–4 y 5A–5C completadas**. ITLA Crush ya cuenta con administración, Social Core, quality gates automatizados, verificación técnica de accesibilidad, auditoría de dependencias y presupuestos de bundle. La Fase 5D está preparada para el despliegue en Firebase Hosting y su cierre depende del release real y del smoke test posterior.
+> Estado actual: **v1.0.0-rc.1 — candidata de publicación**. Están implementados el núcleo social, privacidad, seguridad, PWA, control anti-spam, CI y Lighthouse. En la PR de cierre se verificaron **102 pruebas de reglas Firestore**. **No está certificado el despliegue a Firebase real**: están pendientes staging, respaldo/recuperación, autorizaciones externas y smoke test (ver [issue #20](https://github.com/Jairo0811/ITLAcrushReact/issues/20)).
 
 </div>
 
@@ -160,7 +160,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | Publicación anónima o identificada | ✅ Implementada |
 | Trazabilidad interna de autor | ✅ Implementada sin exponer el UID en el documento público |
 | Historial de mis confesiones | ✅ Implementado |
-| Reglas e índices de Firestore | ✅ Definidos y desplegados |
+| Reglas e índices de Firestore | ✅ Definidos y probados en emulador; despliegue de staging/producción por verificar |
 | Dashboard y perfil | ✅ Implementados |
 | Centro de administración | ✅ Monitoreo, gestión de cuentas, roles, estados y auditoría implementados en `/admin` |
 | Trust & Safety | ✅ Reportes, ocultamiento y moderación implementados |
@@ -170,7 +170,7 @@ La política, alcance, controles implementados y verificaciones pendientes se do
 | CI | ✅ Audit, lint, tests, a11y, build, bundle budget y Lighthouse |
 | Pruebas automatizadas de comportamiento/contrato | ✅ Node Test Runner |
 | Optimización de bundle / code splitting | ✅ Vite 8/Rolldown + presupuesto automático |
-| Preparación para producción | 🚧 Fase 5D preparada; pendiente despliegue y smoke test |
+| Preparación para producción | ✅ Código candidato y preflight; ⏳ staging, respaldos, aprobación y smoke test pendientes |
 
 La aplicación ya cubre su flujo funcional principal. Los trabajos restantes se concentran en **hardening**, pruebas, accesibilidad verificable, optimización del bundle y preparación para despliegue/portafolio.
 
@@ -557,3 +557,19 @@ La reconstrucción mantiene el propósito académico del proyecto original y evo
 Proyecto inspirado en la propuesta final de **Programación WEB (SOF-011)** del Instituto Tecnológico de Las Américas, correspondiente al cuatrimestre **2018-C2**.
 
 La nueva implementación busca representar cómo habría quedado ITLA Crush si hubiese sido desarrollado completamente con **React y Firebase**, según las tecnologías indicadas para la asignatura.
+---
+
+## 📦 Versión candidata v1.0.0-rc.1
+
+El código incluye feed responsive, identidad y permisos, administración, moderación, confesiones públicas/privadas/anónimas, comentarios, reacciones, guardados, notificaciones, PWA y protección anti-spam de Firestore (**30 s por publicación y 15 s por comentario**). Los comentarios eliminados se mantienen inaccesibles para terceros incluso mediante consultas directas.
+
+Para validar un proyecto Firebase **staging distinto de producción**, sin desplegar ni mostrar credenciales:
+
+```powershell
+Copy-Item .env.staging.example .env.staging
+# Completar con la configuración real del entorno de pruebas
+npm run preflight:staging
+npm run build -- --mode staging
+```
+
+El despliegue productivo requiere un preflight y aprobación explícita. Ver [guía de despliegue](docs/PRODUCTION_DEPLOYMENT.md) y [seguimiento de release](https://github.com/Jairo0811/ITLAcrushReact/issues/20). **Un CI o una preview de Cloudflare no equivalen a verificar Firebase real.**
