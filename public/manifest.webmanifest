@@ -1,0 +1,21 @@
+{
+  "name": "ITLA Crush — Comunidad universitaria",
+  "short_name": "ITLA Crush",
+  "description": "Proyecto académico no oficial para compartir confesiones universitarias con control de privacidad.",
+  "id": "/home",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#16071f",
+  "theme_color": "#16071f",
+  "lang": "es-DO",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
