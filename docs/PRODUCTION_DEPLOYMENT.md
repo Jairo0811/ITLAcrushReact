@@ -108,25 +108,39 @@ Debe mostrar:
 itla-crush-cb9bd
 ```
 
-### Solo reglas e índices
+### Validación previa obligatoria
 
-```bash
-npm run deploy:firestore
+Completa `.env.production` y comprueba su proyecto sin publicar nada:
+
+```powershell
+npm run preflight:prod
 ```
 
-### Solo Hosting
+Antes de ejecutar el release deben constar en el [issue #20](https://github.com/Jairo0811/ITLAcrushReact/issues/20) pruebas de staging, autorización de los responsables, exportación/recuperación de datos y plan de reversión.
 
-```bash
-npm run deploy:hosting
-```
+La ejecución de producción requiere además **aprobación explícita de esta consola**:
 
-### Release completo
-
-```bash
+```powershell
+$env:ITLA_CRUSH_PROD_APPROVAL = "itla-crush-cb9bd"
 npm run deploy:prod
+Remove-Item Env:ITLA_CRUSH_PROD_APPROVAL
 ```
 
-Este último comando ejecuta lint, build y despliega Firestore + Hosting.
+`deploy:prod` ejecuta preflight, auditoría, calidad/build y después despliega Firestore + Hosting **siempre con --project itla-crush-cb9bd**. Los comandos individuales `deploy:hosting` y `deploy:firestore` usan las mismas barreras. No basarse en el proyecto por defecto de `.firebaserc`.
+
+### Proyecto staging aislado
+
+Crear otro proyecto Firebase independiente de producción y habilitar autenticación y Firestore; no compartir usuarios ni datos sensibles. Desde PowerShell:
+
+```powershell
+Copy-Item .env.staging.example .env.staging
+# Completar los valores de ese proyecto distinto de producción
+npm run preflight:staging
+npm run build -- --mode staging
+npx firebase-tools deploy --only firestore,hosting --project "ID-REAL-STAGING"
+```
+
+Reemplaza `ID-REAL-STAGING` por el ID auténtico del proyecto de pruebas y verifica su nombre antes de aceptar el despliegue. Debes probar roles, publicaciones, reacciones, comentarios, privacidad y límites con cuentas descartables. **El preflight no sustituye estas comprobaciones reales.**
 
 ## 6. URLs esperadas
 
@@ -189,7 +203,16 @@ Firebase Hosting conserva historial de releases desde Firebase Console. Ante un 
 3. Ejecuta rollback desde Firebase Console o vuelve a desplegar un commit estable.
 4. Si el problema pertenece a reglas de Firestore, restaura el archivo versionado del commit estable y vuelve a desplegar `firestore`.
 
-## 10. Criterio de cierre de Fase 5D
+## 10. Verificaciones específicas del release candidate
+
+- [ ] Consultar como invitado solo comentarios activos; `deleted` y `removed` deben denegarse incluso por ID directo.
+- [ ] Comprobar índices `socialActivity` desplegados, sin errores `FAILED_PRECONDITION`.
+- [ ] Confirmar que `postRateLimits` (30 s) y `commentRateLimits` (15 s) no pueden modificarse ni leerse por otros usuarios.
+- [ ] Ejecutar pruebas de accesibilidad con lectores de pantalla reales, instalación PWA y página offline.
+- [ ] Verificar y documentar exportación y restauración de Firestore, alertas de costos y rollback.
+- [ ] Obtener autorización documentada de lanzamiento; no confundir CI, emulador o Cloudflare Pages con Firebase real.
+
+## 11. Criterio de cierre de Fase 5D
 
 La fase se considera cerrada cuando:
 
