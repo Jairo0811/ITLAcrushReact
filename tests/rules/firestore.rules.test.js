@@ -189,6 +189,9 @@ function rawConfession(uid, overrides = {}, { authorUid = uid, withAuthor = true
   const batch = writeBatch(db)
   batch.set(ref, { ...CONFESSION, ...overrides, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   if (withAuthor) batch.set(doc(db, 'confessionAuthors', ref.id), { authorUid, createdAt: serverTimestamp() })
+  batch.set(doc(db, 'postRateLimits', uid), {
+    confessionId: ref.id, lastCreatedAt: serverTimestamp(),
+  })
   return batch.commit()
 }
 
@@ -419,6 +422,10 @@ describe('confessions: creación', () => {
     const saved = await seed((db) => getDoc(doc(db, 'confessions', identified)))
     expect(saved.data()).toMatchObject({ isAnonymous: false, authorDisplayName: 'Usuario alice', authorProgram: 'desarrollo-software' })
 
+    // La segunda publicación simula que transcurrió el período anti-spam.
+    await seed((db) => updateDoc(doc(db, 'postRateLimits', 'alice'), {
+      lastCreatedAt: Timestamp.fromMillis(Date.now() - 31_000),
+    }))
     await assertSucceeds(createConfession({ ...actor('alice'), recipientText: '', message: 'Solo yo', visibility: 'private' }))
   })
 
@@ -429,6 +436,35 @@ describe('confessions: creación', () => {
     await assertFails(createConfession({ ...actor('outsider'), recipientText: '', message: 'Hola' }))
     as(null)
     await assertFails(createConfession({ user: { uid: 'x' }, profile: null, recipientText: '', message: 'Hola' }))
+  })
+
+  it('limita publicaciones repetidas durante 30 segundos y permite reintentar después', async () => {
+    as('alice')
+    const first = await assertSucceeds(createConfession({
+      ...actor('alice'), recipientText: '', message: 'Primera confesión',
+    }))
+    const rate = await seed((db) => getDoc(doc(db, 'postRateLimits', 'alice')))
+    expect(rate.data().confessionId).toBe(first)
+
+    await expect(createConfession({ ...actor('alice'), recipientText: '', message: 'Otra confesión' }))
+      .rejects.toThrow(/Espera \d+ segundos/)
+    await assertFails(rawConfession('alice'))
+
+    await seed((db) => updateDoc(doc(db, 'postRateLimits', 'alice'), {
+      lastCreatedAt: Timestamp.fromMillis(Date.now() - 31_000),
+    }))
+    await assertSucceeds(createConfession({ ...actor('alice'), recipientText: '', message: 'Segunda válida' }))
+  })
+
+  it('no se puede alterar, borrar ni consultar el límite de otra cuenta', async () => {
+    const asAlice = as('alice')
+    await assertFails(setDoc(doc(asAlice, 'postRateLimits', 'alice'), {
+      confessionId: 'inventada', lastCreatedAt: serverTimestamp(),
+    }))
+    await assertFails(getDoc(doc(as('bob'), 'postRateLimits', 'alice')))
+    await assertFails(getDocs(collection(as('bob'), 'postRateLimits')))
+    await assertSucceeds(rawConfession('alice'))
+    await assertFails(deleteDoc(doc(as('alice'), 'postRateLimits', 'alice')))
   })
 
   it('control positivo: una escritura directa válida se acepta', async () => {

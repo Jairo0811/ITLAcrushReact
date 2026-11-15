@@ -140,6 +140,37 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function validPostRate(uid, confessionId) {
+      return getAfter(/databases/$(database)/documents/postRateLimits/$(uid)).data.confessionId == confessionId
+        && getAfter(/databases/$(database)/documents/postRateLimits/$(uid)).data.lastCreatedAt == request.time;
+    }
+
+    function validRateLimitWrite(uid) {
+      return isActiveUser()
+        && isOwner(uid)
+        && request.resource.data.keys().hasOnly(['confessionId', 'lastCreatedAt'])
+        && request.resource.data.keys().hasAll(['confessionId', 'lastCreatedAt'])
+        && request.resource.data.confessionId is string
+        && request.resource.data.lastCreatedAt == request.time
+        && getAfter(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.status == 'active'
+        && getAfter(/databases/$(database)/documents/confessions/$(request.resource.data.confessionId)).data.createdAt == request.time
+        && getAfter(/databases/$(database)/documents/confessionAuthors/$(request.resource.data.confessionId)).data.authorUid == uid;
+    }
+
+    match /postRateLimits/{uid} {
+      // Control anti-spam server-side; el cliente no puede modificar ni borrar su historial.
+      allow get: if isActiveUser() && isOwner(uid);
+      allow list: if false;
+
+      allow create: if validRateLimitWrite(uid);
+
+      allow update: if validRateLimitWrite(uid)
+        && request.resource.data.confessionId != resource.data.confessionId
+        && resource.data.lastCreatedAt <= request.time - duration.value(30, 's');
+
+      allow delete: if false;
+    }
+
     match /confessions/{confessionId} {
       allow create: if isActiveUser()
         && request.resource.data.keys().hasOnly([
@@ -173,7 +204,8 @@ service cloud.firestore {
             && isValidProgram(request.resource.data.authorProgram)
           )
         )
-        && getAfter(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid;
+        && getAfter(/databases/$(database)/documents/confessionAuthors/$(confessionId)).data.authorUid == request.auth.uid
+        && validPostRate(request.auth.uid, confessionId);
 
       allow read: if (
           resource.data.visibility == 'public'

@@ -40,6 +40,7 @@ function mapConfession(snapshot) {
   }
 }
 
+export const POST_COOLDOWN_SECONDS = 30
 export const FEED_PAGE_SIZE = 30
 export const FEED_MAX_ITEMS = 120
 
@@ -113,6 +114,15 @@ export async function createConfession({
   const { db } = requireFirebase()
   const confessionRef = doc(collection(db, 'confessions'))
   const ownerRef = doc(db, 'confessionAuthors', confessionRef.id)
+  const rateRef = doc(db, 'postRateLimits', user.uid)
+  const rateSnapshot = await getDoc(rateRef)
+  if (rateSnapshot.exists()) {
+    const lastCreatedAt = rateSnapshot.data().lastCreatedAt?.toMillis?.()
+    if (typeof lastCreatedAt === 'number') {
+      const remaining = POST_COOLDOWN_SECONDS - (Date.now() - lastCreatedAt) / 1000
+      if (remaining > 0) throw new Error(`Espera ${Math.ceil(remaining)} segundos antes de publicar otra confesión.`)
+    }
+  }
   const batch = writeBatch(db)
 
   batch.set(confessionRef, {
@@ -134,6 +144,8 @@ export async function createConfession({
     authorUid: user.uid,
     createdAt: serverTimestamp(),
   })
+
+  batch.set(rateRef, { confessionId: confessionRef.id, lastCreatedAt: serverTimestamp() })
 
   await batch.commit()
   return confessionRef.id
