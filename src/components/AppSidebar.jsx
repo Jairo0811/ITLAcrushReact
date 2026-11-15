@@ -12,6 +12,7 @@ export default function AppSidebar() {
     ['/notificaciones', 'bell', 'Notificaciones'],
     ['/guardados', 'bookmark', 'Guardados'],
     ['/favoritos', 'heart', 'Favoritos'],
+    ['/ocultas', 'eye-slash', 'Ocultas'],
     ['/perfil', 'circle-user', 'Mi Perfil'],
     ...(profile?.role === 'moderator' || profile?.role === 'admin' ? [['/moderacion', 'flag', 'Moderación']] : []),
     ...(profile?.role === 'admin' ? [['/admin', 'gauge-high', 'Administración']] : []),

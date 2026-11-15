@@ -4033,3 +4033,19 @@ button:disabled {
 .onboarding-steps__item { display: flex; align-items: center; gap: 10px; min-height: 44px; color: #e9dcf3; }
 .onboarding-steps__item a { color: #ff78bd; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .onboarding-steps__item--done { color: #7be0a8; }
+
+/* Recuperación de publicaciones ocultas y carga progresiva del feed */
+.hidden-confession-list { display: grid; gap: 12px; list-style: none; padding: 0; margin: 0; }
+.hidden-confession-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px; }
+.hidden-confession-row p { margin: 0; overflow-wrap: anywhere; color: #e9dcf3; }
+.hidden-confession-row .button { flex: none; min-height: 44px; }
+@media (max-width: 520px) { .hidden-confession-row { align-items: stretch; flex-direction: column; } }
+.feed-skeletons { display: grid; gap: 14px; }
+.feed-skeleton { display: grid; grid-template-columns: 42px 1fr; gap: 12px; padding: 22px; }
+.feed-skeleton__avatar, .feed-skeleton__line { border-radius: 10px; background: rgba(255,255,255,.1); animation: feed-shimmer 1.5s ease-in-out infinite alternate; }
+.feed-skeleton__avatar { grid-row: span 3; height: 42px; border-radius: 50%; }
+.feed-skeleton__line { height: 15px; }
+.feed-skeleton__line--short { width: 42%; }
+.feed-infinite-sentinel { height: 1px; }
+@keyframes feed-shimmer { to { background: rgba(255,255,255,.22); } }
+@media (prefers-reduced-motion: reduce) { .feed-skeleton__avatar, .feed-skeleton__line { animation: none; } }

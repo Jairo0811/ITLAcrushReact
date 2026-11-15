@@ -177,6 +177,7 @@ export default function ProfilePage() {
           <h2>Ayuda y seguridad</h2>
           <div className="profile-links">
             <Link to="/normas"><Icon name="people-group" /> Normas de la comunidad</Link>
+            <Link to="/ocultas"><Icon name="eye-slash" /> Publicaciones ocultas</Link>
             <Link to="/privacidad"><Icon name="user-shield" /> Privacidad</Link>
             <Link to="/terminos"><Icon name="file-lines" /> Términos de uso</Link>
           </div>

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 const mocks = vi.hoisted(() => {
@@ -70,6 +70,8 @@ vi.mock('../../src/services/trustSafetyService.js', () => ({
   moderateConfession: vi.fn(() => Promise.resolve()),
   updateReportStatus: vi.fn(() => Promise.resolve()),
   subscribeHiddenConfessionIds: vi.fn((_uid, callback) => { callback(new Set()); return mocks.noop }),
+  subscribeHiddenConfessions: vi.fn((_uid, callback) => { callback([]); return mocks.noop }),
+  unhideConfession: vi.fn(() => Promise.resolve()),
   subscribeModerationReports: vi.fn((callback) => {
     callback([{
       id: 'r1',
@@ -432,6 +434,41 @@ describe('fase 1: interfaz de red social', () => {
     expect(password.type).toBe('text')
     expect(screen.getByRole('button', { name: 'Ocultar contraseña' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByPlaceholderText('tu.correo@itla.edu.do')).toBeTruthy()
+  })
+})
+
+describe('fase final: feed y publicaciones ocultas', () => {
+  it('permite recuperar una publicación oculta sin revelar datos privados', async () => {
+    trustSafety.subscribeHiddenConfessions.mockImplementationOnce((_uid, callback) => {
+      callback([{ id: 'c7', preview: 'Una publicación oculta' }, { id: 'c8', preview: '' }])
+      return mocks.noop
+    })
+    signedIn()
+    renderAt('/ocultas')
+    expect(await screen.findByText('Una publicación oculta')).toBeTruthy()
+    expect(screen.getByText('Esta publicación ya no está disponible para leerla.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a mostrar publicación c7' }))
+    await waitFor(() => expect(trustSafety.unhideConfession)
+      .toHaveBeenCalledWith({ confessionId: 'c7', ownerUid: 'u1' }))
+    expect(screen.queryByText('Una publicación oculta')).toBeNull()
+  })
+
+  it('carga más confesiones automáticamente sin quitar la alternativa manual', async () => {
+    const observed = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback) { this.callback = callback }
+      observe(node) { observed.push({ node, callback: this.callback }) }
+      disconnect() {}
+    })
+    signedIn()
+    renderAt('/app')
+    await screen.findAllByText('Una confesión de prueba')
+    const sentinel = observed.find(({ node }) => node.dataset.feedSentinel === 'true')
+    expect(sentinel).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Cargar más confesiones' })).toBeTruthy()
+    act(() => sentinel.callback([{ isIntersecting: true }]))
+    await waitFor(() => expect(confessionService.subscribePublicConfessions)
+      .toHaveBeenCalledWith(expect.any(Function), expect.any(Function), 60))
   })
 })
 
