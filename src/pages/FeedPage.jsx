@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useNotifications } from '../context/NotificationsContext.jsx'
@@ -22,6 +22,7 @@ export default function FeedPage() {
   const [tab, setTab] = useState('recent')
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
   const [safetyError, setSafetyError] = useState('')
+  const loadMoreTarget = useRef(null)
   const { items: publicConfessions, loading, error, hasMore, loadingMore, loadMore } = usePublicConfessions()
   const { user, profile } = useAuth()
   const { unreadCount } = useNotifications()
@@ -55,6 +56,21 @@ export default function FeedPage() {
     () => filterConfessions(publicConfessions, { hiddenIds, searchText, topic: selectedTopic, program: selectedProgram }),
     [hiddenIds, publicConfessions, searchText, selectedTopic, selectedProgram],
   )
+
+  // La carga automática es progresiva; el botón manual permanece disponible sin IntersectionObserver.
+  useEffect(() => {
+    if (loading || loadingMore || !hasMore || hasFeedFilters || tab !== 'recent') return undefined
+    if (typeof IntersectionObserver === 'undefined' || !loadMoreTarget.current) return undefined
+    let requested = false
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting && !requested) {
+        requested = true
+        loadMore()
+      }
+    }, { rootMargin: '280px 0px' })
+    observer.observe(loadMoreTarget.current)
+    return () => observer.disconnect()
+  }, [hasFeedFilters, hasMore, loadMore, loading, loadingMore, tab])
 
   const chooseTopic = (topic) => {
     setSelectedTopic(topic)
@@ -221,7 +237,19 @@ export default function FeedPage() {
             )}
             <div className="feed-list" hidden={tab === 'trending'}>
               {safetyError && <div className="auth-message auth-message--error" role="alert">{safetyError}</div>}
-              {loading && <div className="glass-card empty-state" role="status" aria-live="polite">Cargando confesiones…</div>}
+              {loading && (
+                <div className="feed-skeletons" role="status" aria-live="polite" aria-label="Cargando confesiones">
+                  <span className="sr-only">Cargando confesiones…</span>
+                  {[1, 2, 3].map((skeleton) => (
+                    <div key={skeleton} className="glass-card feed-skeleton" aria-hidden="true">
+                      <span className="feed-skeleton__avatar" />
+                      <span className="feed-skeleton__line feed-skeleton__line--short" />
+                      <span className="feed-skeleton__line" />
+                      <span className="feed-skeleton__line" />
+                    </div>
+                  ))}
+                </div>
+              )}
               {!loading && error && <div className="glass-card empty-state" role="alert">{error}</div>}
               {!loading && !error && visibleConfessions.length === 0 && (
                 <div className="glass-card empty-state empty-state--actionable">
@@ -254,6 +282,7 @@ export default function FeedPage() {
                   {loadingMore ? 'Cargando…' : 'Cargar más confesiones'}
                 </button>
               )}
+              {hasMore && <div className="feed-infinite-sentinel" data-feed-sentinel="true" ref={loadMoreTarget} aria-hidden="true" />}
             </div>
           </div>
 

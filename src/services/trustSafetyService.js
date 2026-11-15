@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   limit,
@@ -78,6 +79,53 @@ export function subscribeHiddenConfessionIds(ownerUid, callback, onError) {
     (snapshot) => callback(new Set(snapshot.docs.map((item) => item.data().confessionId))),
     onError,
   )
+}
+
+/** Retira sólo el ocultamiento personal; nunca modifica la confesión. */
+export async function unhideConfession({ confessionId, ownerUid }) {
+  if (!confessionId || !ownerUid) throw new Error('No pudimos identificar la publicación o tu cuenta.')
+  const { db } = requireFirebase()
+  await deleteDoc(doc(db, 'hiddenConfessions', `${ownerUid}_${confessionId}`))
+}
+
+/**
+ * Sólo lee el texto de una confesión si las reglas actuales permiten verlo.
+ * Las retiradas, privadas ajenas o borradas se muestran sin contenido y se pueden recuperar.
+ */
+export function subscribeHiddenConfessions(ownerUid, callback, onError) {
+  const { db } = requireFirebase()
+  const hiddenQuery = query(
+    collection(db, 'hiddenConfessions'),
+    where('ownerUid', '==', ownerUid),
+    limit(200),
+  )
+  let active = true
+  let revision = 0
+
+  const unsubscribe = onSnapshot(hiddenQuery, (snapshot) => {
+    const currentRevision = ++revision
+    Promise.all(snapshot.docs.map(async (hidden) => {
+      const { confessionId } = hidden.data()
+      let preview = ''
+      try {
+        const confession = await getDoc(doc(db, 'confessions', confessionId))
+        if (confession.exists()) preview = confession.data().text?.slice(0, 180) || ''
+      } catch (error) {
+        // Un contenido retirado no debe quedar expuesto sólo por haberlo ocultado antes.
+        if (error.code !== 'permission-denied') throw error
+      }
+      return { id: confessionId, preview }
+    })).then((items) => {
+      if (active && currentRevision === revision) callback(items)
+    }).catch((error) => {
+      if (active && currentRevision === revision) onError?.(error)
+    })
+  }, onError)
+
+  return () => {
+    active = false
+    unsubscribe()
+  }
 }
 
 export function subscribeModerationReports(callback, onError) {

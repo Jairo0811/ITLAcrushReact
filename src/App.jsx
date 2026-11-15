@@ -8,6 +8,7 @@ import AuthPage from './pages/AuthPage.jsx'
 import CreateConfessionPage from './pages/CreateConfessionPage.jsx'
 import DemoPage from './pages/DemoPage.jsx'
 import FeedPage from './pages/FeedPage.jsx'
+import HiddenConfessionsPage from './pages/HiddenConfessionsPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import MyConfessionsPage from './pages/MyConfessionsPage.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -33,6 +34,7 @@ const PAGE_TITLES = {
   '/notificaciones': 'Notificaciones',
   '/guardados': 'Guardados',
   '/favoritos': 'Favoritos',
+  '/ocultas': 'Publicaciones ocultas',
   '/perfil': 'Mi perfil',
   '/moderacion': 'Moderación',
   '/admin': 'Administración',
@@ -85,6 +87,7 @@ export default function App() {
           <Route path="/notificaciones" element={<NotificationsPage />} />
           <Route path="/guardados" element={<SocialCollectionPage mode="saved" />} />
           <Route path="/favoritos" element={<SocialCollectionPage mode="favorites" />} />
+          <Route path="/ocultas" element={<HiddenConfessionsPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
 
